@@ -14,6 +14,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(req: Request) {
+  console.log("hit POST endpoint", req);
   const { address, coord, radius } = await req.json();
   console.log(address, coord);
   let location;
