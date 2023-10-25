@@ -1,6 +1,6 @@
 import { getIntersectSuburbs, supabaseClient } from "@/clients/supabase";
-import { addressToCoord } from "@/utils/location";
 import { NextResponse } from "next/server";
+import { addressToCoord } from "./utils";
 
 export async function GET(request: Request) {
   console.log("location Get");
