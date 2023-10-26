@@ -42,3 +42,12 @@ export async function getIntersectSuburbs(
   }
   return "location provided is invalid, are you sure it's in AU?";
 }
+
+export async function invokeSupabaseFunction(functionName: string, args: any) {
+  const { data, error } = await supabaseClient.rpc(functionName, args);
+  if (error) {
+    console.error("error on supabase function ", functionName, error);
+    return null;
+  }
+  return data;
+}

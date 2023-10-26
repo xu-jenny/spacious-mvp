@@ -1,5 +1,5 @@
 import { openaiChat } from "@/clients/openai";
-import { supabaseClient } from "@/clients/supabase";
+import { invokeSupabaseFunction, supabaseClient } from "@/clients/supabase";
 
 function parseRelevantTagsResponse(inputString: string) {
   var parts = inputString.toLowerCase().split("primary:");
@@ -41,27 +41,37 @@ export async function fuzzyMatch(keywords: string) {
 
 export async function semanticMatchTags(
   primaryTag: string,
-  tangentialTags: string[]
+  tangentialTags: string[],
+  locations: String[],
+  match_threshold = 0.5,
+  match_count = 10
 ) {
-  const { data, error } = await supabaseClient.rpc("get_intersect_suburbs", {
-    lon,
-    lat,
-    radius,
-  });
-  if (error != null) {
-    console.error("error executing supabase func get_intersect_suburbs", error);
-    return "server error, please try again later";
-  }
-  if (data != null && data.length > 0) {
-    let states = new Set();
-    let suburbs: String[] = [];
-    data.forEach((obj: { suburb: String; state: String }) => {
-      states.add(obj.state);
-      suburbs.push(obj.suburb);
+  const primaryTagPromise = async () => {
+    return await invokeSupabaseFunction("primary_tag_similiarity", {
+      primaryTag,
+      locations,
+      match_threshold,
+      match_count,
     });
-    return { suburbs, states };
-  }
-  return "location provided is invalid, are you sure it's in AU?";
+  };
+
+  const tangentialTagPromise = async () => {
+    return await invokeSupabaseFunction("tangential_tag_similiarity", {
+      tangentialTags,
+      locations,
+      match_threshold,
+      match_count,
+    });
+  };
+
+  const result = await Promise.all([
+    primaryTagPromise(),
+    tangentialTagPromise(),
+  ]);
+  return {
+    primaryTagData: result[0],
+    tangentialTagData: result[1],
+  };
 }
 
 export const TAG_GROUP_PROMPT = `Your role is an environmental scientist. Based on a query, your objective is to identify:
