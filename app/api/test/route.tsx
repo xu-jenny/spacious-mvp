@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
-import { addressToCoord } from "../location/utils";
+import { addressToCoord, getLocationFromPrompt } from "../location/utils";
 import { fuzzyMatch, relevantTags } from "./utils";
 import { invokeSupabaseFunction, supabaseClient } from "@/clients/supabase";
+import { openai } from "@/clients/openai";
+import { primary_tag_fts, tangential_tag_fts } from "../keyword/utils";
+import { post } from "@/utils/http";
 
 export async function GET(req: Request) {
   let embedding = [
@@ -1665,12 +1668,57 @@ export async function GET(req: Request) {
     0.68310546875,
   ];
 
-  let { data, error } = await supabaseClient.rpc("match_tag", {
-    query_embedding: embedding,
-    match_threshold: 0.9,
-    match_count: 10,
-  });
-  console.log(error);
+  // const { query } = await req.json();
+  // let data = await getLocationFromPrompt(query);
+  // let response = await openai.embeddings.create({
+  //   model: "text-embedding-ada-002",
+  //   input: "topography",
+  // });
+  // let openEmbed = response["data"][0]["embedding"];
+  //   let { data, error } = await supabaseClient.rpc("match_tag", {
+  //     query_embedding: embedding,
+  //     locations: "Melbourne,Syndney",
+  //     match_threshold: 0.9,
+  //     match_count: 10,
+  //   });
+  //   console.log(error);
+  //   console.log(data);
+  // let data = await primary_tag_fts(
+  //   ["water quality", "soil type", "land use"],
+  //   ["Melbourne", "Auburn"]
+  // );
+
+  let tags = [
+    "groundwater wells",
+    "industrial discharges",
+    "land use",
+    "soil properties",
+  ];
+  let tagstr = tags.join(",");
+  console.log(tagstr);
+  let data = await tangential_tag_fts(tagstr, "melbourne");
   console.log(data);
+  // let API_URL =
+
+  //   "https://api-inference.huggingface.co/models/BAAI/bge-large-en-v1.5";
+  // let API_URL = "https://api-inference.huggingface.co/models/BAAI/llm-embedder";
+  // let headers = {
+  //   Authorization: "Bearer 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",
+  //   "Content-Type": "application/json",
+  // };
+  // let payload = {
+  //   inputs: "Ground water elevation",
+  // };
+  // let data = await fetch(API_URL, {
+  //   method: "POST",
+  //   headers,
+  //   body: JSON.stringify(payload),
+  // })
+  //   .then((response) => response.json())
+  //   .catch((error) => {
+  //     console.error(error);
+  //   });
+
+  //   console.log(data);
   return NextResponse.json({ data, status: 200 });
 }

@@ -8,11 +8,9 @@ function parseRelevantTagsResponse(inputString: string) {
     console.error("Error: 'Primary:' not found in the input string");
     return null;
   } else {
-    var primaryTag = parts[1].trim();
-
-    var tangentialParts = parts[0].toLowerCase().split("tangential:");
-
-    if (tangentialParts.length !== 2) {
+    var tangentialParts = parts[1].toLowerCase().split("tangential:");
+    var primaryTag = parts[1].toLowerCase().split("tangential:")[0].trim();
+    if (tangentialParts.length < 1) {
       console.error("Error: 'Tangential:' not found in the input string");
       return { primaryTag };
     } else {
@@ -24,44 +22,61 @@ function parseRelevantTagsResponse(inputString: string) {
     }
   }
 }
+
 export async function relevantTags(query: string) {
   let response = await openaiChat(TAG_GROUP_PROMPT, query);
+  console.log("openai TAG Response: ", response);
+  // let response =
+  //   "Primary: PFAS\n" +
+  //   "Tangential: water quality, soil properties, groundwater flow";
   return parseRelevantTagsResponse(response);
 }
 
-export async function fuzzyMatch(keywords: string) {
-  let query = keywords.split(" ").join("|");
-  const { data, error } = await supabaseClient.rpc("fts", { query });
-  console.log(data, error);
+export async function tangential_tag_fts(queries: string, locations: string) {
+  const { data, error } = await supabaseClient.rpc("tangential_tag_fts", {
+    queries, //: "water quality,soil type,land use",
+    locations, // : "Melbourne,Syndney",
+  });
   if (error != null) {
-    console.error("error invoking fts ", error);
+    console.error("error invoking tangential_tag_fts ", error);
   }
   return data;
+}
+
+export async function primary_tag_fts(query: string, locations: string) {
+  const { data, error } = await supabaseClient.rpc("tag_title_fts", {
+    query, //: "land use",
+    locations, //: "Melbourne,Syndney,NSW",
+  });
+  if (error != null) {
+    console.error("error invoking tangential_tag_fts ", error);
+  }
+  return data;
+}
+
+function getEmbedding(text: string) {
+  // TODO
 }
 
 export async function semanticMatchTags(
   primaryTag: string,
   tangentialTags: string[],
-  locations: String[],
+  locations: string[],
   match_threshold = 0.5,
   match_count = 10
 ) {
+  let primaryTagEmbed = getEmbedding(primaryTag);
+
   const primaryTagPromise = async () => {
-    return await invokeSupabaseFunction("primary_tag_similiarity", {
-      primaryTag,
-      locations,
-      match_threshold,
-      match_count,
+    return await supabaseClient.rpc("match_tag", {
+      query_embedding: primaryTagEmbed,
+      match_threshold: 0.9,
+      match_count: 10,
     });
   };
 
   const tangentialTagPromise = async () => {
-    return await invokeSupabaseFunction("tangential_tag_similiarity", {
-      tangentialTags,
-      locations,
-      match_threshold,
-      match_count,
-    });
+    return await tangential_tag_fts(tangentialTags, locations);
   };
 
   const result = await Promise.all([

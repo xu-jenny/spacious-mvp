@@ -18,7 +18,7 @@ export const openaiChat = async (systemPrompt: string, message: string) => {
         { role: "user", content: message },
       ],
     });
-    return result["data"]["choices"][0]["text"].trim();
+    return result["choices"][0]["message"]["content"];
   } catch (e) {
     console.error("Error invoking openaiComplete", e);
   }

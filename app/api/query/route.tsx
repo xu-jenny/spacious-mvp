@@ -1,75 +1,105 @@
-import {
-  getIntersectSuburbs,
-  invokeSupabaseFunction,
-  supabaseClient,
-} from "@/clients/supabase";
+import { getIntersectSuburbs } from "@/clients/supabase";
 import { NextResponse } from "next/server";
-import { addressToCoord } from "../location/utils";
+import { addressToCoord, getLocationFromPrompt } from "../location/utils";
 import {
-  fuzzyMatch,
+  primary_tag_fts,
   relevantTags,
-  semanticMatchTags,
-} from "../relevance/utils";
+  tangential_tag_fts,
+} from "../keyword/utils";
 
 export async function POST(req: Request) {
-  console.log("hit query POST endpoint", req);
-  const { address, coord, radius, query, type } = await req.json();
+  console.log("hit query POST endpoint");
+  let { address, coord, radius, query, type } = await req.json();
 
-  if (type == "keyword") {
-    let result = await fuzzyMatch(query);
-    return NextResponse.json({ data: result, status: 200 });
-  }
   let location;
-  if (coord != null) {
-    location = coord;
-  } else if (address != null) {
-    location = await addressToCoord(address);
-  }
-  console.log("location", location);
-  let resp = await getIntersectSuburbs(
-    location.lon,
-    location.lat,
-    radius == null ? 0 : radius
-  );
-  console.log(resp, typeof resp);
-  if (resp != null && typeof resp != "string") {
-    let { suburbs, states } = resp;
-    // get relevant tags
-    let tags = await relevantTags(query);
-    if (tags != null && "primaryTag" in tags) {
-      if ("tangentialTags" in tags) {
-        let result = await semanticMatchTags(
-          tags["primaryTag"],
-          tags["tangentialTags"]!,
-          suburbs
-        );
-        return {
-          primaryData: result["primaryTagData"],
-          tangentialData: result["tangentialTagData"],
-          status: 200,
-        };
-      } else {
-        console.log("LLM did not generate tangential tags ", tags);
-        let result = await invokeSupabaseFunction("primary_tag_similiarty", {
-          primaryTag: tags.primaryTag,
-          match_threshold: 0.5,
-          match_count: 10,
-        });
-        return {
-          primaryData: result,
-          status: 200,
-        };
-      }
+  if (address == null && coord == null) {
+    let locData = await getLocationFromPrompt(query);
+    if (locData?.radius != null && radius == null) {
+      radius = locData?.radius;
     }
-    return NextResponse.json({
-      error: "We were not able to find relevant dataset tags for your query",
-      status: 200,
-    });
+    if (locData?.address != null) {
+      location = await addressToCoord(locData.address);
+    } else if (locData?.latitude != null && locData?.longitude != null) {
+      location = { lat: locData.latitude, lon: locData.longitude };
+    } else if (locData?.location != null) {
+      location = locData.location;
+    }
   } else {
+    if (coord != null) {
+      location = coord;
+    } else if (address != null) {
+      location = await addressToCoord(address);
+    }
+  }
+  console.log("location parsed:", location, radius);
+  if (location == null) {
     return NextResponse.json({
       error:
         "We were not able to extract a location from the provided query. Are you sure the location is in Australia?",
       status: 204,
     });
   }
+
+  let locations;
+  if (location.lon != null && location.lat != null) {
+    let resp = await getIntersectSuburbs(
+      location.lon,
+      location.lat,
+      radius == null ? 0 : radius * 1000
+    );
+    if (resp != null && typeof resp != "string") {
+      let { suburbs, states } = resp;
+      locations = [...suburbs, ...Array.from(states.values())].join(",");
+    } else {
+      return NextResponse.json({
+        error:
+          "We were not able to extract a location from the provided query. Are you sure the location is in Australia?",
+        status: 204,
+      });
+    }
+  } else {
+    let stateMap = {
+      Victoria: "VIC",
+      "Western australia": "WA",
+      "New south wales": "NSW",
+      Queensland: "QLD",
+      Tasmaina: "TAS",
+    };
+    if (location in stateMap) {
+      // @ts-ignore
+      locations = stateMap[location];
+    } else {
+      locations = location;
+    }
+  }
+  console.log("final locations:", locations);
+  let tags = await relevantTags(query);
+  console.log("TAGS", tags);
+  if (tags != null && "primaryTag" in tags) {
+    if ("tangentialTags" in tags) {
+      console.log(tags["primaryTag"], tags["tangentialTags"], locations);
+      let primaryData = await primary_tag_fts(tags["primaryTag"], locations);
+      let tangentialData = await tangential_tag_fts(
+        tags["tangentialTags"]!.join(","),
+        locations
+      );
+
+      return NextResponse.json({
+        primaryData, //: result["primaryTagData"],
+        tangentialData, //: result["tangentialTagData"],
+        status: 200,
+      });
+    } else {
+      console.log("LLM did not generate tangential tags ", tags);
+      let primaryData = await primary_tag_fts(tags["primaryTag"], locations);
+      return NextResponse.json({
+        primaryData, //: result,
+        status: 200,
+      });
+    }
+  }
+  return NextResponse.json({
+    error: "We were not able to find relevant dataset tags for your query",
+    status: 200,
+  });
 }
