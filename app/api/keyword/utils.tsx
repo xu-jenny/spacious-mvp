@@ -58,37 +58,6 @@ function getEmbedding(text: string) {
   // TODO
 }
 
-export async function semanticMatchTags(
-  primaryTag: string,
-  tangentialTags: string[],
-  locations: string[],
-  match_threshold = 0.5,
-  match_count = 10
-) {
-  let primaryTagEmbed = getEmbedding(primaryTag);
-
-  const primaryTagPromise = async () => {
-    return await supabaseClient.rpc("match_tag", {
-      query_embedding: primaryTagEmbed,
-      match_threshold: 0.9,
-      match_count: 10,
-    });
-  };
-
-  const tangentialTagPromise = async () => {
-    return await tangential_tag_fts(tangentialTags, locations);
-  };
-
-  const result = await Promise.all([
-    primaryTagPromise(),
-    tangentialTagPromise(),
-  ]);
-  return {
-    primaryTagData: result[0],
-    tangentialTagData: result[1],
-  };
-}
-
 export const TAG_GROUP_PROMPT = `Your role is an environmental scientist. Based on a query, your objective is to identify:
 A primary dataset tag that directly relates to the central question.
 Tangential dataset tags that supplement the primary tag by providing additional context or information.

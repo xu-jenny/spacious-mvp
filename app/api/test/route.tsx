@@ -1,10 +1,5 @@
 import { NextResponse } from "next/server";
-import { addressToCoord, getLocationFromPrompt } from "../location/utils";
-import { fuzzyMatch, relevantTags } from "./utils";
-import { invokeSupabaseFunction, supabaseClient } from "@/clients/supabase";
-import { openai } from "@/clients/openai";
 import { primary_tag_fts, tangential_tag_fts } from "../keyword/utils";
-import { post } from "@/utils/http";
 
 export async function GET(req: Request) {
   let embedding = [
