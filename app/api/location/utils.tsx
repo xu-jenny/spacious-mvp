@@ -101,7 +101,7 @@ export async function getLocationFromPrompt(
 ): Promise<Location | null> {
   let response = await openaiChat(LOCATION_PROMPT, query);
   // let response = "Location: Victoria";
-  console.log(response);
+  console.log("response from Openai", response);
   if (response != null) {
     return parseLocation(response);
   }

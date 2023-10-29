@@ -29,7 +29,7 @@ export async function relevantTags(query: string) {
   // let response =
   //   "Primary: PFAS\n" +
   //   "Tangential: water quality, soil properties, groundwater flow";
-  return parseRelevantTagsResponse(response);
+  return parseRelevantTagsResponse(response!);
 }
 
 export async function tangential_tag_fts(queries: string, locations: string) {

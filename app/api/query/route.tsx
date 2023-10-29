@@ -72,7 +72,7 @@ export async function POST(req: Request) {
       locations = location;
     }
   }
-  console.log("final locations:", locations);
+  // console.log("final locations:", locations);
   let tags = await relevantTags(query);
   console.log("TAGS", tags);
   if (tags != null && "primaryTag" in tags) {
