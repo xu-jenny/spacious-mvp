@@ -1,6 +1,7 @@
+import { DatasetMetadata } from "@/components/MetadataTable";
 import { createClient } from "@supabase/supabase-js";
-import dotenv from "dotenv";
-dotenv.config();
+// import dotenv from "dotenv";
+// dotenv.config();
 // Create a single supabase client for interacting with your database
 export const supabaseClient = createClient(
   process.env.SUPABASE_URL || "",
@@ -50,4 +51,14 @@ export async function invokeSupabaseFunction(functionName: string, args: any) {
     return null;
   }
   return data;
+}
+
+export async function sampleData(): Promise<DatasetMetadata[]> {
+  const { data } = await supabaseClient
+    .from("master")
+    .select("id, created_at, title, summary, lastUpdated, location, metadata, primary_tag, metadata, datasetUrl, publisher, tangential_tag")
+    .limit(5)
+  console.log(data);
+  // .eq("tagGroup", "Urban  Land Use");
+  return data as DatasetMetadata[];
 }
