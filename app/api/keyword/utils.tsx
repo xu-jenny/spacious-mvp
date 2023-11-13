@@ -32,6 +32,12 @@ export async function relevantTags(query: string) {
   return parseRelevantTagsResponse(response!);
 }
 
+export async function relevantTagsWithoutParsing(query: string) {
+  let response = await openaiChat(TAG_GROUP_PROMPT, query);
+  console.log("openai TAG Response: ", response);
+  return response
+}
+
 export async function tangential_tag_fts(queries: string, locations: string) {
   const { data, error } = await supabaseClient.rpc("tangential_tag_fts", {
     queries, //: "water quality,soil type,land use",

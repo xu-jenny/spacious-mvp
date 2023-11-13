@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { primary_tag_fts, tangential_tag_fts } from "../keyword/utils";
 
 export async function GET(req: Request) {
+  console.log("hit test GET endpoint", req);
   let embedding = [
     -0.4248046875, 0.395751953125, -1.2509765625, 0.0980224609375, 1.8935546875,
     -3.794921875, 0.0911865234375, -0.07501220703125, -0.74560546875,
