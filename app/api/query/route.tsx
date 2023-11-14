@@ -9,10 +9,11 @@ import {
 
 export async function POST(req: Request) {
   console.log("hit query POST endpoint");
-  let { address, coord, radius, query, type } = await req.json();
+  let { address, coord, radius, query } = await req.json();
 
   let location;
   if (address == null && coord == null) {
+    console.log("calling openai to get location from prompt");
     let locData = await getLocationFromPrompt(query);
     if (locData?.radius != null && radius == null) {
       radius = locData?.radius;

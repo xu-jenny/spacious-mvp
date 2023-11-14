@@ -35,7 +35,7 @@ export async function relevantTags(query: string) {
 export async function relevantTagsWithoutParsing(query: string) {
   let response = await openaiChat(TAG_GROUP_PROMPT, query);
   console.log("openai TAG Response: ", response);
-  return response
+  return response;
 }
 
 export async function tangential_tag_fts(queries: string, locations: string) {
@@ -58,10 +58,6 @@ export async function primary_tag_fts(query: string, locations: string) {
     console.error("error invoking tangential_tag_fts ", error);
   }
   return data;
-}
-
-function getEmbedding(text: string) {
-  // TODO
 }
 
 export const TAG_GROUP_PROMPT = `Your role is an environmental scientist. Based on a query, your objective is to identify:

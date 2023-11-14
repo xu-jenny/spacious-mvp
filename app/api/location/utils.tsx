@@ -76,11 +76,16 @@ export async function getLocationFromPrompt(
 ): Promise<Location | null> {
   let response = await openaiChat(LOCATION_PROMPT, query);
   // let response = "Location: Victoria";
-  console.log("response from Openai", response);
+  console.log("response from Openai on location", response);
   if (response != null) {
     return parseLocation(response);
   }
   return null;
 }
 
-export const isCoordinate = (location: any) => typeof location === "object" && "lon" in location && "lat" in location && location.lon != null && location.lat != null
+export const isCoordinate = (location: any) =>
+  typeof location === "object" &&
+  "lon" in location &&
+  "lat" in location &&
+  location.lon != null &&
+  location.lat != null;
