@@ -56,9 +56,11 @@ export async function invokeSupabaseFunction(functionName: string, args: any) {
 export async function sampleData(): Promise<DatasetMetadata[]> {
   const { data } = await supabaseClient
     .from("master")
-    .select("id, created_at, title, summary, lastUpdated, location, metadata, primary_tag, metadata, datasetUrl, publisher, tangential_tag")
-    .limit(5)
+    .select(
+      "id, created_at, title, summary, lastUpdated, location, metadata, primary_tag, metadata, datasetUrl, publisher, tangential_tag"
+    )
+    .limit(5);
   console.log(data);
   // .eq("tagGroup", "Urban  Land Use");
-  return data as DatasetMetadata[];
+  return data as unknown as DatasetMetadata[];
 }
