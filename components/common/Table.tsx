@@ -83,7 +83,7 @@ export const Table = ({
         </tbody>
       </table>
       {paginate == false ? null : (
-        <div className="flex items-center gap-2">
+        <div className="flex justify-center items-center gap-2">
           <button
             className="border rounded p-1"
             onClick={() => table.setPageIndex(0)}
