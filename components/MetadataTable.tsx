@@ -19,12 +19,14 @@ export type DatasetMetadata = {
 const MetadataTable = ({ data, paginate = false } :{ data: DatasetMetadata[], paginate?: boolean }) => {
   const columnHelper = createColumnHelper<DatasetMetadata>();
 
+  const longStringShortener = (str: string) => str.length > 180 ? `${str.substring(0, 180)}...` : str;
+
   const columns = [
     columnHelper.accessor('title', {
       cell: (props) => <a style={{color: 'blue'}} href={props.row.original.dataseturl}>{props.getValue()}</a>,
     }),
     columnHelper.accessor('summary', {
-      cell: (info) => info.getValue(),
+      cell: (info) => longStringShortener(info.getValue()),
     }),
     columnHelper.accessor('location', {
       cell: (info) => info.getValue(),

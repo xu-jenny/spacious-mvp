@@ -1,25 +1,25 @@
-import * as React from 'react';
+import * as React from "react";
 import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
   useReactTable,
-} from '@tanstack/react-table';
-import { format, isValid } from 'date-fns';
-import moment from 'moment';
+} from "@tanstack/react-table";
+import { format, isValid } from "date-fns";
+import moment from "moment";
 
 const dataFormatter = (value: any) => {
   // Apply specific formatting based on the value's type or other conditions
-  if (typeof value === 'string') {
-    if (value.includes('http')) {
+  if (typeof value === "string") {
+    if (value.includes("http")) {
       return <a href={value}>{value}</a>;
     }
-    let date = moment(value, 'MM/dd/yy');
+    let date = moment(value, "MM/dd/yy");
     date.isValid() ? date : value;
   }
-  if (typeof value === 'object' && value instanceof Date && isValid(value)) {
-    return format(value, 'MM/dd/yy');
+  if (typeof value === "object" && value instanceof Date && isValid(value)) {
+    return format(value, "MM/dd/yy");
   }
   return value;
 };
@@ -42,8 +42,12 @@ export const Table = ({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    initialState: {
+      pagination: { pageSize: 3 },
+    },
     ...(paginate ? { getPaginationRowModel: getPaginationRowModel() } : {}),
   });
+
   return (
     <>
       <table className="border border-solid border-black">
@@ -59,7 +63,7 @@ export const Table = ({
                     ? null
                     : flexRender(
                         header.column.columnDef.header,
-                        header.getContext(),
+                        header.getContext()
                       )}
                 </th>
               ))}
@@ -89,33 +93,33 @@ export const Table = ({
             onClick={() => table.setPageIndex(0)}
             disabled={!table.getCanPreviousPage()}
           >
-            {'<<'}
+            {"<<"}
           </button>
           <button
             className="border rounded p-1"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
-            {'<'}
+            {"<"}
           </button>
           <button
             className="border rounded p-1"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >
-            {'>'}
+            {">"}
           </button>
           <button
             className="border rounded p-1"
             onClick={() => table.setPageIndex(table.getPageCount() - 1)}
             disabled={!table.getCanNextPage()}
           >
-            {'>>'}
+            {">>"}
           </button>
           <span className="flex items-center gap-1">
             <div>Page</div>
             <strong>
-              {table.getState().pagination.pageIndex + 1} of{' '}
+              {table.getState().pagination.pageIndex + 1} of{" "}
               {table.getPageCount()}
             </strong>
           </span>

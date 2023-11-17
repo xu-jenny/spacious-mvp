@@ -1,5 +1,5 @@
 import { openaiChat } from "@/clients/openai";
-import { invokeSupabaseFunction, supabaseClient } from "@/clients/supabase";
+import { supabaseClient } from "@/clients/supabase";
 
 function parseRelevantTagsResponse(inputString: string) {
   var parts = inputString.toLowerCase().split("primary:");

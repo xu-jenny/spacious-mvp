@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { ChatOpenAI } from "langchain/chat_models/openai";
-import { DynamicStructuredTool, formatToOpenAITool } from "langchain/tools";
-import { Calculator } from "langchain/tools/calculator";
+import { formatToOpenAIFunction } from "langchain/tools";
 import { ChatPromptTemplate, MessagesPlaceholder } from "langchain/prompts";
 import { RunnableSequence } from "langchain/schema/runnable";
 import { AgentExecutor } from "langchain/agents";
@@ -10,16 +9,15 @@ import {
   OpenAIToolsAgentOutputParser,
   type ToolsAgentStep,
 } from "langchain/agents/openai/output_parser";
-import { locationExtactor, tagRecommender } from "./tools";
+import { tagRecommender } from './tools';
 import { AIMessage, AgentAction, AgentFinish } from "langchain/schema";
+import { BufferMemory } from "langchain/memory";
+import zodToJsonSchema from "zod-to-json-schema";
 
 const model = new ChatOpenAI({
   modelName: "gpt-3.5-turbo-1106",
   temperature: 0.4,
 });
-
-const tools = [locationExtactor, tagRecommender];
-const modelWithTools = model.bind({ tools: tools.map(formatToOpenAITool) });
 
 const systemPrompt = `You are an assistant whose objective is to find a primary dataset tag that will answer the user's question. 
 You should also suggest tangential dataset tags that supplements the primary tag, such that these dataset tags can help solve the user's question.
@@ -29,12 +27,12 @@ The final answer should contain the primary tag, tangential tags and the locatio
 
 const prompt = ChatPromptTemplate.fromMessages([
   ["system", systemPrompt],
-//   new MessagesPlaceholder("chat_history"),
   ["human", "{input}"],
   new MessagesPlaceholder("agent_scratchpad"),
+  new MessagesPlaceholder("chat_history"),
 ]);
 
-/*
+
 const responseSchema = z.object({
     primaryTag: z.string().describe("the primary tag centrally associated with the user's question, should be the answer from the Tag Recommender Tool"),
     tangentialTags: z.string().describe("the tangential tags that supplements the primary tag, should be the answer from the Tag Recommender Tool"),
@@ -54,6 +52,7 @@ const responseSchema = z.object({
   const structuredOutputParser = (
     output: AIMessage
   ): AgentAction | AgentFinish => {
+    console.log("outputParserInput: ", output)
     // If no function call is passed, return the output as an instance of `AgentFinish`
     if (!("function_call" in output.additional_kwargs)) {
       return { returnValues: { output: output.content }, log: output.content };
@@ -77,23 +76,37 @@ const responseSchema = z.object({
       log: output.content,
     };
   };
-*/
+
+const modelWithTools = model.bind({ functions: [formatToOpenAIFunction(tagRecommender), responseOpenAIFunction] });
+
+export const memory = new BufferMemory({
+  memoryKey: "history", // The object key to store the memory under
+  inputKey: "input", // The object key for the input
+  outputKey: "output", // The object key for the output
+  returnMessages: true,
+});
 
 const runnableAgent = RunnableSequence.from([
   {
     input: (i: { input: string; steps: ToolsAgentStep[] }) => i.input,
     agent_scratchpad: (i: { input: string; steps: ToolsAgentStep[] }) =>
       formatToOpenAIToolMessages(i.steps),
+    chat_history: async (_: { input: string; steps: ToolsAgentStep[] }) => {
+      const { history } = await memory.loadMemoryVariables({});
+      return history;
+    },
   },
   prompt,
   modelWithTools,
-  new OpenAIToolsAgentOutputParser(),
+  structuredOutputParser,
 ]).withConfig({ runName: "OpenAIToolsAgent" });
 
 export const executor = AgentExecutor.fromAgentAndTools({
   agent: runnableAgent,
-  tools,
+  tools: [tagRecommender],
+  verbose: true,
 });
+
 
 
 

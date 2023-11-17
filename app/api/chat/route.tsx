@@ -1,4 +1,4 @@
-import { executor } from "@/llm/chain";
+import { executor, memory } from "@/llm/chain";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -8,5 +8,8 @@ export async function POST(req: Request) {
     input: query,
   });
   console.log(res);
+
+  await memory.saveContext({ input: query }, { output: res.output });
+  console.log(memory);
   return NextResponse.json({ res, status: 200 });
 }
