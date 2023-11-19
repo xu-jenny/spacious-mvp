@@ -7,7 +7,7 @@ export type ChatMessage = {
   sentAt: Date;
   isChatOwner: boolean;
   text: string;
-}
+};
 
 const ChatInput = ({ sendANewMessage }: ChatInputProps) => {
   const [newMessage, setNewMessage] = React.useState("");
@@ -36,11 +36,10 @@ const ChatInput = ({ sendANewMessage }: ChatInputProps) => {
           required
         />
         <button
-          type="button"
+          type="submit"
           // disabled={!newMessage || newMessage.length === 0}
           className="px-3 py-2 text-xs font-medium text-center text-white bg-purple-500 rounded-lg hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 disabled:opacity-50"
-          onClick={() => doSendMessage()}
-        >
+          onClick={() => doSendMessage()}>
           Send
         </button>
       </div>

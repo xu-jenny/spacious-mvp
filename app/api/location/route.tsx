@@ -1,6 +1,6 @@
 import { getIntersectSuburbs, supabaseClient } from "@/clients/supabase";
 import { NextResponse } from "next/server";
-import { addressToCoord } from "./utils";
+import { Coordinate, addressToCoord } from "./utils";
 
 export async function GET(request: Request) {
   console.log("location Get");
@@ -40,4 +40,20 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json({ data: null, status: 200 });
+}
+
+export async function getIntersectPlaces(
+  coords: Coordinate,
+  radius?: number | null
+): Promise<string[] | null> {
+  let resp = await getIntersectSuburbs(
+    coords.lon,
+    coords.lat,
+    radius == null ? 0 : radius * 1000
+  );
+  if (resp != null && typeof resp != "string") {
+    let { suburbs, states } = resp;
+    return [...suburbs, ...Array.from(states.values())] as string[];
+  }
+  return null;
 }

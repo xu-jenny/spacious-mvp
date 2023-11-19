@@ -1,11 +1,15 @@
 "use client";
 
-import { supabaseClient } from "@/clients/supabase";
+import { getIntersectSuburbs, supabaseClient } from "@/clients/supabase";
 import MetadataTable from "@/components/MetadataTable";
 import ChatInput, { ChatMessage } from "@/components/chat/ChatInput";
 import Input from "@/components/common/Input";
 import { post } from "@/utils/http";
 import { useState } from "react";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { primary_tag_fts, tangential_tag_fts } from "./api/keyword/utils";
+import { addressToCoord } from "./api/location/utils";
+import { getIntersectPlaces } from "./api/location/route";
 
 const sampleData = [
   {
@@ -135,35 +139,13 @@ const messages = [
   },
 ];
 
-export async function tangential_tag_fts(queries: string, locations: string) {
-  const { data, error } = await supabaseClient.rpc("tangential_tag_fts", {
-    queries, //: "water quality,soil type,land use",
-    locations, // : "Melbourne,Syndney",
-  });
-  if (error != null) {
-    console.error("error invoking tangential_tag_fts ", error);
-  }
-  return data;
-}
-
-export async function primary_tag_fts(query: string, locations: string) {
-  const { data, error } = await supabaseClient.rpc("tag_title_fts", {
-    query, //: "land use",
-    locations, //: "Melbourne,Syndney,NSW",
-  });
-  if (error != null) {
-    console.error("error invoking tangential_tag_fts ", error);
-  }
-  return data;
-}
-
 async function getSupabaseData(tags: any, locations: string) {
-  if (tags != null && "primarytag" in tags) {
-    if ("tangentialtags" in tags) {
-      console.log(tags["primarytag"], tags["tangentialtags"], locations);
-      let primaryData = await primary_tag_fts(tags["primarytag"], locations);
+  if (tags != null && "primary_tag" in tags) {
+    if ("tangential_tags" in tags) {
+      console.log(tags["primary_tag"], tags["tangential_tags"], locations);
+      let primaryData = await primary_tag_fts(tags["primary_tag"], locations);
       let tangentialData = await tangential_tag_fts(
-        tags["tangentialtags"].toLowerCase(),
+        tags["tangential_tags"].toLowerCase().replaceAll(", ", ","),
         locations
       );
 
@@ -173,7 +155,7 @@ async function getSupabaseData(tags: any, locations: string) {
       };
     } else {
       console.log("LLM did not generate tangential tags ", tags);
-      let primaryData = await primary_tag_fts(tags["primarytag"], locations);
+      let primaryData = await primary_tag_fts(tags["primary_tag"], locations);
       return { primaryData };
     }
   }
@@ -193,37 +175,137 @@ function parseStringToObject(input: string): Record<string, string> {
   return result;
 }
 
+function jsonParse(output: string) {
+  try {
+    return JSON.parse(output.replaceAll("'", '"'));
+  } catch (e) {
+    console.log(e);
+    return null;
+  }
+}
+
+interface IFormInput {
+  address?: string;
+  region?: string;
+  latitude?: number;
+  longitude?: number;
+  radius?: number;
+}
+
 export default function Home() {
   let [primaryData, setPrimary] = useState([]);
   let [tangentialData, setTangential] = useState([]);
   let [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
 
-  const handleSubmit = async (message: ChatMessage) => {
+  let [location, setLocation] = useState<string[] | null>(null);
+
+  const handleChatSubmit = async (message: ChatMessage) => {
     let newChatHistory = [...chatHistory, message];
     setChatHistory(newChatHistory);
     let response = await post("http://127.0.0.1:5000/chat", {
       query: message,
       chatHistory: newChatHistory,
     });
+    // let response = {
+    //   chat_history: [
+    //     {
+    //       id: ["langchain", "schema", "messages", "HumanMessage"],
+    //       kwargs: {
+    //         content: "water condition near Perth",
+    //       },
+    //       lc: 1,
+    //       type: "constructor",
+    //     },
+    //     {
+    //       id: ["langchain", "schema", "messages", "HumanMessage"],
+    //       kwargs: {
+    //         content: "water condition near Perth",
+    //       },
+    //       lc: 1,
+    //       type: "constructor",
+    //     },
+    //     {
+    //       id: ["langchain", "schema", "messages", "AIMessage"],
+    //       kwargs: {
+    //         content:
+    //           "{'primary_tag': 'Water Quality', 'tangential_tags': 'River Network, Waterways, Pollution Sources, Groundwater Wells'}",
+    //       },
+    //       lc: 1,
+    //       type: "constructor",
+    //     },
+    //   ],
+    //   output:
+    //     "{'primary_tag': 'Water Quality', 'tangential_tags': 'River Network, Waterways, Pollution Sources, Groundwater Wells'}",
+    // };
     console.log(response);
     if (response != null && "output" in response) {
       let output = response["output"] as string;
       setChatHistory([
         ...newChatHistory,
-        { text: output, isChatOwner: false, sentAt: new Date() } as ChatMessage,
+        {
+          text: output,
+          isChatOwner: false,
+          sentAt: new Date(),
+        } as ChatMessage,
       ]);
 
-      let d = parseStringToObject(output);
+      // check if answer contain tags
+      console.log(output.replaceAll("'", '"'));
+      // let d = jsonParse('{"primary_tag": "Water Quality", "tangential_tags": "River Network, Waterways, Pollution Sources, Groundwater Wells"}');
+      // let d = parseStringToObject(output);
+      let d = jsonParse(output);
       console.log(d);
-      let data = await getSupabaseData(d, "Melbourne,Syndney,NSW");
-      console.log(data);
-      if (data != null && "primaryData" in data) {
-        setPrimary(data["primaryData"]);
-        if ("tangentialData" in data && data["tangentialData"] != null) {
-          setTangential(data["tangentialData"]);
+      if (d != null) {
+        let data = await getSupabaseData(d, "Melbourne,Syndney,NSW");
+        console.log(data);
+        if (data != null && "primaryData" in data) {
+          setPrimary(data["primaryData"]);
+          if ("tangentialData" in data && data["tangentialData"] != null) {
+            setTangential(data["tangentialData"]);
+          }
         }
       }
     }
+  };
+
+  const { register, handleSubmit } = useForm<IFormInput>();
+  const onSubmit: SubmitHandler<IFormInput> = async (data) => {
+    console.log(data);
+    if (data["latitude"] && data["longitude"]) {
+      let locations = await getIntersectPlaces(
+        { lat: data["latitude"], lon: data["longitude"] },
+        data["radius"]
+      );
+      if (locations != null) {
+        setLocation(locations);
+      }
+    } else if (data["address"]) {
+      let coords = await addressToCoord(data.address);
+      if (coords != null) {
+        let locations = await getIntersectPlaces(coords, data["radius"]);
+        if (locations != null) {
+          setLocation(locations);
+        }
+      }
+    } else if (data["region"]) {
+      setLocation([data["region"]]);
+    }
+
+    // let resp = await getIntersectSuburbs(
+    //   location.lon,
+    //   location.lat,
+    //   radius == null ? 0 : radius * 1000
+    // );
+    // if (resp != null && typeof resp != "string") {
+    //   let { suburbs, states } = resp;
+    //   locations = [...suburbs, ...Array.from(states.values())].join(",");
+    // } else {
+    //   return NextResponse.json({
+    //     error:
+    //       "We were not able to extract a location from the provided query. Are you sure the location is in Australia?",
+    //     status: 204,
+    //   });
+    // }
   };
 
   return (
@@ -231,7 +313,7 @@ export default function Home() {
       <div className="w-1/2 bg-sky-50 overflow-auto">
         <div className="p-4">
           <h2 className="text-2xl font-semi-bold p-2">Primary Data</h2>
-          <MetadataTable data={sampleData} paginate={true} />
+          <MetadataTable data={primaryData} paginate={true} />
         </div>
         <hr />
         <div className="p-4">
@@ -241,68 +323,59 @@ export default function Home() {
       </div>
       <div className="w-[2px] bg-gray-200"></div>
       <div className="w-1/2">
-        <h2 className="mt-4 mx-4">Interested Location</h2>
-        <div className="grid gap-6 mb-6 md:grid-cols-2 px-4 mt-2">
-          <Input placeholder="Latitude" />
-          <Input placeholder="Longitude" />
-        </div>
-        <hr />
-        <div className="px-4 py-1 overflow-auto h-[calc(100vh-15.5rem)]">
-          {chatHistory.map((message, index) => (
-            <div
-              key={index}
-              className={`py-2 flex flex-row w-full ${
-                message.isChatOwner ? "justify-end" : "justify-start"
-              }`}
-            >
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <h2 className="mt-4 mx-4">Interested Location: {location} </h2>
+          <div className="grid gap-6 mb-6 md:grid-cols-2 px-4 mt-2">
+            <input
+              placeholder="Latitude"
+              {...register("latitude")}
+              //  {
+              //   required: true,
+              //   pattern: /^(-?[1-8]?\d(?:\.\d{1,18})?|90(?:\.0{1,18})?)$/,
+              // })}
+            />
+            <input
+              placeholder="Longitude"
+              {...register("longitude")}
+              // {
+              //   required: true,
+              //   pattern:
+              //     /^(-?(?:1[0-7]|[1-9])?\d(?:\.\d{1,18})?|180(?:\.0{1,18})?)$/,
+              // })}
+            />
+            <input placeholder="region" {...register("region")} />
+            <input
+              type="number"
+              placeholder="Radius of interest in km"
+              {...register("radius")}
+            />
+          </div>
+          ·
+          <hr />
+          <div className="px-4 py-1 overflow-auto h-[calc(100vh-15.5rem)]">
+            {chatHistory.map((message, index) => (
               <div
-                className={`px-2 w-fit py-3 flex flex-col bg-purple-500 rounded-lg text-white ${
-                  message.isChatOwner ? "order-1 mr-2" : "order-2 ml-2"
-                }`}
-              >
-                <span className="text-md">{message.text}</span>
+                key={index}
+                className={`py-2 flex flex-row w-full ${
+                  message.isChatOwner ? "justify-end" : "justify-start"
+                }`}>
+                <div
+                  className={`px-2 w-fit py-3 flex flex-col bg-purple-500 rounded-lg text-white ${
+                    message.isChatOwner ? "order-1 mr-2" : "order-2 ml-2"
+                  }`}>
+                  <span className="text-md">{message.text}</span>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-        <ChatInput
-          sendANewMessage={(msg) => {
-            console.log(msg);
-            handleSubmit(msg);
-          }}
-        />
-      </div>
-      {/* <div className="flex flex-col max-w-5xl font-mono text-sm lg:flex mb-auto mt-6">
-        <div className="flex flex-row items-center ml-6">
-        <input
-            type="search"
-            id="default-search"
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={handleEnter}
-            className="w-full p-4 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-            placeholder="PFAS Contamination Reports in Perth..."
-            required
+            ))}
+          </div>
+          <ChatInput
+            sendANewMessage={(msg) => {
+              console.log(msg);
+              // handleSubmit(msg);
+            }}
           />
-          <button
-            type="submit"
-            onClick={() => handleSubmit()}
-            className="text-white bg-blue-700 mx-6 h-full w-fit hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-          >
-            Search
-          </button>
-        </div>
+        </form>
       </div>
-      <div className="p-4">
-        <h2 className="text-2xl font-semi-bold p-2">Primary Data</h2>
-        <MetadataTable data={primaryData} />
-      </div>
-      <hr></hr>
-      <div className="p-4">
-        <h2 className="text-xl text-gray-700 font-semi-bold p-2">
-          Tangential Data
-        </h2>
-        <MetadataTable data={tangentialData} paginate={true} />
-      </div> */}
     </div>
   );
 }
