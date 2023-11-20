@@ -2,7 +2,7 @@ import React from "react";
 import { FieldValues, UseFormRegister } from "react-hook-form";
 interface ChatInputProps {
   sendANewMessage?: (message: any) => void;
-  register?: UseFormRegister<{ message: string}>;
+  register?: UseFormRegister<{ message: string }>;
 }
 
 export type ChatMessage = {
@@ -27,7 +27,7 @@ const ChatInput = ({ sendANewMessage, register }: ChatInputProps) => {
   };
 
   return (
-    <div className="px-6 py-3 bg-white w-100 overflow-hidden rounded-bl-xl rounded-br-xla">
+    <div className="h-16 px-6 bg-white w-100 overflow-hidden rounded-bl-xl rounded-br-xla">
       <div className="flex flex-row items-center space-x-5">
         <input
           type="text"
@@ -36,14 +36,14 @@ const ChatInput = ({ sendANewMessage, register }: ChatInputProps) => {
           placeholder="Type a message"
           onChange={(e) => setNewMessage(e.target.value)}
           {...(register && register("message"))}
+          value={newMessage}
           required
         />
         <button
           type="submit"
           // disabled={!newMessage || newMessage.length === 0}
-          className="px-3 py-2 text-xs font-medium text-center text-white bg-purple-500 rounded-lg hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 disabled:opacity-50"
-          onClick={() => doSendMessage()}
-        >
+          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+          onClick={() => doSendMessage()}>
           Send
         </button>
       </div>

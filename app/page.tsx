@@ -3,7 +3,7 @@
 import MetadataTable from "@/components/MetadataTable";
 import ChatInput, { ChatMessage } from "@/components/index/ChatInput";
 import { post } from "@/utils/http";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { jsonParse } from "@/utils/json";
 import {
@@ -18,16 +18,9 @@ export default function Home() {
   let [primaryData, setPrimary] = useState([]);
   let [tangentialData, setTangential] = useState([]);
   let [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
-
-  let [locationFormValues, setLocationFormValues] = useState<IFormInput>({
-    address: "",
-    region: "",
-    latitude: 0,
-    longitude: 0,
-    radius: 0,
-    message: "",
-  });
-  let [locations, setLocations] = useState<string[] | null>(null);
+  let [interestedLocations, setLocations] = useState<string[] | null>(null);
+  let [error, setError] = useState<string | null>(null);
+  let [loading, setLoading] = useState<boolean>(false);
 
   const chatWithAgent = async (
     message: ChatMessage,
@@ -75,38 +68,27 @@ export default function Home() {
     }
   };
 
-  const { register, handleSubmit } = useForm<IFormInput>();
-  const onSubmit: SubmitHandler<IFormInput> = async (data: IFormInput) => {
-    console.log(data);
-    const isSameAsPreviousSubmit = Object.keys(data)
-      .filter((fieldName) => fieldName !== "message")
-      .every((fieldName) => {
-        // @ts-ignore
-        return data[fieldName] === locationFormValues[fieldName];
-      });
-
-    let interestedLocations = null;
-    if (isSameAsPreviousSubmit == false) {
-      interestedLocations = await parseLocationFormInput(data);
-      setLocationFormValues(data);
-      setLocations(interestedLocations);
-    } else {
-      interestedLocations = locations;
-    }
+  const onNewMessage = async (data: ChatMessage) => {
+    console.log("interested locations:", interestedLocations);
     if (interestedLocations != null) {
+      setError(null);
+      setLoading(true);
       console.log(
         "calling chatWithAgent with ",
         interestedLocations,
-        data["message"]
+        data["text"]
       );
       chatWithAgent(
         {
           sentAt: new Date(),
           isChatOwner: true,
-          text: data["message"],
+          text: data["text"],
         },
         interestedLocations
       );
+      setLoading(false);
+    } else {
+      setError("Please set the location!");
     }
   };
 
@@ -124,11 +106,12 @@ export default function Home() {
         </div>
       </div>
       <div className="w-[2px] bg-gray-200"></div>
-      <div className="w-1/2">
-          <LocationInput />
-          <hr />
-          <ChatBox chatHistory={chatHistory} />
-          <ChatInput register={register} />
+      <div className="w-1/2 flex flex-col h-full">
+        <LocationInput setLocations={setLocations} />
+        <hr />
+        <ChatBox chatHistory={chatHistory} />
+        {error != null && <span className="text-red ml-7">{error}</span>}
+        <ChatInput sendANewMessage={onNewMessage} />
       </div>
     </div>
   );

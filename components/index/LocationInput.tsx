@@ -1,8 +1,10 @@
 import { IFormInput, parseLocationFormInput } from "@/app/indexUtils";
-import { useState } from "react";
+import { Dispatch, SetStateAction, forwardRef, useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
-
-const LocationInput = () => {
+interface Props {
+  setLocations: Dispatch<SetStateAction<string[] | null>>;
+}
+const LocationInput = ({ setLocations }: Props) => {
   let [locationFormValues, setLocationFormValues] = useState<IFormInput>({
     address: "",
     region: "",
@@ -11,7 +13,6 @@ const LocationInput = () => {
     radius: 0,
     message: "",
   });
-  let [locations, setLocations] = useState<string[] | null>(null);
   const {
     register,
     handleSubmit,
@@ -20,21 +21,19 @@ const LocationInput = () => {
   } = useForm<IFormInput>();
   const onSubmit: SubmitHandler<IFormInput> = async (data: IFormInput) => {
     console.log(data);
-    // const isSameAsPreviousSubmit = Object.keys(data)
-    //   .filter((fieldName) => fieldName !== "message")
-    //   .every((fieldName) => {
-    //     // @ts-ignore
-    //     return data[fieldName] === locationFormValues[fieldName];
-    //   });
+    const isSameAsPreviousSubmit = Object.keys(data)
+      .filter((fieldName) => fieldName !== "message")
+      .every((fieldName) => {
+        // @ts-ignore
+        return data[fieldName] === locationFormValues[fieldName];
+      });
 
-    // let interestedLocations = null;
-    // if (isSameAsPreviousSubmit == false) {
-    //   interestedLocations = await parseLocationFormInput(data);
-    //   setLocationFormValues(data);
-    //   setLocations(interestedLocations);
-    // } else {
-    //   interestedLocations = locations;
-    // }
+    let interestedLocations = null;
+    if (isSameAsPreviousSubmit == false) {
+      interestedLocations = await parseLocationFormInput(data);
+      setLocationFormValues(data);
+      setLocations(interestedLocations);
+    }
   };
 
   const hasRegion = watch("region");
@@ -87,42 +86,60 @@ const LocationInput = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <h2 className="mt-4 mx-4">Interested Location </h2>
-      <div className="grid gap-6 mb-6 md:grid-cols-2 px-4 mt-2">
-        <input
-          placeholder="Latitude"
-          {...register("latitude", {
-            required: false,
-            pattern: /^(-?[1-8]?\d(?:\.\d{1,18})?|90(?:\.0{1,18})?)$/,
-            validate: { validateLat },
-          })}
-        />
-        {errors?.latitude && <p>{errors.latitude.message}</p>}
-        <input
-          placeholder="Longitude"
-          {...register("longitude", {
-            required: false,
-            pattern:
-              /^(-?(?:1[0-7]|[1-9])?\d(?:\.\d{1,18})?|180(?:\.0{1,18})?)$/,
-            validate: { validateLon },
-          })}
-        />
-        {errors?.longitude && <p>{errors.longitude.message}</p>}
-        <input
-          placeholder="City/State"
-          {...register("region", {
-            required: false,
-            validate: { validateRegion },
-          })}
-        />
-        {errors?.region && <p>{errors.region.message}</p>}
-        <input
-          type="number"
-          step="0.5"
-          placeholder="Radius of interest in km"
-          {...register("radius", { max: 5000, min: 0 })}
-        />
-        <button type="submit">Submit</button>
+      <div className="grid gap-2 my-2 md:grid-cols-5 px-4 mt-4">
+        <div className="col-span-2 flex flex-col gap-2">
+          <input
+            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            placeholder="Latitude"
+            {...register("latitude", {
+              required: false,
+              pattern: /^(-?[1-8]?\d(?:\.\d{1,18})?|90(?:\.0{1,18})?)$/,
+              validate: { validateLat },
+            })}
+          />
+          {errors?.latitude && (
+            <p className="text-red">{errors.latitude.message}</p>
+          )}
+          <input
+            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            placeholder="Longitude"
+            {...register("longitude", {
+              required: false,
+              pattern:
+                /^(-?(?:1[0-7]|[1-9])?\d(?:\.\d{1,18})?|180(?:\.0{1,18})?)$/,
+              validate: { validateLon },
+            })}
+          />
+          {errors?.longitude && (
+            <p className="text-red">{errors.longitude.message}</p>
+          )}
+        </div>
+        <div className="col-span-2">
+          <label>OR, specify city/region</label>
+          <input
+            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            placeholder="City/State"
+            {...register("region", {
+              required: false,
+              validate: { validateRegion },
+            })}
+          />
+        </div>
+        {errors?.region && <p className="text-red">{errors.region.message}</p>}
+        <div className="flex flex-col items-center gap-2">
+          <input
+            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            type="number"
+            step="0.5"
+            placeholder="Radius in km"
+            {...register("radius", { max: 5000, min: 0 })}
+          />
+          <button
+            type="submit"
+            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+            Confirm
+          </button>
+        </div>
       </div>
     </form>
   );
