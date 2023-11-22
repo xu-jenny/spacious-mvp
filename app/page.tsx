@@ -3,16 +3,12 @@
 import MetadataTable from "@/components/MetadataTable";
 import ChatInput, { ChatMessage } from "@/components/index/ChatInput";
 import { post } from "@/utils/http";
-import { useRef, useState } from "react";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { useEffect, useState } from "react";
 import { jsonParse } from "@/utils/json";
-import {
-  IFormInput,
-  getSupabaseData,
-  parseLocationFormInput,
-} from "./indexUtils";
+import { getSupabaseData } from "./indexUtils";
 import ChatBox from "@/components/index/ChatBox";
 import LocationInput from "@/components/index/LocationInput";
+import { addQueries } from "@/clients/supabase";
 
 export default function Home() {
   let [primaryData, setPrimary] = useState([]);
@@ -20,7 +16,6 @@ export default function Home() {
   let [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   let [interestedLocations, setLocations] = useState<string[] | null>(null);
   let [error, setError] = useState<string | null>(null);
-  let [loading, setLoading] = useState<boolean>(false);
 
   const chatWithAgent = async (
     message: ChatMessage,
@@ -28,10 +23,13 @@ export default function Home() {
   ) => {
     let newChatHistory = [...chatHistory, message];
     setChatHistory(newChatHistory);
-    let response = await post("http://127.0.0.1:5000/chat", {
-      query: message,
-      chatHistory: newChatHistory,
-    });
+    let response = await post(
+      process.env.NEXT_PUBLIC_BACKEND_SERVER_URL + "/chat",
+      {
+        query: message,
+        chatHistory: newChatHistory,
+      }
+    );
     console.log(response);
     if (response != null && "output" in response) {
       let output = response["output"] as string;
@@ -65,20 +63,27 @@ export default function Home() {
           } as ChatMessage,
         ]);
       }
+    } else {
+      setChatHistory([
+        ...newChatHistory,
+        {
+          text: "I'm sorry, but we couldn't find any data results for that query. Please try again.",
+          isChatOwner: false,
+          sentAt: new Date(),
+        } as ChatMessage,
+      ]);
     }
   };
 
   const onNewMessage = async (data: ChatMessage) => {
-    console.log("interested locations:", interestedLocations);
     if (interestedLocations != null) {
       setError(null);
-      setLoading(true);
       console.log(
         "calling chatWithAgent with ",
         interestedLocations,
         data["text"]
       );
-      chatWithAgent(
+      await chatWithAgent(
         {
           sentAt: new Date(),
           isChatOwner: true,
@@ -86,11 +91,17 @@ export default function Home() {
         },
         interestedLocations
       );
-      setLoading(false);
     } else {
       setError("Please set the location!");
     }
   };
+
+  useEffect(() => {
+    if (chatHistory.length % 2 == 0 && chatHistory.length > 0) {
+      console.log("calling addQueries", chatHistory, interestedLocations);
+      addQueries(chatHistory, interestedLocations);
+    }
+  }, [chatHistory]);
 
   return (
     <div className="flex h-[calc(100vh-4rem)]">

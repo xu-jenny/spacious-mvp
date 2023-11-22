@@ -1,4 +1,5 @@
 import { DatasetMetadata } from "@/components/MetadataTable";
+import { ChatMessage } from "@/components/index/ChatInput";
 import { createClient } from "@supabase/supabase-js";
 
 // Create a single supabase client for interacting with your database
@@ -62,4 +63,16 @@ export async function sampleData(): Promise<DatasetMetadata[]> {
   console.log(data);
   // .eq("tagGroup", "Urban  Land Use");
   return data as unknown as DatasetMetadata[];
+}
+
+export async function addQueries(chatHistory: ChatMessage[], locations: string[] | null) {
+  console.log(JSON.stringify(chatHistory))
+  const { error } = await supabaseClient.from("queries").insert({
+    query: JSON.stringify(chatHistory),
+    locations: locations?.toString(),
+    created_at: new Date(),
+  });
+  if (error) {
+    console.error(error);
+  }
 }

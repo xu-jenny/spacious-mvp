@@ -83,6 +83,23 @@ export async function getLocationFromPrompt(
   return null;
 }
 
+export async function getIntersectPlaces(
+  coords: Coordinate,
+  radius?: number | null
+): Promise<string[] | null> {
+  let resp = await getIntersectSuburbs(
+    coords.lon,
+    coords.lat,
+    radius == null ? 0 : radius * 1000
+  );
+  if (resp != null && typeof resp != "string") {
+    let { suburbs, states } = resp;
+    return [...suburbs, ...Array.from(states.values())] as string[];
+  }
+  return null;
+}
+
+
 export const isCoordinate = (location: any) =>
   typeof location === "object" &&
   "lon" in location &&

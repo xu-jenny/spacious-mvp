@@ -6,8 +6,7 @@ import { RunnableSequence } from "langchain/schema/runnable";
 import { AgentExecutor } from "langchain/agents";
 import { formatToOpenAIToolMessages } from "langchain/agents/format_scratchpad/openai_tools";
 import {
-  OpenAIToolsAgentOutputParser,
-  type ToolsAgentStep,
+  type ToolsAgentStep
 } from "langchain/agents/openai/output_parser";
 import { tagRecommender } from './tools';
 import { AIMessage, AgentAction, AgentFinish } from "langchain/schema";
@@ -55,6 +54,7 @@ const responseSchema = z.object({
     console.log("outputParserInput: ", output)
     // If no function call is passed, return the output as an instance of `AgentFinish`
     if (!("function_call" in output.additional_kwargs)) {
+      //@ts-ignore
       return { returnValues: { output: output.content }, log: output.content };
     }
     // Extract the function call name and arguments
@@ -66,6 +66,7 @@ const responseSchema = z.object({
     // If the function call name is `response` then we know it's used our final
     // response function and can return an instance of `AgentFinish`
     if (name === "response") {
+      //@ts-ignore
       return { returnValues: { ...jsonInput }, log: output.content };
     }
     // If none of the above are true, the agent is not yet finished and we return
@@ -73,6 +74,7 @@ const responseSchema = z.object({
     return {
       tool: name,
       toolInput: jsonInput,
+      //@ts-ignore
       log: output.content,
     };
   };

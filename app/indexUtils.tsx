@@ -1,5 +1,5 @@
 import { primary_tag_fts, tangential_tag_fts } from "./api/keyword/utils";
-import { getIntersectPlaces } from "./api/location/route";
+import { getIntersectPlaces } from "./api/location/utils";
 import { addressToCoord } from "./api/location/utils";
 
 export interface IFormInput {
