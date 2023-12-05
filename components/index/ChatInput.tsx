@@ -9,6 +9,7 @@ export type ChatMessage = {
   sentAt: Date;
   isChatOwner: boolean;
   text: string;
+  attachment?: React.Node;
 };
 
 const ChatInput = ({ sendANewMessage, register }: ChatInputProps) => {

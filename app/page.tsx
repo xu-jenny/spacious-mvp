@@ -8,7 +8,8 @@ import { jsonParse } from "@/utils/json";
 import { getSupabaseData } from "./indexUtils";
 import ChatBox from "@/components/index/ChatBox";
 import LocationInput from "@/components/index/LocationInput";
-import { addQueries } from "@/clients/supabase";
+import { errorLogger } from "@/utils/supabaseLogger";
+import RequestDatasetButton from "@/components/index/RequestDatasetButton";
 
 export default function Home() {
   let [primaryData, setPrimary] = useState([]);
@@ -32,48 +33,69 @@ export default function Home() {
         chatHistory: newChatHistory,
       }
     );
-    console.log(response);
+    console.log("response from flask server: ", response);
     if (response != null && "output" in response) {
       let output = response["output"] as string;
       // check if answer contain tags
-      let d = jsonParse(output);
-      console.log(d);
-      if (d != null) {
-        let data = await getSupabaseData(d, interestedLocations.join(","));
-        console.log(data);
-        if (data != null && "primaryData" in data) {
-          setPrimary(data["primaryData"]);
-          if ("tangentialData" in data && data["tangentialData"] != null) {
-            setTangential(data["tangentialData"]);
+      try {
+        let d = jsonParse(output);
+        if (d != null) {
+          let data = await getSupabaseData(d, interestedLocations.join(","));
+          console.log(data);
+          if (data != null && "primaryData" in data) {
+            setPrimary(data["primaryData"]);
+            if ("tangentialData" in data && data["tangentialData"] != null) {
+              setTangential(data["tangentialData"]);
+            }
+            let aiMessage =
+              data["primaryData"].length > 0
+                ? `There are ${data["primaryData"].length} records matching your tag`
+                : `There isn't any corresponding record matching your tag. If you believe the dataset tag is correct, please press this button to request the dataset!`;
+
+            setChatHistory([
+              ...newChatHistory,
+              {
+                text: aiMessage,
+                isChatOwner: false,
+                sentAt: new Date(),
+                attachment:
+                  data["primaryData"].length > 0 ? null : (
+                    <RequestDatasetButton
+                      query={message.text}
+                      aiMessage={aiMessage}
+                    />
+                  ),
+              } as ChatMessage,
+            ]);
           }
+        } else {
           setChatHistory([
             ...newChatHistory,
             {
-              text: `I think the primary dataset you're interested in has tag ${d["primary_tag"]}. Tangential datasets have tags: ${d["tangential_tags"]}`,
+              text: output,
               isChatOwner: false,
               sentAt: new Date(),
             } as ChatMessage,
           ]);
         }
-      } else {
-        setChatHistory([
-          ...newChatHistory,
-          {
-            text: output,
-            isChatOwner: false,
-            sentAt: new Date(),
-          } as ChatMessage,
-        ]);
+      } catch (e) {
+        console.error("error when parsing response", e);
       }
     } else {
+      console.error(
+        "error when waiting for response from server. Response: ",
+        response
+      );
       setChatHistory([
         ...newChatHistory,
         {
-          text: "I'm sorry, but we couldn't find any data results for that query. Please try again.",
+          text: "I'm sorry, but there was an error processing your request. Please report the error.",
           isChatOwner: false,
           sentAt: new Date(),
+          attachment: "error",
         } as ChatMessage,
       ]);
+      errorLogger("Failed Flask Response", response);
     }
   };
 
