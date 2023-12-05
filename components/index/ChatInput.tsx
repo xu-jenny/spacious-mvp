@@ -25,6 +25,11 @@ const ChatInput = ({ sendANewMessage, register }: ChatInputProps) => {
       setNewMessage("");
     }
   };
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === "Enter") {
+      doSendMessage();
+    }
+  };
 
   return (
     <div className="h-16 px-6 bg-white w-100 overflow-hidden rounded-bl-xl rounded-br-xla">
@@ -37,13 +42,15 @@ const ChatInput = ({ sendANewMessage, register }: ChatInputProps) => {
           onChange={(e) => setNewMessage(e.target.value)}
           {...(register && register("message"))}
           value={newMessage}
+          onKeyDown={handleKeyDown}
           required
         />
         <button
           type="submit"
           // disabled={!newMessage || newMessage.length === 0}
           className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
-          onClick={() => doSendMessage()}>
+          onClick={() => doSendMessage()}
+        >
           Send
         </button>
       </div>
