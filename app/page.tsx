@@ -43,8 +43,8 @@ export default function Home() {
     let newChatHistory = [...chatHistory, message];
     setChatHistory(newChatHistory);
     let response = await post(
-      // process.env.NEXT_PUBLIC_BACKEND_SERVER_URL + "/chat",
-      "http://127.0.0.1:5000/chat",
+      process.env.NEXT_PUBLIC_BACKEND_SERVER_URL + "/chat",
+      // "http://127.0.0.1:5000/chat",
       {
         query: message,
         chatHistory: newChatHistory,
