@@ -128,6 +128,7 @@ const LocationInput = ({ setLocations }: Props) => {
               validate: { validateRegion },
             })}
           />
+          <span>If specifying state, please write NSW instead of New South Wales.</span>
           {errors?.region && (
             <p className="text-red">{errors.region.message}</p>
           )}

@@ -8,16 +8,33 @@ import { jsonParse } from "@/utils/json";
 import { getSupabaseData } from "./indexUtils";
 import ChatBox from "@/components/index/ChatBox";
 import LocationInput from "@/components/index/LocationInput";
-import { errorLogger } from "@/utils/supabaseLogger";
 import RequestDatasetButton from "@/components/index/RequestDatasetButton";
+import { logError } from "@/utils/supabaseLogger";
 
 export default function Home() {
-  let [primaryData, setPrimary] = useState([]);
-  let [tangentialData, setTangential] = useState([]);
+  let [primaryData, setPrimary] = useState<any[]>([]);
+  let [tangentialData, setTangential] = useState<any[]>([]);
   let [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   let [interestedLocations, setLocations] = useState<string[] | null>(null);
   let [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+
+  const addError = (
+    newChatHistory: ChatMessage[],
+    errorMessage: string,
+    error: string
+  ) => {
+    console.error(errorMessage, error);
+    setChatHistory([
+      ...newChatHistory,
+      {
+        text: "I'm sorry, but there was an error processing your request. Please report the error.",
+        isChatOwner: false,
+        sentAt: new Date(),
+      } as ChatMessage,
+    ]);
+    logError(errorMessage, error);
+  };
 
   const chatWithAgent = async (
     message: ChatMessage,
@@ -42,20 +59,26 @@ export default function Home() {
         if (d != null) {
           let data = await getSupabaseData(d, interestedLocations.join(","));
           console.log(data);
-          if (data != null && "primaryData" in data) {
+          if (
+            data != null &&
+            "primaryData" in data &&
+            data["primaryData"] != null
+          ) {
             setPrimary(data["primaryData"]);
             if ("tangentialData" in data && data["tangentialData"] != null) {
               setTangential(data["tangentialData"]);
             }
             let aiMessage =
               data["primaryData"].length > 0
-                ? `There are ${data["primaryData"].length} records matching your tag`
-                : `There isn't any corresponding record matching your tag. If you believe the dataset tag is correct, please press this button to request the dataset!`;
+                ? `There are ${data["primaryData"].length} records matching the primary tag.`
+                : `There isn't any corresponding record matching the primary tag. If you believe the dataset tag is correct, please press this button to request the dataset!`;
 
             setChatHistory([
               ...newChatHistory,
               {
-                text: aiMessage,
+                text:
+                  `I think the dataset tag you are interested in is ${d["primary_tag"]}. Some suggested tags are ${d["tangential_tags"]},` +
+                  aiMessage,
                 isChatOwner: false,
                 sentAt: new Date(),
                 attachment:
@@ -80,22 +103,18 @@ export default function Home() {
         }
       } catch (e) {
         console.error("error when parsing response", e);
+        addError(
+          newChatHistory,
+          `error when parsing response ${response}`,
+          e as string
+        );
       }
     } else {
-      console.error(
+      addError(
+        newChatHistory,
         "error when waiting for response from server. Response: ",
         response
       );
-      setChatHistory([
-        ...newChatHistory,
-        {
-          text: "I'm sorry, but there was an error processing your request. Please report the error.",
-          isChatOwner: false,
-          sentAt: new Date(),
-          attachment: "error",
-        } as ChatMessage,
-      ]);
-      errorLogger("Failed Flask Response", response);
     }
   };
 

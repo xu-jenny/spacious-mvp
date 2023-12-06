@@ -26,8 +26,8 @@ const ChatBox = ({
             }`}
           >
             <span className="text-md">{message.text}</span>
+            {message.attachment != null && message.attachment}
           </div>
-          {message.attachment != null && message.attachment}
         </div>
       ))}
       {loading ? (
