@@ -55,7 +55,8 @@ export async function getSupabaseData(
     );
     let primaryData = await primary_tag_fts(tags["primary_tag"], locations);
     let tangentialData = null;
-    if ("tangentialData" in tags && tags["tangential_tags"] != null) {
+    console.log("tangential data search condition ", "tangential_tags" in tags && tags["tangential_tags"] != null)
+    if ("tangential_tags" in tags && tags["tangential_tags"] != null) {
       tangentialData = await tangential_tag_fts(
         tags["tangential_tags"].toLowerCase().replaceAll(", ", ","),
         locations

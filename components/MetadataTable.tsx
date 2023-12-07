@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Table } from "./common/Table";
+import { logTableInteraction } from "@/utils/supabaseLogger";
 
 export type DatasetMetadata = {
   id: number;
@@ -28,8 +29,8 @@ const MetadataTable = ({
   const longStringShortener = (str: string) =>
     str != null && str.length > 180 ? `${str.substring(0, 180)}...` : str;
 
-  const logLinkClick = async (data: DatasetMetadata) => {
-    
+  const logLinkClick = async (data: DatasetMetadata, index: number) => {
+    logTableInteraction("LinkClick", index, data.id.toString());
   };
 
   const columns = [
@@ -38,7 +39,7 @@ const MetadataTable = ({
         <a
           style={{ color: "blue" }}
           href={props.row.original.dataseturl}
-          onClick={() => logLinkClick(props.row.original)}
+          onClick={() => logLinkClick(props.row.original, props.row.index)}
         >
           {props.getValue()}
         </a>

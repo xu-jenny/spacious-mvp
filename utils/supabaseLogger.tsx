@@ -1,9 +1,7 @@
 import { supabaseClient } from "@/clients/supabase";
-import { DatasetMetadata } from "@/components/MetadataTable";
 import { ChatMessage } from "@/components/index/ChatInput";
 
 export type TableEventType = "LinkClick" | "Pageinate";
-//  TODO: pass metatable row index here
 export async function logTableInteraction(
   eventType: TableEventType,
   position: number, // page number or row position
@@ -11,9 +9,9 @@ export async function logTableInteraction(
 ) {
   const { error } = await supabaseClient.from("dataRequests").insert({
     created_at: new Date(),
-    eventType,
+    event_type: eventType,
     position,
-    itemId,
+    item_id: itemId,
   });
   if (error) {
     console.error(error);
@@ -22,16 +20,36 @@ export async function logTableInteraction(
 
 export async function addQueries(
   chatHistory: ChatMessage[],
-  locations: string[] | null
+  locations: string[] | null,
+  sessionId: number
 ) {
-  const { error } = await supabaseClient.from("queries").insert({
-    query: JSON.stringify(chatHistory),
-    locations: locations?.toString(),
-    created_at: new Date(),
-  });
-  if (error) {
-    console.error("Failed to add queries.", chatHistory, locations, error);
+  const { data: rowData, error } = await supabaseClient
+    .from("queries")
+    .select()
+    .eq("sessionId", sessionId)
+    .single();
+  console.log(rowData, error, error?.code === "PGRST116");
+  if (error && error.code != "PGRST116") {
+    console.error("Failed to fetch queries row.", error);
+    return;
   }
+
+  if (rowData == null) {
+    console.log("Creating new query", chatHistory, JSON.stringify(chatHistory));
+    await supabaseClient.from("queries").insert({
+      query: JSON.stringify(chatHistory),
+      locations: locations?.toString(),
+      created_at: new Date(),
+      sessionId: sessionId,
+    });
+    return;
+  }
+  console.log("updating existing query", rowData);
+  await supabaseClient
+    .from("queries")
+    .update({ query: chatHistory, locations: locations?.toString() }) // TODO: locations can change, convert to an object w/ changed timestamp
+    .eq("id", sessionId)
+    .single();
 }
 
 export async function logError(errorType: string, message?: string) {
@@ -45,15 +63,14 @@ export async function logError(errorType: string, message?: string) {
   }
 }
 
-
 export async function addDataRequest(
   query: string,
   aiMessage: string,
   source?: string
 ) {
-  const { error } = await supabaseClient.from("dataRequests").insert({
+  const { error } = await supabaseClient.from("data_requests").insert({
     query,
-    aiMessage,
+    ai_message: aiMessage,
     source,
     created_at: new Date(),
   });

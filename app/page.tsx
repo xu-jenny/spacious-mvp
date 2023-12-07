@@ -9,7 +9,8 @@ import { getSupabaseData } from "./indexUtils";
 import ChatBox from "@/components/index/ChatBox";
 import LocationInput from "@/components/index/LocationInput";
 import RequestDatasetButton from "@/components/index/RequestDatasetButton";
-import { logError } from "@/utils/supabaseLogger";
+import { addQueries, logError } from "@/utils/supabaseLogger";
+import { randomUUID } from "crypto";
 
 export default function Home() {
   let [primaryData, setPrimary] = useState<any[]>([]);
@@ -18,6 +19,7 @@ export default function Home() {
   let [interestedLocations, setLocations] = useState<string[] | null>(null);
   let [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [sessionId, setSessionId] = useState<number>(Date.now());
 
   const addError = (
     newChatHistory: ChatMessage[],
@@ -43,8 +45,8 @@ export default function Home() {
     let newChatHistory = [...chatHistory, message];
     setChatHistory(newChatHistory);
     let response = await post(
-      process.env.NEXT_PUBLIC_BACKEND_SERVER_URL + "/chat",
-      // "http://127.0.0.1:5000/chat",
+      // process.env.NEXT_PUBLIC_BACKEND_SERVER_URL + "/chat",
+      "http://127.0.0.1:5000/chat",
       {
         query: message,
         chatHistory: newChatHistory,
@@ -68,7 +70,8 @@ export default function Home() {
             if ("tangentialData" in data && data["tangentialData"] != null) {
               setTangential(data["tangentialData"]);
             }
-            let aiMessage =
+            let aiMessage = `I think the dataset tag you are interested in is ${d["primary_tag"]}. Some suggested tags are ${d["tangential_tags"]},`;
+            aiMessage +=
               data["primaryData"].length > 0
                 ? `There are ${data["primaryData"].length} records matching the primary tag.`
                 : `There isn't any corresponding record matching the primary tag. If you believe the dataset tag is correct, please press this button to request the dataset!`;
@@ -76,15 +79,13 @@ export default function Home() {
             setChatHistory([
               ...newChatHistory,
               {
-                text:
-                  `I think the dataset tag you are interested in is ${d["primary_tag"]}. Some suggested tags are ${d["tangential_tags"]},` +
-                  aiMessage,
+                text: aiMessage,
                 isChatOwner: false,
                 sentAt: new Date(),
                 attachment:
                   data["primaryData"].length > 0 ? null : (
                     <RequestDatasetButton
-                      query={message.text}
+                      query={message.text + `|Location:${interestedLocations.join(",")}`}
                       aiMessage={aiMessage}
                     />
                   ),
@@ -141,12 +142,12 @@ export default function Home() {
     }
   };
 
-  // useEffect(() => {
-  //   if (chatHistory.length % 2 == 0 && chatHistory.length > 0) {
-  //     console.log("calling addQueries", chatHistory, interestedLocations);
-  //     addQueries(chatHistory, interestedLocations);
-  //   }
-  // }, [chatHistory]);
+  useEffect(() => {
+    if (chatHistory.length % 2 == 0 && chatHistory.length > 0) {
+      console.log("calling addQueries", chatHistory, interestedLocations);
+      addQueries(chatHistory, interestedLocations, sessionId);
+    }
+  }, [chatHistory]);
 
   return (
     <div className="grid grid-cols-6 h-[100vh]">
