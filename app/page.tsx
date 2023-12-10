@@ -18,6 +18,7 @@ export default function Home() {
   let [interestedLocations, setLocations] = useState<string[] | null>(null);
   let [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [sessionId, setSessionId] = useState<number>(Date.now());
 
   const addError = (
     newChatHistory: ChatMessage[],
