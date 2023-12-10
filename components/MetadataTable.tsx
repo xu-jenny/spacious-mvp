@@ -19,9 +19,11 @@ export type DatasetMetadata = {
 
 const MetadataTable = ({
   data,
+  tableName,
   paginate = false,
 }: {
   data: DatasetMetadata[];
+  tableName: string;
   paginate?: boolean;
 }) => {
   const columnHelper = createColumnHelper<DatasetMetadata>();
@@ -29,8 +31,8 @@ const MetadataTable = ({
   const longStringShortener = (str: string) =>
     str != null && str.length > 180 ? `${str.substring(0, 180)}...` : str;
 
-  const logLinkClick = async (data: DatasetMetadata, index: number) => {
-    logTableInteraction("LinkClick", index, data.id.toString());
+  const logLinkClick = (data: DatasetMetadata, index: number) => {
+    logTableInteraction("LinkClick", index, data.title.toString());
   };
 
   const columns = [

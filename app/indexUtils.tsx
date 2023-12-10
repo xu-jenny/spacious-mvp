@@ -85,7 +85,7 @@ export async function processChatResponse(
   primaryData: any[];
   tangentialData: any[];
 }> {
-  if ("primary_tag" in d || d["primary_tag"] == null) {
+  if (!("primary_tag" in d) || d["primary_tag"] == null) {
     return {
       aiMessage:
         "I'm sorry, I was not able to find a primary tag that matches what you are searching for. Could you please ask me in anther way?",
@@ -99,7 +99,7 @@ export async function processChatResponse(
     d["tangential_tags"],
     interestedLocations.join(",")
   );
-  let semanticData = await semanticSearch(d["primary_tag"]);
+  // let semanticData = await semanticSearch(d["primary_tag"]);
 
   // concat two results together
   let primaryData = [];
@@ -110,9 +110,9 @@ export async function processChatResponse(
   ) {
     primaryData = ftsData["primaryData"];
   }
-  if (semanticData != null && semanticData.length > 0) {
-    primaryData = [...primaryData, ...semanticData];
-  }
+  // if (semanticData != null && semanticData.length > 0) {
+  //   primaryData = [...primaryData, ...semanticData];
+  // }
 
   let tangentialData = ftsData["tangentialData"] || [];
   let aiMessage = `I think the dataset tag you are interested in is ${d["primary_tag"]}. Some suggested tags are ${d["tangential_tags"]},`;

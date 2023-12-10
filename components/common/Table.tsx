@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-table";
 import { format, isValid } from "date-fns";
 import moment from "moment";
+import { logTableInteraction } from "@/utils/supabaseLogger";
 
 const dataFormatter = (value: any) => {
   // Apply specific formatting based on the value's type or other conditions
@@ -28,10 +29,12 @@ export const Table = ({
   data,
   columns,
   paginate = false,
+  tableName = "Default",
 }: {
   data: any[];
   columns: ColumnDef<any, any>[];
   paginate?: boolean;
+  tableName?: string;
 }) => {
   if (!data) {
     return null;
@@ -90,28 +93,48 @@ export const Table = ({
         <div className="flex justify-center items-center gap-2">
           <button
             className="border rounded p-1"
-            onClick={() => table.setPageIndex(0)}
+            onClick={() => {
+              table.setPageIndex(0);
+              logTableInteraction("PrevPage", -1, tableName);
+            }}
             disabled={!table.getCanPreviousPage()}
           >
             {"<<"}
           </button>
           <button
             className="border rounded p-1"
-            onClick={() => table.previousPage()}
+            onClick={() => {
+              table.previousPage();
+              logTableInteraction(
+                "PrevPage",
+                table.getState().pagination.pageIndex - 1,
+                tableName
+              );
+            }}
             disabled={!table.getCanPreviousPage()}
           >
             {"<"}
           </button>
           <button
             className="border rounded p-1"
-            onClick={() => table.nextPage()}
+            onClick={() => {
+              table.nextPage();
+              logTableInteraction(
+                "NextPage",
+                table.getState().pagination.pageIndex + 1,
+                tableName
+              );
+            }}
             disabled={!table.getCanNextPage()}
           >
             {">"}
           </button>
           <button
             className="border rounded p-1"
-            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+            onClick={() => {
+              table.setPageIndex(table.getPageCount() - 1);
+              logTableInteraction("NextPage", table.getPageCount(), tableName);
+            }}
             disabled={!table.getCanNextPage()}
           >
             {">>"}
