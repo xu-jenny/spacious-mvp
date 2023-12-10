@@ -28,14 +28,13 @@ export async function addQueries(
     .select()
     .eq("sessionId", sessionId)
     .single();
-  console.log(rowData, error, error?.code === "PGRST116");
+
   if (error && error.code != "PGRST116") {
     console.error("Failed to fetch queries row.", error);
     return;
   }
 
   if (rowData == null) {
-    console.log("Creating new query", chatHistory, JSON.stringify(chatHistory));
     await supabaseClient.from("queries").insert({
       query: JSON.stringify(chatHistory),
       locations: locations?.toString(),
@@ -44,7 +43,7 @@ export async function addQueries(
     });
     return;
   }
-  console.log("updating existing query", rowData);
+
   await supabaseClient
     .from("queries")
     .update({ query: chatHistory, locations: locations?.toString() }) // TODO: locations can change, convert to an object w/ changed timestamp

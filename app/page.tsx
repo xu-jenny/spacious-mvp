@@ -5,12 +5,11 @@ import ChatInput, { ChatMessage } from "@/components/index/ChatInput";
 import { post } from "@/utils/http";
 import { useEffect, useState } from "react";
 import { jsonParse } from "@/utils/json";
-import { getSupabaseData } from "./indexUtils";
+import { getSupabaseData, processChatResponse } from "./indexUtils";
 import ChatBox from "@/components/index/ChatBox";
 import LocationInput from "@/components/index/LocationInput";
 import RequestDatasetButton from "@/components/index/RequestDatasetButton";
 import { addQueries, logError } from "@/utils/supabaseLogger";
-import { randomUUID } from "crypto";
 
 export default function Home() {
   let [primaryData, setPrimary] = useState<any[]>([]);
@@ -53,69 +52,86 @@ export default function Home() {
       }
     );
     console.log("response from flask server: ", response);
-    if (response != null && "output" in response) {
-      let output = response["output"] as string;
-      // check if answer contain tags
-      try {
-        let d = jsonParse(output);
-        if (d != null) {
-          let data = await getSupabaseData(d, interestedLocations.join(","));
-          console.log(data);
-          if (
-            data != null &&
-            "primaryData" in data &&
-            data["primaryData"] != null
-          ) {
-            setPrimary(data["primaryData"]);
-            if ("tangentialData" in data && data["tangentialData"] != null) {
-              setTangential(data["tangentialData"]);
-            }
-            let aiMessage = `I think the dataset tag you are interested in is ${d["primary_tag"]}. Some suggested tags are ${d["tangential_tags"]},`;
-            aiMessage +=
-              data["primaryData"].length > 0
-                ? `There are ${data["primaryData"].length} records matching the primary tag.`
-                : `There isn't any corresponding record matching the primary tag. If you believe the dataset tag is correct, please press this button to request the dataset!`;
-
+    if (response != null) {
+      if ("message" in response) {
+        setChatHistory([
+          ...newChatHistory,
+          {
+            text: response.message,
+            isChatOwner: false,
+            sentAt: new Date(),
+          } as ChatMessage,
+        ]);
+      } else if ("output" in response) {
+        let output = response["output"] as string;
+        // check if answer contain tags
+        try {
+          let d = jsonParse(output);
+          if (d != null) {
+            let result = await processChatResponse(d, interestedLocations);
             setChatHistory([
               ...newChatHistory,
               {
-                text: aiMessage,
+                text: result.aiMessage,
                 isChatOwner: false,
                 sentAt: new Date(),
                 attachment:
-                  data["primaryData"].length > 0 ? null : (
+                  result.primaryData != null &&
+                  result.primaryData.length > 0 ? null : (
                     <RequestDatasetButton
-                      query={message.text + `|Location:${interestedLocations.join(",")}`}
-                      aiMessage={aiMessage}
+                      query={
+                        message.text +
+                        `|Location:${interestedLocations.join(",")}`
+                      }
+                      aiMessage={result.aiMessage}
                     />
                   ),
               } as ChatMessage,
             ]);
+            setPrimary(result.primaryData);
+            setTangential(result.tangentialData);
+
+            // let data = await getSupabaseData(d, interestedLocations.join(","));
+            // console.log(data);
+            // if (
+            //   data != null &&
+            //   "primaryData" in data &&
+            //   data["primaryData"] != null
+            // ) {
+            //   setPrimary(data["primaryData"]);
+            //   if ("tangentialData" in data && data["tangentialData"] != null) {
+            //     setTangential(data["tangentialData"]);
+            //   }
+            //   let aiMessage = `I think the dataset tag you are interested in is ${d["primary_tag"]}. Some suggested tags are ${d["tangential_tags"]},`;
+            //   aiMessage +=
+            //     data["primaryData"].length > 0
+            //       ? `There are ${data["primaryData"].length} records matching the primary tag.`
+            //       : `There isn't any corresponding record matching the primary tag. If you believe the dataset tag is correct, please press this button to request the dataset!`;
+          } else {
+            setChatHistory([
+              ...newChatHistory,
+              {
+                text: output,
+                isChatOwner: false,
+                sentAt: new Date(),
+              } as ChatMessage,
+            ]);
           }
-        } else {
-          setChatHistory([
-            ...newChatHistory,
-            {
-              text: output,
-              isChatOwner: false,
-              sentAt: new Date(),
-            } as ChatMessage,
-          ]);
+        } catch (e) {
+          console.error("error when parsing response", e);
+          addError(
+            newChatHistory,
+            `error when parsing response ${response}`,
+            e as string
+          );
         }
-      } catch (e) {
-        console.error("error when parsing response", e);
+      } else {
         addError(
           newChatHistory,
-          `error when parsing response ${response}`,
-          e as string
+          "error when waiting for response from server. Response: ",
+          response
         );
       }
-    } else {
-      addError(
-        newChatHistory,
-        "error when waiting for response from server. Response: ",
-        response
-      );
     }
   };
 
@@ -145,7 +161,7 @@ export default function Home() {
   useEffect(() => {
     if (chatHistory.length % 2 == 0 && chatHistory.length > 0) {
       console.log("calling addQueries", chatHistory, interestedLocations);
-      addQueries(chatHistory, interestedLocations, sessionId);
+      // addQueries(chatHistory, interestedLocations, sessionId);
     }
   }, [chatHistory]);
 

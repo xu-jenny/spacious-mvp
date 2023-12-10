@@ -24,3 +24,15 @@ export const openaiChat = async (systemPrompt: string, message: string) => {
     console.error("Error invoking openaiComplete", e);
   }
 };
+
+export const openaiEmbed = async (text: string) => {
+  try {
+    const result = await openai.embeddings.create({
+      model: "text-embedding-ada-002",
+      input: text,
+    });
+    return result["data"];
+  } catch (e) {
+    console.error("Error invoking openaiComplete", e);
+  }
+};

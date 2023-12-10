@@ -1,6 +1,7 @@
 import { DatasetMetadata } from "@/components/MetadataTable";
 import { ChatMessage } from "@/components/index/ChatInput";
 import { createClient } from "@supabase/supabase-js";
+import { openaiEmbed } from "./openai";
 
 // Create a single supabase client for interacting with your database
 export const supabaseClient = createClient(
@@ -51,6 +52,25 @@ export async function invokeSupabaseFunction(functionName: string, args: any) {
     return null;
   }
   return data;
+}
+
+export async function getTagEmbedding(tag: string) {
+  const { data, error } = await supabaseClient.from('embedding')
+    .select("text, embedding")
+    .eq("text", tag.toLowerCase());
+  
+  if (error && error.code != "PGRST116") {
+    console.error("Failed to fetch embeddings from supabase.", error);
+    return null;
+  }
+  if (data != null) {
+    console.log(data);
+    return data;
+  }
+  // call embedding endpoint
+  let embedding = await openaiEmbed(tag);
+  await supabaseClient.from('embedding').insert({ embedding, text: tag.toLowerCase() })
+  return embedding;
 }
 
 export async function sampleData(): Promise<DatasetMetadata[]> {
