@@ -33,7 +33,7 @@ const ChatInput = ({ sendANewMessage, register }: ChatInputProps) => {
   };
 
   return (
-    <div className="h-16 px-6 bg-white w-100 overflow-hidden rounded-bl-xl rounded-br-xla">
+    <div className="h-16 px-5 pt-1 bg-white w-100 overflow-hidden rounded-bl-xl rounded-br-xla">
       <div className="flex flex-row items-center space-x-5">
         <input
           type="text"
@@ -49,7 +49,7 @@ const ChatInput = ({ sendANewMessage, register }: ChatInputProps) => {
         <button
           type="submit"
           // disabled={!newMessage || newMessage.length === 0}
-          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 me-2 mb-1 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
           onClick={() => doSendMessage()}
         >
           Send

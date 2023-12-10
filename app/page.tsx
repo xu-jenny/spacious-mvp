@@ -160,7 +160,7 @@ export default function Home() {
   useEffect(() => {
     if (chatHistory.length % 2 == 0 && chatHistory.length > 0) {
       console.log("calling addQueries", chatHistory, interestedLocations);
-      // addQueries(chatHistory, interestedLocations, sessionId);
+      addQueries(chatHistory, interestedLocations, sessionId);
     }
   }, [chatHistory]);
 
@@ -179,12 +179,12 @@ export default function Home() {
         <div className="w-1/2 bg-sky-50 overflow-auto">
           <div className="p-4 overflow-auto h-[50vh]">
             <h2 className="text-2xl font-semi-bold p-2">Primary Data</h2>
-            <MetadataTable data={primaryData} paginate={true} />
+            <MetadataTable data={primaryData} paginate={true} tableName="Primary"/>
           </div>
           <hr />
           <div className="p-4 overflow-auto">
             <h2 className="text-2xl font-semi-bold p-2">Tangential Data</h2>
-            <MetadataTable data={tangentialData} paginate={true} />
+            <MetadataTable data={tangentialData} paginate={true} tableName="Tangential"/>
           </div>
         </div>
       </div>

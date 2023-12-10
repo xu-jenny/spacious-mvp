@@ -1,13 +1,13 @@
 import { supabaseClient } from "@/clients/supabase";
 import { ChatMessage } from "@/components/index/ChatInput";
 
-export type TableEventType = "LinkClick" | "Pageinate";
+export type TableEventType = "LinkClick" | "NextPage" | "PrevPage";
 export async function logTableInteraction(
   eventType: TableEventType,
   position: number, // page number or row position
   itemId?: string
 ) {
-  const { error } = await supabaseClient.from("dataRequests").insert({
+  const { error } = await supabaseClient.from("events").insert({
     created_at: new Date(),
     event_type: eventType,
     position,

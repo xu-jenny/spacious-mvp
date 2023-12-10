@@ -99,7 +99,7 @@ export async function processChatResponse(
     d["tangential_tags"],
     interestedLocations.join(",")
   );
-  let semanticData = await semanticSearch(d["primary_tag"]);
+  // let semanticData = await semanticSearch(d["primary_tag"]);
 
   // concat two results together
   let primaryData = [];
@@ -110,9 +110,9 @@ export async function processChatResponse(
   ) {
     primaryData = ftsData["primaryData"];
   }
-  if (semanticData != null && semanticData.length > 0) {
-    primaryData = [...primaryData, ...semanticData];
-  }
+  // if (semanticData != null && semanticData.length > 0) {
+  //   primaryData = [...primaryData, ...semanticData];
+  // }
 
   let tangentialData = ftsData["tangentialData"] || [];
   let aiMessage = `I think the dataset tag you are interested in is ${d["primary_tag"]}. Some suggested tags are ${d["tangential_tags"]},`;

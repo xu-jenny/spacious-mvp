@@ -10,7 +10,7 @@ const ChatBox = ({
   loading: Boolean;
 }) => {
   return (
-    <div className="flex-grow px-4 py-1 overflow-auto">
+    <div className="flex-grow px-4 overflow-auto">
       {chatHistory.map((message, index) => (
         <div
           key={index}
