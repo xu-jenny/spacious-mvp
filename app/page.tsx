@@ -18,7 +18,6 @@ export default function Home() {
   let [interestedLocations, setLocations] = useState<string[] | null>(null);
   let [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [sessionId, setSessionId] = useState<number>(Date.now());
 
   const addError = (
     newChatHistory: ChatMessage[],
@@ -44,8 +43,8 @@ export default function Home() {
     let newChatHistory = [...chatHistory, message];
     setChatHistory(newChatHistory);
     let response = await post(
-      // process.env.NEXT_PUBLIC_BACKEND_SERVER_URL + "/chat",
-      "http://127.0.0.1:5000/chat",
+      process.env.NEXT_PUBLIC_BACKEND_SERVER_URL + "/chat",
+      // "http://127.0.0.1:5000/chat",
       {
         query: message,
         chatHistory: newChatHistory,

@@ -85,7 +85,7 @@ export async function processChatResponse(
   primaryData: any[];
   tangentialData: any[];
 }> {
-  if ("primary_tag" in d || d["primary_tag"] == null) {
+  if (!("primary_tag" in d) || d["primary_tag"] == null) {
     return {
       aiMessage:
         "I'm sorry, I was not able to find a primary tag that matches what you are searching for. Could you please ask me in anther way?",
