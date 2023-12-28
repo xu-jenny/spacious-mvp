@@ -32,7 +32,7 @@ export default function Page() {
     const onMessageReceived = (e) => {
       /* TODO: See below */
       console.log(e.message);
-      console.log(e.data);
+      console.log(e.output);
     };
 
     // Attach the callback function as an event listener.
