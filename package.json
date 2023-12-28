@@ -9,13 +9,16 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.473.0",
     "@supabase/auth-helpers-nextjs": "^0.8.7",
     "@supabase/supabase-js": "^2.38.2",
     "@tailwindcss/typography": "^0.5.10",
     "@tanstack/react-table": "^8.10.7",
+    "@xenova/transformers": "^2.13.0",
     "date-fns": "^2.30.0",
     "dotenv": "^16.3.1",
     "encoding": "^0.1.13",
+    "fs": "^0.0.1-security",
     "langchain": "^0.0.186",
     "moment": "^2.29.4",
     "next": "13.5.6",
@@ -24,6 +27,8 @@
     "react-chat-elements": "^12.0.10",
     "react-dom": "^18",
     "react-hook-form": "^7.48.2",
+    "unzipper": "^0.10.14",
+    "zlib": "^1.0.5",
     "zod-to-json-schema": "^3.21.4"
   },
   "devDependencies": {

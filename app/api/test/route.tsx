@@ -1,8 +1,29 @@
 import { NextResponse } from "next/server";
 import { primary_tag_fts, tangential_tag_fts } from "../keyword/utils";
+import { GetObjectCommand } from '@aws-sdk/client-s3';
+import path from "path";
+import { createGunzip } from "zlib";
+import { createWriteStream } from "node:fs";
+import { s3 } from "@/clients/s3";
 
 export async function GET(req: Request) {
-  console.log("hit test GET endpoint", req);
+  console.log("hit test GET endpoint");
+
+  // const bucketName = "sp-data-silver"; // Replace with your S3 bucket name
+  // const key = "report.html.gz"; // Replace with the key of the file you want to download
+  // const publicDirectory = path.resolve('./public');
+  // const downloadPath = path.join(publicDirectory, 'downloaded-file.html'); // Ensure this path is in your 'public' directory
+  // const command = new GetObjectCommand({
+  //   Bucket: bucketName,
+  //   Key: key,
+  // });
+
+  // const gunzip = createGunzip();
+  // const writeStream = createWriteStream(downloadPath);
+
+  // const response = await s3.send(command);
+  // await response.Body.pipe(gunzip).pipe(writeStream);
+
   let embedding = [
     -0.4248046875, 0.395751953125, -1.2509765625, 0.0980224609375, 1.8935546875,
     -3.794921875, 0.0911865234375, -0.07501220703125, -0.74560546875,
@@ -1684,16 +1705,16 @@ export async function GET(req: Request) {
   //   ["Melbourne", "Auburn"]
   // );
 
-  let tags = [
-    "groundwater wells",
-    "industrial discharges",
-    "land use",
-    "soil properties",
-  ];
-  let tagstr = tags.join(",");
-  console.log(tagstr);
-  let data = await tangential_tag_fts(tagstr, "melbourne");
-  console.log(data);
+  // let tags = [
+  //   "groundwater wells",
+  //   "industrial discharges",
+  //   "land use",
+  //   "soil properties",
+  // ];
+  // let tagstr = tags.join(",");
+  // console.log(tagstr);
+  // let data = await tangential_tag_fts(tagstr, "melbourne");
+  // console.log(data);
   // let API_URL =
 
   //   "https://api-inference.huggingface.co/models/BAAI/bge-large-en-v1.5";
@@ -1716,5 +1737,5 @@ export async function GET(req: Request) {
   //   });
 
   //   console.log(data);
-  return NextResponse.json({ data, status: 200 });
+  return NextResponse.json({ message: "finished test", status: 200 });
 }

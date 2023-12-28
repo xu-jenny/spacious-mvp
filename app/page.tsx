@@ -44,8 +44,9 @@ export default function Home() {
     let newChatHistory = [...chatHistory, message];
     setChatHistory(newChatHistory);
     let response = await post(
-      // process.env.NEXT_PUBLIC_BACKEND_SERVER_URL + "/chat",
-      "http://127.0.0.1:5000/chat",
+      process.env.NODE_ENV == "development"
+        ? "http://127.0.0.1:5000/chat"
+        : process.env.NEXT_PUBLIC_BACKEND_SERVER_URL + "/chat",
       {
         query: message,
         chatHistory: newChatHistory,
@@ -63,10 +64,11 @@ export default function Home() {
           } as ChatMessage,
         ]);
       } else if ("output" in response) {
-        let output = response["output"] as string;
+        console.log(response["output"], typeof(response["output"]))
         // check if answer contain tags
         try {
-          let d = jsonParse(output);
+          let d = response["output"];
+          // let d = jsonParse(output);
           if (d != null) {
             let result = await processChatResponse(d, interestedLocations);
             setChatHistory([
@@ -180,12 +182,20 @@ export default function Home() {
         <div className="w-1/2 bg-sky-50 overflow-auto">
           <div className="p-4 overflow-auto h-[50vh]">
             <h2 className="text-2xl font-semi-bold p-2">Primary Data</h2>
-            <MetadataTable data={primaryData} paginate={true} tableName="Primary"/>
+            <MetadataTable
+              data={primaryData}
+              paginate={true}
+              tableName="Primary"
+            />
           </div>
           <hr />
           <div className="p-4 overflow-auto">
             <h2 className="text-2xl font-semi-bold p-2">Tangential Data</h2>
-            <MetadataTable data={tangentialData} paginate={true} tableName="Tangential"/>
+            <MetadataTable
+              data={tangentialData}
+              paginate={true}
+              tableName="Tangential"
+            />
           </div>
         </div>
       </div>
