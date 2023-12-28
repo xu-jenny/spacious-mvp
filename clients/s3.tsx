@@ -27,7 +27,8 @@ export async function downloadFile() {
     const writeStream = createWriteStream(downloadPath);
 
     const response = await s3.send(command);
-    await response.Body.pipe(gunzip).pipe(writeStream);
+    // @ts-ignore
+    await response.Body?.pipe(gunzip).pipe(writeStream);
     // const readStream = response.Body;
 
     

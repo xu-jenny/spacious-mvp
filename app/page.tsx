@@ -113,7 +113,7 @@ export default function Home() {
             setChatHistory([
               ...newChatHistory,
               {
-                text: output,
+                text: response["output"],
                 isChatOwner: false,
                 sentAt: new Date(),
               } as ChatMessage,
