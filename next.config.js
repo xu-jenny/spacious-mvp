@@ -7,6 +7,7 @@ const nextConfig = {
       sharp$: false,
       "onnxruntime-node$": false,
     };
+    config.resolve.fallback = { fs: false };
     return config;
   },
 };

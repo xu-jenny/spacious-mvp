@@ -3,6 +3,8 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { Table } from "./common/Table";
 import { logTableInteraction } from "@/utils/supabaseLogger";
 
+type LocationGranularity = "county" | "country" | "state" | "town" | "zip"
+type DatasetType = "csv" | "pdf"
 export type DatasetMetadata = {
   id: number;
   created_at: string;
@@ -10,11 +12,17 @@ export type DatasetMetadata = {
   summary: string;
   lastUpdated: string;
   location: string;
-  metadata: string;
-  dataseturl: string;
-  publisher: string;
+  locationGranularity: LocationGranularity;
+  metadata: string | null;
+  datasetUrl: string;
+  publisher: {
+    name: string;
+    url?: string
+  };
   primary_tag: string;
   tangential_tag: string;
+  datasetType: DatasetType;
+  reportS3Key?: string;
 };
 
 const MetadataTable = ({

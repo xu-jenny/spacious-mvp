@@ -1,7 +1,8 @@
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
-import { createReadStream, createWriteStream } from "fs";
-import { createGunzip } from "zlib";
-const unzipper = require('unzipper');
+// import JSZip from "jszip";
+import AdmZip from 'adm-zip';
+const fs = require('fs');
+import path from "path";
 
 // Initialize the S3 client
 export const s3 = new S3Client({
@@ -12,57 +13,36 @@ export const s3 = new S3Client({
   }
 });
 
-const bucketName = "sp-data-silver"; // Replace with your S3 bucket name
-const key = "report.html.gz"; // Replace with the key of the file you want to download
-const downloadPath = "./"; // Local path to save the downloaded file
-
-export async function downloadFile() {
+export async function downloadFile(bucketName: string, key: string, downloadFilename: string){
   try {
     const command = new GetObjectCommand({
       Bucket: bucketName,
       Key: key,
     });
 
-    const gunzip = createGunzip();
-    const writeStream = createWriteStream(downloadPath);
-
+    const publicDirectory = path.resolve("./public");
+    const downloadPath = path.join(publicDirectory, downloadFilename); // Ensure this path is in your 'public' directory
+    
     const response = await s3.send(command);
-    await response.Body.pipe(gunzip).pipe(writeStream);
-    // const readStream = response.Body;
-
-    
-
-    // // @ts-ignore
-    // readStream.pipe(gunzip).pipe(writeStream);
-
-    // writeStream.on('finish', () => {
-    //   console.log("File downloaded and unzipped successfully");
-    // });
     // @ts-ignore
+    const zip = new AdmZip(response.Body)
+    zip.extractAllTo(downloadPath, true);
+
     
+    // await zip.loadAsync(response.Body);
+    // const [fileKey] = Object.keys(zip.files);
+    // const unzippedFile = zip.files[fileKey];
 
+    // if (unzippedFile) {
+    //   const unzippedData = await unzippedFile.async('nodebuffer');
+    //   fs.writeFileSync(downloadPath, unzippedData);
+    // } else {
+    //   console.error('No file found in the zip archive.');
+    // }
 
-    // const gunzip = createGunzip();
-    // createReadStream()
-
-    // createReadStream("dl_report.html.gz")
-    // .pipe(unzipper.Extract({ path: "./dl_report.html" }))
-    // .on('finish', () => {
-    //   console.log('File unzipped successfully');
-    // })
-    // .on('error', (err: any) => {
-    //   console.error('Error unzipping file:', err);
-    // });
-    // const gunzip = createGunzip();
-    // const writeStream = createWriteStream(downloadPath);
-
-    // readStream?.pipe(gunzip).pipe(writeStream);
-
-    // writeStream.on('finish', () => {
-    //   console.log("File downloaded and unzipped successfully");
-    // });
-    // console.log("File downloaded successfully");
+    
+    // await response.Body.pipe(gunzip).pipe(writeStream);
   } catch (error) {
-    console.error("Error downloading file:", error);
+    console.error("Error downloading file from s3:", error);
   }
 }
