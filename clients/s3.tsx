@@ -28,20 +28,6 @@ export async function downloadFile(bucketName: string, key: string, downloadFile
     const zip = new AdmZip(response.Body)
     zip.extractAllTo(downloadPath, true);
 
-    
-    // await zip.loadAsync(response.Body);
-    // const [fileKey] = Object.keys(zip.files);
-    // const unzippedFile = zip.files[fileKey];
-
-    // if (unzippedFile) {
-    //   const unzippedData = await unzippedFile.async('nodebuffer');
-    //   fs.writeFileSync(downloadPath, unzippedData);
-    // } else {
-    //   console.error('No file found in the zip archive.');
-    // }
-
-    
-    // await response.Body.pipe(gunzip).pipe(writeStream);
   } catch (error) {
     console.error("Error downloading file from s3:", error);
   }
