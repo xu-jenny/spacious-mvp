@@ -1,5 +1,6 @@
 import { openaiChat } from "@/clients/openai";
 import { supabaseClient } from "@/clients/supabase";
+import { fork } from "node:child_process";
 
 function parseRelevantTagsResponse(inputString: string) {
   var parts = inputString.toLowerCase().split("primary:");

@@ -1,4 +1,4 @@
-import { relevantTagsWithoutParsing } from "@/app/api/keyword/utils";
+import { relevantTagsWithoutParsing } from "@/app/api/search/utils";
 import {
     Coordinate,
   addressToCoord,

@@ -22,18 +22,18 @@ self.addEventListener("message", async (event) => {
   });
 
   // Actually perform the classification
-  let text1 = await classifier(event.data.text1, {
+  let text1 = await classifier(event.data.text, {
     pooling: "mean",
     normalize: true,
   });
+  
   let output = await classifier(event.data.text2, {
     pooling: "mean",
     normalize: true,
   });
-  console.log(text1);
-  console.log(output);
   let sim = similarity(Array.from(output.data), Array.from(text1.data));
   console.log(sim);
+
   // Send the output back to the main thread
   self.postMessage({
     status: "complete",

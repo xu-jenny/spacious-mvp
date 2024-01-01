@@ -5,7 +5,7 @@ import {
   primary_tag_fts,
   relevantTags,
   tangential_tag_fts,
-} from "../keyword/utils";
+} from "../search/utils";
 
 export async function POST(req: Request) {
   console.log("hit query POST endpoint");

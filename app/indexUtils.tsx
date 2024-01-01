@@ -1,5 +1,5 @@
-import { getTagEmbedding } from "@/clients/supabase";
-import { primary_tag_fts, tangential_tag_fts } from "./api/keyword/utils";
+import { getTagEmbedding, match_tag } from "@/clients/supabase";
+import { primary_tag_fts, tangential_tag_fts } from "./api/search/utils";
 import { getIntersectPlaces } from "./api/location/utils";
 import { addressToCoord } from "./api/location/utils";
 
@@ -99,7 +99,7 @@ export async function processChatResponse(
     d["tangential_tags"],
     interestedLocations.join(",")
   );
-  // let semanticData = await semanticSearch(d["primary_tag"]);
+  let semanticData = await semanticSearch(d["primary_tag"]);
 
   // concat two results together
   let primaryData = [];
@@ -110,9 +110,9 @@ export async function processChatResponse(
   ) {
     primaryData = ftsData["primaryData"];
   }
-  // if (semanticData != null && semanticData.length > 0) {
-  //   primaryData = [...primaryData, ...semanticData];
-  // }
+  if (semanticData != null && semanticData.length > 0) {
+    primaryData = [...primaryData, ...semanticData];
+  }
 
   let tangentialData = ftsData["tangentialData"] || [];
   let aiMessage = `I think the dataset tag you are interested in is ${d["primary_tag"]}. Some suggested tags are ${d["tangential_tags"]},`;
@@ -131,5 +131,6 @@ export async function semanticSearch(tag: string): Promise<string[] | null> {
   let embedding = await getTagEmbedding(tag);
   if (embedding == null) return null;
   // call semantic search function on supabase
-  return [];
+  let tags = match_tag(embedding)
+  return tags;
 }

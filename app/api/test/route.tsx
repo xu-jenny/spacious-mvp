@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { primary_tag_fts, tangential_tag_fts } from "../keyword/utils";
+import { primary_tag_fts, tangential_tag_fts } from "../search/utils";
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import path from "path";
 import { createGunzip } from "zlib";

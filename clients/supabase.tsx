@@ -1,7 +1,7 @@
 import { DatasetMetadata } from "@/components/MetadataTable";
 import { ChatMessage } from "@/components/index/ChatInput";
+import { createEmbedding } from "@/utils/embeddingService";
 import { createClient } from "@supabase/supabase-js";
-import { openaiEmbed } from "./openai";
 
 // Create a single supabase client for interacting with your database
 export const supabaseClient = createClient(
@@ -54,23 +54,34 @@ export async function invokeSupabaseFunction(functionName: string, args: any) {
   return data;
 }
 
-export async function getTagEmbedding(tag: string) {
-  const { data, error } = await supabaseClient.from('embedding')
-    .select("text, embedding")
+export async function getTagEmbedding(tag: string): Promise<
+  | null | undefined
+  | number[]> {
+  const { data, error } = await supabaseClient
+    .from("embedding")
+    .select("embedding")
     .eq("text", tag.toLowerCase());
-  
+
   if (error && error.code != "PGRST116") {
     console.error("Failed to fetch embeddings from supabase.", error);
     return null;
   }
   if (data != null) {
-    console.log(data);
-    return data;
+    console.log("tag from supabase:", data);
+    return data[0].embedding;
   }
-  // call embedding endpoint
-  let embedding = await openaiEmbed(tag);
-  await supabaseClient.from('embedding').insert({ embedding, text: tag.toLowerCase() })
-  return embedding;
+  // embedding doesn't exist, create a new one
+  let embedding = await createEmbedding(tag);
+  if (typeof embedding === "string") {
+    console.error("error creating embedding:", embedding);
+    return null;
+  }
+  if (embedding != null && typeof embedding === "object") {
+    await supabaseClient
+      .from("embedding")
+      .insert({ embedding, text: tag.toLowerCase() });
+    return embedding;
+  }
 }
 
 export async function sampleData(): Promise<DatasetMetadata[]> {
@@ -85,3 +96,14 @@ export async function sampleData(): Promise<DatasetMetadata[]> {
   return data as unknown as DatasetMetadata[];
 }
 
+export async function match_tag(tagEmbedding: number[]) {
+  const { data, error } = await supabaseClient.rpc("match_tags", {
+    query_embedding: tagEmbedding,
+    match_threshold: 0.7,
+    match_count: 10,
+  });
+  if (error != null) {
+    console.error("error invoking match_tags ", error);
+  }
+  return data;
+}
