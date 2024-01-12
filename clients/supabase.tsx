@@ -54,34 +54,44 @@ export async function invokeSupabaseFunction(functionName: string, args: any) {
   return data;
 }
 
-export async function getTagEmbedding(tag: string): Promise<
-  | null | undefined
-  | number[]> {
+export async function getTagEmbedding(
+  tag: string
+): Promise<null | undefined | string> {
   const { data, error } = await supabaseClient
-    .from("embedding")
+    .from("embeddings")
     .select("embedding")
-    .eq("text", tag.toLowerCase());
+    .eq("content", tag); // TODO: use .toLower() and make all embeddings content lowercase
 
   if (error && error.code != "PGRST116") {
     console.error("Failed to fetch embeddings from supabase.", error);
     return null;
   }
-  if (data != null) {
-    console.log("tag from supabase:", data);
+  if (data != null && data.length > 0) {
+    console.log("found same text in supabase embeddings:", data);
     return data[0].embedding;
   }
   // embedding doesn't exist, create a new one
   let embedding = await createEmbedding(tag);
+  console.log(
+    "embedding doesn't exist in embedding table, created new one.",
+    typeof embedding,
+    embedding?.data.length
+  );
   if (typeof embedding === "string") {
     console.error("error creating embedding:", embedding);
     return null;
   }
   if (embedding != null && typeof embedding === "object") {
-    await supabaseClient
-      .from("embedding")
-      .insert({ embedding, text: tag.toLowerCase() });
-    return embedding;
+    const vector = `[${embedding.data.join(", ")}]`;
+    const { error } = await supabaseClient
+      .from("embeddings")
+      .insert({ embedding: vector, content: tag.toLowerCase() });
+    if (error != null) {
+      console.error("error inserting new embedding:", error);
+    }
+    return vector;
   }
+  return null;
 }
 
 export async function sampleData(): Promise<DatasetMetadata[]> {
@@ -96,14 +106,22 @@ export async function sampleData(): Promise<DatasetMetadata[]> {
   return data as unknown as DatasetMetadata[];
 }
 
-export async function match_tag(tagEmbedding: number[]) {
+export async function match_tag(
+  tagEmbedding: string
+): Promise<{ id: number; content: string; similarity: number }[] | null> {
   const { data, error } = await supabaseClient.rpc("match_tags", {
     query_embedding: tagEmbedding,
     match_threshold: 0.7,
     match_count: 10,
   });
+  console.log("output of match_tags", data);
   if (error != null) {
-    console.error("error invoking match_tags ", error);
+    console.error(
+      "error invoking match_tags",
+      typeof tagEmbedding,
+      tagEmbedding.length,
+      error
+    );
   }
   return data;
 }

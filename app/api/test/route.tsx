@@ -1,13 +1,45 @@
 import { NextResponse } from "next/server";
 import { primary_tag_fts, tangential_tag_fts } from "../search/utils";
-import { GetObjectCommand } from '@aws-sdk/client-s3';
+import { GetObjectCommand } from "@aws-sdk/client-s3";
 import path from "path";
 import { createGunzip } from "zlib";
 import { createWriteStream } from "node:fs";
 import { s3 } from "@/clients/s3";
+import { PythonShell } from "python-shell";
 
 export async function GET(req: Request) {
   console.log("hit test GET endpoint");
+  // PythonShell.runString('x=1+1;print(x)', null).then(messages=>{
+  //   console.log('finished', messages);
+  // });
+
+  let options = {
+    mode: "text",
+    pythonOptions: ["-u"], // get print results in real-time
+    args: [
+      "bigsample.csv",
+      "bigsample.csv",
+      "what is the average duration?",
+      process.env.NEXT_PUBLIC_OPENAI_API_KEY
+    ], // arguments to your script
+  };
+
+
+  let pyshell = new PythonShell("app/api/test/test.py", options);
+  pyshell.on("message", function (message) {
+    // received a message sent from the Python script (a simple "print" statement)
+    console.log(message);
+
+    
+  });
+
+  // end the input stream and allow the process to exit
+  pyshell.end(function (err, code, signal) {
+    if (err) throw err;
+    console.log("The exit code was: " + code);
+    console.log("The exit signal was: " + signal);
+    console.log("finished");
+  });
 
   // const bucketName = "sp-data-silver"; // Replace with your S3 bucket name
   // const key = "report.html.gz"; // Replace with the key of the file you want to download
@@ -23,7 +55,7 @@ export async function GET(req: Request) {
 
   // const response = await s3.send(command);
   // await response.Body.pipe(gunzip).pipe(writeStream);
-
+  /*
   let embedding = [
     -0.4248046875, 0.395751953125, -1.2509765625, 0.0980224609375, 1.8935546875,
     -3.794921875, 0.0911865234375, -0.07501220703125, -0.74560546875,
@@ -1684,7 +1716,7 @@ export async function GET(req: Request) {
     -0.054779052734375, 1.3251953125, -0.7734375, 0.64453125, -0.92578125,
     0.68310546875,
   ];
-
+*/
   // const { query } = await req.json();
   // let data = await getLocationFromPrompt(query);
   // let response = await openai.embeddings.create({

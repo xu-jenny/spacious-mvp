@@ -20,7 +20,7 @@ export async function logTableInteraction(
 
 export async function addQueries(
   chatHistory: ChatMessage[],
-  locations: string[] | null,
+  locations: string | null,
   sessionId: number
 ) {
   const { data: rowData, error } = await supabaseClient

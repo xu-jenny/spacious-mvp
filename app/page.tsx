@@ -15,7 +15,9 @@ export default function Home() {
   let [primaryData, setPrimary] = useState<any[]>([]);
   let [tangentialData, setTangential] = useState<any[]>([]);
   let [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
-  let [interestedLocations, setLocations] = useState<string[] | null>(null);
+  let [interestedLocations, setLocations] = useState<string | null>(
+    "California"
+  );
   let [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [sessionId, setSessionId] = useState<number>(Date.now());
@@ -39,7 +41,7 @@ export default function Home() {
 
   const chatWithAgent = async (
     message: ChatMessage,
-    interestedLocations: string[]
+    interestedLocations: string
   ) => {
     let newChatHistory = [...chatHistory, message];
     setChatHistory(newChatHistory);
@@ -52,7 +54,15 @@ export default function Home() {
         chatHistory: newChatHistory,
       }
     );
-    console.log("response from flask server: ", response);
+    // let response = {
+    //   output: {
+    //     primary_tag: "traffic data",
+    //     tangential_tags:
+    //       "Police reports, Crime rates, Neighborhood demographics, Law enforcement presence",
+    //   },
+    // };
+    
+    // console.log("response from flask server: ", response);
     if (response != null) {
       if ("message" in response) {
         setChatHistory([
@@ -64,7 +74,7 @@ export default function Home() {
           } as ChatMessage,
         ]);
       } else if ("output" in response) {
-        console.log(response["output"], typeof(response["output"]))
+        console.log(response["output"], typeof response["output"]);
         // check if answer contain tags
         try {
           let d = response["output"];
@@ -83,7 +93,7 @@ export default function Home() {
                     <RequestDatasetButton
                       query={
                         message.text +
-                        `|Location:${interestedLocations.join(",")}`
+                        `|Location:${interestedLocations}`
                       }
                       aiMessage={result.aiMessage}
                     />
@@ -121,18 +131,23 @@ export default function Home() {
           }
         } catch (e) {
           console.error("error when parsing response", e);
-          addError(
-            newChatHistory,
-            `error when parsing response ${response}`,
-            e as string
-          );
+          if (process.env.NODE_ENV != "development") {
+            addError(
+              newChatHistory,
+              `error when parsing response ${response}`,
+              e as string
+            );
+          }
         }
       } else {
-        addError(
-          newChatHistory,
-          "error when waiting for response from server. Response: ",
-          response
-        );
+        console.error("error when parsing response", e);
+        if (process.env.NODE_ENV != "development") {
+          addError(
+            newChatHistory,
+            "error when waiting for response from server. Response: ",
+            response.toString()
+          );
+        }
       }
     }
   };
@@ -161,7 +176,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (chatHistory.length % 2 == 0 && chatHistory.length > 0) {
+    if (chatHistory.length % 2 == 0 && chatHistory.length > 0 && process.env.NODE_ENV === 'production') {
       console.log("calling addQueries", chatHistory, interestedLocations);
       addQueries(chatHistory, interestedLocations, sessionId);
     }

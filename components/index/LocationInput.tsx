@@ -2,7 +2,7 @@ import { IFormInput, parseLocationFormInput } from "@/app/indexUtils";
 import { Dispatch, SetStateAction, forwardRef, useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 interface Props {
-  setLocations: Dispatch<SetStateAction<string[] | null>>;
+  setLocations: Dispatch<SetStateAction<string | null>>;
 }
 const LocationInput = ({ setLocations }: Props) => {
   let [locationFormValues, setLocationFormValues] = useState<IFormInput>({

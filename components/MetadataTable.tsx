@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Table } from "./common/Table";
 import { logTableInteraction } from "@/utils/supabaseLogger";
+import Link from "next/link";
+import { jsonParse } from "@/utils/json";
 
 type LocationGranularity = "county" | "country" | "state" | "town" | "zip"
 type DatasetType = "csv" | "pdf"
@@ -15,10 +17,7 @@ export type DatasetMetadata = {
   locationGranularity: LocationGranularity;
   metadata: string | null;
   datasetUrl: string;
-  publisher: {
-    name: string;
-    url?: string
-  };
+  publisher: string; 
   primary_tag: string;
   tangential_tag: string;
   datasetType: DatasetType;
@@ -46,13 +45,13 @@ const MetadataTable = ({
   const columns = [
     columnHelper.accessor("title", {
       cell: (props) => (
-        <a
+        <Link
           style={{ color: "blue" }}
-          href={props.row.original.dataseturl}
+          href={"/dataset/" + props.row.original.id}
           onClick={() => logLinkClick(props.row.original, props.row.index)}
         >
           {props.getValue()}
-        </a>
+        </Link>
       ),
     }),
     columnHelper.accessor("summary", {
@@ -62,7 +61,7 @@ const MetadataTable = ({
       cell: (info) => info.getValue(),
     }),
     columnHelper.accessor("publisher", {
-      cell: (info) => info.getValue(),
+      cell: (info) => jsonParse(info.getValue())['name'],
     }),
   ];
 

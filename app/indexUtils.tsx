@@ -1,4 +1,4 @@
-import { getTagEmbedding, match_tag } from "@/clients/supabase";
+import { getTagEmbedding, match_tag, supabaseClient } from "@/clients/supabase";
 import { primary_tag_fts, tangential_tag_fts } from "./api/search/utils";
 import { getIntersectPlaces } from "./api/location/utils";
 import { addressToCoord } from "./api/location/utils";
@@ -49,23 +49,19 @@ export async function parseLocationFormInput(
 export async function getSupabaseData(
   primary_tag: string,
   tangential_tags: string | undefined,
-  locations: string
+  queryLoc: string
 ): Promise<{ primaryData: any[] | null; tangentialData: any[] | null }> {
   console.log(
-    `Calling supabase Query with params primaryTag: ${primary_tag}, Locations: ${locations}`
+    `Calling supabase Query with params primaryTag: ${primary_tag}, Location: ${queryLoc}`
   );
-  let primaryData = await primary_tag_fts(primary_tag, locations);
+  let primaryData = await primary_tag_fts(primary_tag, queryLoc);
   let tangentialData = null;
-  console.log(
-    "tangential data search condition fulled: ",
-    tangential_tags != null
-  );
-  if (tangential_tags != null) {
-    tangentialData = await tangential_tag_fts(
-      tangential_tags.toLowerCase().replaceAll(", ", ","),
-      locations
-    );
-  }
+  // if (tangential_tags != null) {
+  //   tangentialData = await tangential_tag_fts(
+  //     tangential_tags.toLowerCase().replaceAll(", ", ","),
+  //     queryLoc
+  //   );
+  // }
   return {
     primaryData, //: result["primarytagData"],
     tangentialData, //: result["tangentialTagData"],
@@ -77,9 +73,19 @@ export type AgentResponse = {
   tangential_tags?: string;
 };
 
+type SearchResult = {
+  id: number;
+  title: string;
+  summary: string;
+  datasetUrl: string;
+  publisher: string;
+  location: string;
+  topic: string;
+};
+
 export async function processChatResponse(
   d: AgentResponse,
-  interestedLocations: string[]
+  queryLoc: string
 ): Promise<{
   aiMessage: string;
   primaryData: any[];
@@ -93,14 +99,15 @@ export async function processChatResponse(
       tangentialData: [],
     };
   }
-
+  const locPattern = `%${queryLoc}%`;
   let ftsData = await getSupabaseData(
     d["primary_tag"],
     d["tangential_tags"],
-    interestedLocations.join(",")
+    locPattern
   );
-  let semanticData = await semanticSearch(d["primary_tag"]);
+  let semanticData = await semanticSearch(d["primary_tag"], locPattern);
 
+  console.log("fts data:", ftsData, "semantic data: ", semanticData);
   // concat two results together
   let primaryData = [];
   if (
@@ -111,7 +118,8 @@ export async function processChatResponse(
     primaryData = ftsData["primaryData"];
   }
   if (semanticData != null && semanticData.length > 0) {
-    primaryData = [...primaryData, ...semanticData];
+    let combined = [...primaryData, ...semanticData];
+    primaryData = Array.from(new Set(combined));
   }
 
   let tangentialData = ftsData["tangentialData"] || [];
@@ -127,10 +135,24 @@ export async function processChatResponse(
   };
 }
 
-export async function semanticSearch(tag: string): Promise<string[] | null> {
+export async function semanticSearch(
+  tag: string,
+  locPattern: string
+): Promise<SearchResult[] | null> {
   let embedding = await getTagEmbedding(tag);
   if (embedding == null) return null;
   // call semantic search function on supabase
-  let tags = match_tag(embedding)
-  return tags;
+  let matchingTags = await match_tag(embedding);
+  if (matchingTags == null) return null;
+  if (matchingTags != null && matchingTags.length > 0) {
+    let tags = matchingTags.map((tag) => tag.content);
+    const { data, error } = await supabaseClient
+      .from("master_us")
+      .select("id, title, summary, location, topic, publisher, datasetUrl")
+      .like("location", locPattern)
+      .in("topic", tags);
+    console.log("semantic search data: ", data, "error:", error);
+    return data;
+  }
+  return null;
 }

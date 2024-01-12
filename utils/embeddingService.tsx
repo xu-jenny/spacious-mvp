@@ -15,11 +15,13 @@ class EmbeddingPipeline {
   }
 }
 
-export async function createEmbedding(text: string): Promise<number[]> {
+export async function createEmbedding(
+  text: string
+): Promise<{ dims: any[]; type: string; data: number[]; size: number } | null> {
   const classifier = await EmbeddingPipeline.getInstance();
   const embedding = await classifier(text, {
     pooling: "mean",
     normalize: true,
   });
-  return embedding
+  return embedding;
 }

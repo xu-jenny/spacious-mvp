@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+const webpack = require('webpack');
 const nextConfig = {
   webpack: (config) => {
     // See https://webpack.js.org/configuration/resolve/#resolvealias

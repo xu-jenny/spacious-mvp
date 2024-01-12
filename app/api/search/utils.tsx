@@ -1,6 +1,5 @@
 import { openaiChat } from "@/clients/openai";
 import { supabaseClient } from "@/clients/supabase";
-import { fork } from "node:child_process";
 
 function parseRelevantTagsResponse(inputString: string) {
   var parts = inputString.toLowerCase().split("primary:");
@@ -50,13 +49,13 @@ export async function tangential_tag_fts(queries: string, locations: string) {
   return data;
 }
 
-export async function primary_tag_fts(query: string, locations: string) {
-  const { data, error } = await supabaseClient.rpc("tag_title_fts", {
-    query, //: "land use",
-    locations, //: "Melbourne,Syndney,NSW",
+export async function primary_tag_fts(query: string, locPattern: string) {
+  const { data, error } = await supabaseClient.rpc("topic_fts", {
+    query: query,
+    locpattern: locPattern,
   });
   if (error != null) {
-    console.error("error invoking tangential_tag_fts ", error);
+    console.error("error invoking primary_tag_fts ", error);
   }
   return data;
 }
