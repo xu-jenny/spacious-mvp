@@ -18,10 +18,10 @@ def install_prereqs(package_names):
             print("installing %s" % package)  
             subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
-install_prereqs(['pandas', 'langchain', 'langchain_experimental'])
+install_prereqs(['pandas', 'langchain', 'langchain_experimental', 'langchain_openai'])
 import pandas as pd
 from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe_agent
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.agents import AgentType
 
 filename = sys.argv[1]
@@ -52,8 +52,7 @@ def csv_agent_chat(data, query):
         agent_type=AgentType.OPENAI_FUNCTIONS,
         max_iterations=15
     )
-    print("created agent")
-    print("====")
+    print("created agent====")
     return agent.run(query)
 
 data = prepare_csv_data(filename, fileurl)
