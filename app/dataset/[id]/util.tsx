@@ -34,24 +34,6 @@ export async function getDataset(id: number): Promise<Dataset | null> {
   return data[0];
 }
 
-async function fetchCSV(url) {
-  const response = await fetch(url);
-  console.log(response);
-  if (!response.ok) {
-    throw new Error("Network response was not ok " + response.statusText);
-  }
-  return await response.text();
-}
-async function loadCSVtoPyodide(pyodide, csvData) {
-  pyodide.globals.set("csvData", csvData);
-  await pyodide.runPythonAsync(`
-
-    import io
-
-    df = pd.read_csv(io.StringIO(csvData))
-  `);
-}
-
 // useEffect(() => {
 //   if (typeof window !== "undefined") {
 //     // Ensure this runs in browser only

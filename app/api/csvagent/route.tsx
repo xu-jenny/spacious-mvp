@@ -14,6 +14,7 @@ export async function POST(req: Request, res: Response){
 
   try {
     const result = await new Promise((resolve, reject) => {
+      //@ts-ignore
       let pyshell = new PythonShell("app/api/test/test.py", options);
       pyshell.on("message", function (message) {
         console.log(message);

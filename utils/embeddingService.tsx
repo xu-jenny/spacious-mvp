@@ -1,13 +1,18 @@
-import { Pipeline, pipeline } from "@xenova/transformers";
-var similarity = require("compute-cosine-similarity");
+import {
+  FeatureExtractionPipeline,
+  PipelineType,
+  Tensor,
+  pipeline,
+} from "@xenova/transformers";
 
 class EmbeddingPipeline {
-  static task = "feature-extraction";
+  static task: PipelineType = "feature-extraction";
   static model = "WhereIsAi/UAE-Large-V1";
-  static instance: Promise<Pipeline> | null = null;
+  static instance: Promise<FeatureExtractionPipeline> | null = null;
 
   static async getInstance(progress_callback = null) {
     if (this.instance === null) {
+      // @ts-ignore
       this.instance = pipeline(this.task, this.model);
     }
 
@@ -17,11 +22,14 @@ class EmbeddingPipeline {
 
 export async function createEmbedding(
   text: string
-): Promise<{ dims: any[]; type: string; data: number[]; size: number } | null> {
+): Promise<Tensor | null> {
   const classifier = await EmbeddingPipeline.getInstance();
-  const embedding = await classifier(text, {
-    pooling: "mean",
-    normalize: true,
-  });
-  return embedding;
+  if (classifier != null) {
+    const embedding = await classifier(text, {
+      pooling: "mean",
+      normalize: true,
+    });
+    return embedding;
+  }
+  return null;
 }

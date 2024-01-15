@@ -16,7 +16,7 @@ import { jsonParse } from "@/utils/json";
 import { Dataset, getDataset } from "./util";
 import { post } from "@/utils/http";
 import { InfoDropdown } from "@/components/dataset/InfoDropdown";
-import AiMessageDetail from "@/components/dataset/AIMessageDetail";
+// import AiMessageDetail from "@/components/dataset/AIMessageDetail";
 
 const Example = {
   id: 1056,
@@ -61,7 +61,7 @@ export default function DatasetPage({
 }) {
   let [chatWithAgent, setChatWithAgent] = useState<boolean>(false);
   let [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
-  let [dataset, setDataset] = useState<Dataset | null>(Example);
+  let [dataset, setDataset] = useState<Dataset | null>(null);
   let [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -120,7 +120,7 @@ export default function DatasetPage({
           text: data[data.length - 1] as string,
           isChatOwner: false,
           sentAt: new Date(),
-          attachment: <AiMessageDetail response={data} />,
+          // attachment: <AiMessageDetail response={data} />,
         } as ChatMessage,
       ]);
       setLoading(false);
@@ -158,7 +158,7 @@ export default function DatasetPage({
                 obj: { name: string; url: string; format: string },
                 index: number
               ) => (
-                <span key={obj["name"]}>
+                <span key={obj["url"]}>
                   <a
                     href={obj["url"]}
                     className="text-blue-600 dark:text-blue-500 hover:underline"
