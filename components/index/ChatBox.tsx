@@ -19,7 +19,7 @@ const ChatBox = ({
           }`}
         >
           <div
-            className={`px-2 w-fit py-3 flex flex-col rounded-lg  ${
+            className={`px-2 w-fit py-3 flex flex-col rounded-lg max-w-2/3 ${
               message.isChatOwner
                 ? "order-1 mr-2 bg-blue-500 text-white"
                 : "order-2 ml-2 bg-slate-100 text-black"

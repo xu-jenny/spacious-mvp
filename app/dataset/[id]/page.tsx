@@ -16,7 +16,7 @@ import { jsonParse } from "@/utils/json";
 import { Dataset, getDataset } from "./util";
 import { post } from "@/utils/http";
 import { InfoDropdown } from "@/components/dataset/InfoDropdown";
-var ansi_up = require("ansi_up");
+import AiMessageDetail from "@/components/dataset/AIMessageDetail";
 
 const Example = {
   id: 1056,
@@ -63,43 +63,68 @@ export default function DatasetPage({
   let [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   let [dataset, setDataset] = useState<Dataset | null>(Example);
   let [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  // useEffect(() => {
-  //   async function fetchDataset() {
-  //     let result = await getDataset(id);
-  //     if (result == null) {
-  //       setError("There was no dataset corresponding to the specified ID.");
-  //     } else {
-  //       console.log(result);
-  //       setDataset(result);
-  //     }
-  //   }
-  //   fetchDataset();
-  // }, [id]);
+  useEffect(() => {
+    async function fetchDataset() {
+      let result = await getDataset(id);
+      if (result == null) {
+        setError("There was no dataset corresponding to the specified ID.");
+      } else {
+        console.log(result);
+        setDataset(result);
+      }
+    }
+    fetchDataset();
+  }, [id]);
 
   const datasetUrls =
     dataset != null && dataset?.datasetUrl != null
       ? jsonParse(dataset?.datasetUrl)
       : [];
   const onNewMessage = async (message: ChatMessage) => {
-    const response = [
-      "need to install packages  []",
-      "loaded file from NCHS - Death rates and life expectancy at birth.csv",
-      "created agent====",
-      "\u001b[1m> Entering new AgentExecutor chain...\u001b[0m",
-      "\u001b[32;1m\u001b[1;3m",
-      "Invoking: `python_repl_ast` with `{'query': \"df['Year'].min(), df['Year'].max()\"}`",
-      "\u001b[0m\u001b[36;1m\u001b[1;3m(1900, 2018)\u001b[0m\u001b[32;1m\u001b[1;3mThe time range of the dataset is from the year 1900 to the year 2018.\u001b[0m",
-      "\u001b[1m> Finished chain.\u001b[0m",
-      "====",
-      "The time range of the dataset is from the year 1900 to the year 2018.",
-    ];
-    // let response = await post("/api/csvagent", {
-    //   filename: `${dataset?.title}.csv`,
-    //   fileUrl: datasetUrls[0]["url"],
-    //   query: message.text,
-    // });
+    let newChatHistory = [...chatHistory, message];
+    setChatHistory(newChatHistory);
+    setLoading(true);
+    // const response = {
+    //   status: 200,
+    //   data: [
+    //     "need to install packages  []",
+    //     "loaded file from NCHS - Death rates and life expectancy at birth.csv",
+    //     "created agent",
+    //     "\u001b[1m> Entering new AgentExecutor chain...\u001b[0m",
+    //     "\u001b[32;1m\u001b[1;3m",
+    //     "Invoking: `python_repl_ast` with `{'query': \"df[df['Year'].between(2010, 2018)]['Average Life Expectancy (Years)'].mean()\"}`",
+    //     "\u001b[0m\u001b[36;1m\u001b[1;3m77.70133333333334\u001b[0m\u001b[32;1m\u001b[1;3mThe average life expectancy from 2010 to 2018 is approximately 77.7 years.\u001b[0m",
+    //     "\u001b[1m> Finished chain.\u001b[0m",
+    //     "====",
+    //     "The average life expectancy from 2010 to 2018 is approximately 77.7 years.",
+    //   ],
+    // };
+    let response = await post("/api/csvagent", {
+      filename: `${dataset?.title}.csv`,
+      fileUrl: datasetUrls[0]["url"],
+      query: message.text,
+    });
     console.log(response);
+    if (
+      typeof response === "object" &&
+      response.status == 200 &&
+      "data" in response &&
+      response.data.length > 1
+    ) {
+      let data = response.data;
+      setChatHistory([
+        ...newChatHistory,
+        {
+          text: data[data.length - 1] as string,
+          isChatOwner: false,
+          sentAt: new Date(),
+          attachment: <AiMessageDetail response={data} />,
+        } as ChatMessage,
+      ]);
+      setLoading(false);
+    }
   };
 
   const showPublisher = (pubStr: string) => {
@@ -150,20 +175,11 @@ export default function DatasetPage({
           <pre>{dataset != null && dataset["df.head"]}</pre>
           <hr className="w-3/4 h-0.5 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700" />
           {dataset != null && <InfoDropdown dataset={dataset} />}
-          <pre>
-            {ansi_up.ansi_to_html(
-              `\u001b[1m> Entering new AgentExecutor chain...\u001b[0m
-            \u001b[32;1m\u001b[1;3m
-            Invoking: "python_repl_ast" with "{'query': \"df['Year'].min(), df['Year'].max()\"}"
-            \u001b[0m\u001b[36;1m\u001b[1;3m(1900, 2018)\u001b[0m\u001b[32;1m\u001b[1;3mThe time range of the dataset is from the year 1900 to the year 2018.\u001b[0m
-            \u001b[1m> Finished chain.\u001b[0m`
-            )}
-          </pre>
         </article>
         {/* <DynamicTable data={JSON.parse(dataset.metadata)} /> */}
       </div>
       <div className="w-1/2 flex flex-col h-full">
-        <ChatBox chatHistory={chatHistory} loading={false} />
+        <ChatBox chatHistory={chatHistory} loading={loading} />
         {error != null && <span className="text-red ml-7">{error}</span>}
         <ChatInput sendANewMessage={onNewMessage} />
       </div>
