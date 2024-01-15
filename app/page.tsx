@@ -3,14 +3,15 @@
 import MetadataTable from "@/components/MetadataTable";
 import ChatInput, { ChatMessage } from "@/components/index/ChatInput";
 import { post } from "@/utils/http";
-import { useEffect, useState } from "react";
-import { jsonParse } from "@/utils/json";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getSupabaseData, processChatResponse } from "./indexUtils";
 import ChatBox from "@/components/index/ChatBox";
 import LocationInput from "@/components/index/LocationInput";
 import RequestDatasetButton from "@/components/index/RequestDatasetButton";
 import { addQueries, logError } from "@/utils/supabaseLogger";
+import React from "react";
 
+type WorkerInstance = Worker | null;
 export default function Home() {
   let [primaryData, setPrimary] = useState<any[]>([]);
   let [tangentialData, setTangential] = useState<any[]>([]);
@@ -21,6 +22,8 @@ export default function Home() {
   let [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [sessionId, setSessionId] = useState<number>(Date.now());
+  const [embedding, setEmbedding] = useState(null);
+  const worker = useRef<WorkerInstance>(null);
 
   const addError = (
     newChatHistory: ChatMessage[],
@@ -183,6 +186,32 @@ export default function Home() {
     }
   }, [chatHistory]);
 
+  
+
+  useEffect(() => {
+    if (!worker.current) {
+      worker.current = new Worker(new URL("./embeddingWorker.tsx", import.meta.url), {
+        type: "module",
+      });
+    }
+    const onMessageReceived = (e: MessageEvent) => {
+      console.log(e.data.status)
+      switch (e.data.status) {
+        case "complete":
+          setEmbedding(e.data.output);
+          break;
+      }
+    };
+    worker.current.addEventListener("message", onMessageReceived);
+    return () =>
+      worker.current?.removeEventListener("message", onMessageReceived);
+  });
+  const classify = useCallback((text1: string, text2: string) => {
+    if (worker.current) {
+      worker.current.postMessage({ text1, text2 });
+    }
+  }, []);
+  
   return (
     <div className="grid grid-cols-6 h-[100vh]">
       <div className="col-span-1 bg-sky-200 prose">

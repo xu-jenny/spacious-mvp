@@ -20,16 +20,29 @@ class EmbeddingPipeline {
   }
 }
 
-export async function createEmbedding(
-  text: string
-): Promise<Tensor | null> {
-  const classifier = await EmbeddingPipeline.getInstance();
+self.addEventListener("message", async (event) => {
+  // @ts-ignore
+  let classifier = await EmbeddingPipeline.getInstance((x: Pipeline) => {
+    self.postMessage(x);
+  });
+
   if (classifier != null) {
-    const embedding = await classifier(text, {
+    let text1 = await classifier(event.data.text, {
       pooling: "mean",
       normalize: true,
     });
-    return embedding;
+
+    let output = await classifier(event.data.text2, {
+      pooling: "mean",
+      normalize: true,
+    });
+    let sim = similarity(Array.from(output.data), Array.from(text1.data));
+    console.log(sim);
+
+    // Send the output back to the main thread
+    self.postMessage({
+      status: "complete",
+      output: sim,
+    });
   }
-  return null;
-}
+});
