@@ -2,6 +2,7 @@ import { getTagEmbedding, match_tag, supabaseClient } from "@/clients/supabase";
 import { primary_tag_fts, tangential_tag_fts } from "./api/search/utils";
 import { getIntersectPlaces } from "./api/location/utils";
 import { addressToCoord } from "./api/location/utils";
+import { Tensor } from "@xenova/transformers/types/utils/tensor";
 
 export interface IFormInput {
   address?: string;
@@ -100,12 +101,12 @@ export async function processChatResponse(
     };
   }
   const locPattern = `%${queryLoc}%`;
+  let semanticData = await semanticSearch(d["primary_tag"], locPattern);
   let ftsData = await getSupabaseData(
     d["primary_tag"],
     d["tangential_tags"],
     locPattern
   );
-  let semanticData = await semanticSearch(d["primary_tag"], locPattern);
 
   console.log("fts data:", ftsData, "semantic data: ", semanticData);
   // concat two results together
@@ -156,3 +157,25 @@ export async function semanticSearch(
   }
   return null;
 }
+
+ export async function createEmbedding(text: string): Promise<Float32Array> {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(
+      new URL("./embeddingWorker.tsx", import.meta.url),
+      { type: "module" }
+    );
+    worker.onmessage = (event: MessageEvent) => {
+      console.log(event.data);
+      if (event.data.status === "complete") {
+        console.log("finished creating embedding", event.data.output.length);
+        resolve(event.data.output);
+      }
+    };
+    worker.onerror = (error: ErrorEvent) => {
+      console.error(error.message);
+      reject(error);
+    };
+    worker.postMessage({ text });
+  });
+}
+

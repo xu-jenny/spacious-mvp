@@ -1,7 +1,6 @@
 import {
   FeatureExtractionPipeline,
   PipelineType,
-  Tensor,
   pipeline,
 } from "@xenova/transformers";
 
@@ -27,22 +26,14 @@ self.addEventListener("message", async (event) => {
   });
 
   if (classifier != null) {
-    let text1 = await classifier(event.data.text, {
+    let text = await classifier(event.data.text, {
       pooling: "mean",
       normalize: true,
     });
-
-    let output = await classifier(event.data.text2, {
-      pooling: "mean",
-      normalize: true,
-    });
-    let sim = similarity(Array.from(output.data), Array.from(text1.data));
-    console.log(sim);
-
-    // Send the output back to the main thread
+    console.log(text);
     self.postMessage({
       status: "complete",
-      output: sim,
+      output: text.data,
     });
   }
 });

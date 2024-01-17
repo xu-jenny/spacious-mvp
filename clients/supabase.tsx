@@ -1,6 +1,5 @@
+import { createEmbedding } from "@/app/indexUtils";
 import { DatasetMetadata } from "@/components/MetadataTable";
-import { ChatMessage } from "@/components/index/ChatInput";
-import { createEmbedding } from "@/utils/embeddingService";
 import { createClient } from "@supabase/supabase-js";
 
 // Create a single supabase client for interacting with your database
@@ -53,7 +52,6 @@ export async function invokeSupabaseFunction(functionName: string, args: any) {
   }
   return data;
 }
-
 export async function getTagEmbedding(
   tag: string
 ): Promise<null | undefined | string> {
@@ -75,14 +73,14 @@ export async function getTagEmbedding(
   console.log(
     "embedding doesn't exist in embedding table, created new one.",
     typeof embedding,
-    embedding?.data.length
+    embedding.length
   );
   if (typeof embedding === "string") {
     console.error("error creating embedding:", embedding);
     return null;
   }
   if (embedding != null && typeof embedding === "object") {
-    const vector = `[${embedding.data.join(", ")}]`;
+    const vector = `[${embedding.join(", ")}]`;
     const { error } = await supabaseClient
       .from("embeddings")
       .insert({ embedding: vector, content: tag.toLowerCase() });
@@ -125,3 +123,4 @@ export async function match_tag(
   }
   return data;
 }
+

@@ -62,10 +62,12 @@ export default function Home() {
     //     primary_tag: "traffic data",
     //     tangential_tags:
     //       "Police reports, Crime rates, Neighborhood demographics, Law enforcement presence",
+    // primary_tag: "crime statistics",
+    //     tangential_tags:
+    //       "crime rates, types of crimes, demographics, law enforcement presence",
     //   },
     // };
-
-    // console.log("response from flask server: ", response);
+    console.log("response from flask server: ", response);
     if (response != null) {
       if ("message" in response) {
         setChatHistory([
@@ -126,7 +128,7 @@ export default function Home() {
                 text: response["output"],
                 isChatOwner: false,
                 sentAt: new Date(),
-              } as ChatMessage,
+              } as unknown as ChatMessage,
             ]);
           }
         } catch (e) {
@@ -186,32 +188,6 @@ export default function Home() {
     }
   }, [chatHistory]);
 
-  
-
-  useEffect(() => {
-    if (!worker.current) {
-      worker.current = new Worker(new URL("./embeddingWorker.tsx", import.meta.url), {
-        type: "module",
-      });
-    }
-    const onMessageReceived = (e: MessageEvent) => {
-      console.log(e.data.status)
-      switch (e.data.status) {
-        case "complete":
-          setEmbedding(e.data.output);
-          break;
-      }
-    };
-    worker.current.addEventListener("message", onMessageReceived);
-    return () =>
-      worker.current?.removeEventListener("message", onMessageReceived);
-  });
-  const classify = useCallback((text1: string, text2: string) => {
-    if (worker.current) {
-      worker.current.postMessage({ text1, text2 });
-    }
-  }, []);
-  
   return (
     <div className="grid grid-cols-6 h-[100vh]">
       <div className="col-span-1 bg-sky-200 prose">
