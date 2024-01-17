@@ -100,13 +100,15 @@ export async function processChatResponse(
     };
   }
   const locPattern = `%${queryLoc}%`;
+  
+  let semanticData = await semanticSearch(d["primary_tag"], locPattern);
+  
   let ftsData = await getSupabaseData(
     d["primary_tag"],
     d["tangential_tags"],
     locPattern
   );
-  let semanticData = await semanticSearch(d["primary_tag"], locPattern);
-
+  
   console.log("fts data:", ftsData, "semantic data: ", semanticData);
   // concat two results together
   let primaryData = [];
