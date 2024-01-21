@@ -11,19 +11,16 @@ import RequestDatasetButton from "@/components/index/RequestDatasetButton";
 import { addQueries, logError } from "@/utils/supabaseLogger";
 import React from "react";
 
-type WorkerInstance = Worker | null;
 export default function Home() {
   let [primaryData, setPrimary] = useState<any[]>([]);
   let [tangentialData, setTangential] = useState<any[]>([]);
   let [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   let [interestedLocations, setLocations] = useState<string[] | null>([
-    "California",
+    "United States",
   ]);
   let [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [sessionId, setSessionId] = useState<number>(Date.now());
-  const [embedding, setEmbedding] = useState(null);
-  const worker = useRef<WorkerInstance>(null);
 
   const addError = (
     newChatHistory: ChatMessage[],
