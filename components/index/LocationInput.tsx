@@ -20,7 +20,6 @@ const LocationInput = ({ setLocations }: Props) => {
     formState: { errors },
   } = useForm<IFormInput>();
   const onSubmit: SubmitHandler<IFormInput> = async (data: IFormInput) => {
-    console.log(data);
     const isSameAsPreviousSubmit = Object.keys(data)
       .filter((fieldName) => fieldName !== "message")
       .every((fieldName) => {

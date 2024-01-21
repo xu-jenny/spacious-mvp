@@ -9,7 +9,6 @@ export const supabaseClient = createClient(
 );
 
 export async function filterLocation(location: string) {
-  console.log("hello!");
   const { data, error } = await supabaseClient
     .from("master")
     .select("title, summary, tags")

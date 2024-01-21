@@ -165,7 +165,6 @@ export async function semanticSearch(
       { type: "module" }
     );
     worker.onmessage = (event: MessageEvent) => {
-      console.log(event.data);
       if (event.data.status === "complete") {
         console.log("finished creating embedding", event.data.output.length);
         resolve(event.data.output);

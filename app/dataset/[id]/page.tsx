@@ -24,7 +24,6 @@ export default function DatasetPage({
       if (result == null) {
         setError("There was no dataset corresponding to the specified ID.");
       } else {
-        console.log(result);
         setDataset(result);
       }
     }
@@ -49,7 +48,7 @@ export default function DatasetPage({
         query: message.text,
       }
     );
-    console.log(response);
+    console.log("response from server", response);
     if (typeof response === "object" && "message" in response) {
       setChatHistory([
         ...newChatHistory,
@@ -61,6 +60,15 @@ export default function DatasetPage({
         } as ChatMessage,
       ]);
       setLoading(false);
+    } else {
+      setChatHistory([
+        ...newChatHistory,
+        {
+          text: "Sorry, there is a problem with the server. Could you please contact the administrator?",
+          isChatOwner: false,
+          sentAt: new Date(),
+        } as ChatMessage,
+      ]);
     }
   };
 
@@ -98,7 +106,8 @@ export default function DatasetPage({
                 <span key={obj["url"]}>
                   <a
                     href={obj["url"]}
-                    className="text-blue-600 dark:text-blue-500 hover:underline">
+                    className="text-blue-600 dark:text-blue-500 hover:underline"
+                  >
                     {obj["name"]}
                   </a>
                   {index != datasetUrls.length - 1 && " | "}
