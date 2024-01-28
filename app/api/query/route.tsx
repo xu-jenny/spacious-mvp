@@ -4,7 +4,7 @@ import { addressToCoord, getLocationFromPrompt } from "../location/utils";
 import {
   primary_tag_fts,
   relevantTags,
-  tangential_tag_fts,
+  subtags_fts,
 } from "../search/utils";
 
 export async function POST(req: Request) {
@@ -80,7 +80,7 @@ export async function POST(req: Request) {
     if ("tangentialTags" in tags) {
       console.log(tags["primaryTag"], tags["tangentialTags"], locations);
       let primaryData = await primary_tag_fts(tags["primaryTag"], locations);
-      let tangentialData = await tangential_tag_fts(
+      let tangentialData = await subtags_fts(
         tags["tangentialTags"]!.join(","),
         locations
       );

@@ -47,7 +47,7 @@ export default function Home() {
     setChatHistory(newChatHistory);
     let response = await post(
       process.env.NODE_ENV == "development"
-        ? "http://127.0.0.1:5000/chat"
+        ? "http://127.0.0.1:8000/chat"
         : process.env.NEXT_PUBLIC_BACKEND_SERVER_URL + "/chat",
       {
         query: message,
@@ -65,8 +65,8 @@ export default function Home() {
     //   },
     // };
     console.log("response from flask server: ", response);
-    if (response != null) {
-      if ("message" in response) {
+    if (response["statusCode"] == 200 && response["body"] != null) {
+      if ("message" in response["body"]) {
         setChatHistory([
           ...newChatHistory,
           {
@@ -75,11 +75,10 @@ export default function Home() {
             sentAt: new Date(),
           } as ChatMessage,
         ]);
-      } else if ("output" in response) {
-        console.log(response["output"], typeof response["output"]);
+      } else if ("output" in response["body"]) {
         // check if answer contain tags
         try {
-          let d = response["output"];
+          let d = response["body"]["output"];
           // let d = jsonParse(output);
           if (d != null) {
             let result = await processChatResponse(d, interestedLocations);
@@ -122,7 +121,7 @@ export default function Home() {
             setChatHistory([
               ...newChatHistory,
               {
-                text: response["output"],
+                text: "There is an error with the server, please try another message or try again later.",
                 isChatOwner: false,
                 sentAt: new Date(),
               } as unknown as ChatMessage,

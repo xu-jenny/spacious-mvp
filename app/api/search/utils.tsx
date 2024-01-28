@@ -38,13 +38,13 @@ export async function relevantTagsWithoutParsing(query: string) {
   return response;
 }
 
-export async function tangential_tag_fts(queries: string, locations: string) {
-  const { data, error } = await supabaseClient.rpc("tangential_tag_fts", {
+export async function subtags_fts(queries: string, locPattern: string) {
+  const { data, error } = await supabaseClient.rpc("subtags_fts", {
     queries, //: "water quality,soil type,land use",
-    locations, // : "Melbourne,Syndney",
+    locpattern: locPattern, // : "Melbourne,Syndney",
   });
   if (error != null) {
-    console.error("error invoking tangential_tag_fts ", error);
+    console.error("error invoking subtags_fts ", error);
   }
   return data;
 }

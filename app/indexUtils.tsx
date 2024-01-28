@@ -1,5 +1,5 @@
 import { getTagEmbedding, match_tag, supabaseClient } from "@/clients/supabase";
-import { primary_tag_fts, tangential_tag_fts } from "./api/search/utils";
+import { primary_tag_fts, subtags_fts } from "./api/search/utils";
 import { getIntersectPlaces } from "./api/location/utils";
 import { addressToCoord } from "./api/location/utils";
 import { Tensor } from "@xenova/transformers/types/utils/tensor";
@@ -57,12 +57,12 @@ export async function getSupabaseData(
   );
   let primaryData = await primary_tag_fts(primary_tag, queryLoc);
   let tangentialData = null;
-  // if (tangential_tags != null) {
-  //   tangentialData = await tangential_tag_fts(
-  //     tangential_tags.toLowerCase().replaceAll(", ", ","),
-  //     queryLoc
-  //   );
-  // }
+  if (tangential_tags != null) {
+    tangentialData = await subtags_fts(
+      tangential_tags.toLowerCase().replaceAll(", ", ","),
+      queryLoc
+    );
+  }
   return {
     primaryData, //: result["primarytagData"],
     tangentialData, //: result["tangentialTagData"],
