@@ -93,13 +93,9 @@ export async function getTagEmbedding(
 
 export async function sampleData(): Promise<DatasetMetadata[]> {
   const { data } = await supabaseClient
-    .from("master")
-    .select(
-      "id, created_at, title, summary, lastUpdated, location, metadata, primary_tag, metadata, datasetUrl, publisher, tangential_tag"
-    )
+    .from("master_us")
+    .select()
     .limit(5);
-  console.log(data);
-  // .eq("tagGroup", "Urban  Land Use");
   return data as unknown as DatasetMetadata[];
 }
 
