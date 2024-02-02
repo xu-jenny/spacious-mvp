@@ -3,13 +3,14 @@
 import MetadataTable from "@/components/MetadataTable";
 import ChatInput, { ChatMessage } from "@/components/index/ChatInput";
 import { post } from "@/utils/http";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { getSupabaseData, processChatResponse } from "./indexUtils";
+import { useEffect, useState } from "react";
+import { processChatResponse } from "./indexUtils";
 import ChatBox from "@/components/index/ChatBox";
 import LocationInput from "@/components/index/LocationInput";
 import RequestDatasetButton from "@/components/index/RequestDatasetButton";
 import { addQueries, logError } from "@/utils/supabaseLogger";
 import React from "react";
+import EditTagButton from "@/components/index/EditTagButton";
 
 export default function Home() {
   let [primaryData, setPrimary] = useState<any[]>([]);
@@ -88,14 +89,23 @@ export default function Home() {
                 text: result.aiMessage,
                 isChatOwner: false,
                 sentAt: new Date(),
-                attachment:
-                  result.primaryData != null &&
-                  result.primaryData.length > 0 ? null : (
-                    <RequestDatasetButton
-                      query={message.text + `|Location:${interestedLocations}`}
-                      aiMessage={result.aiMessage}
+                attachment: (
+                  <div className="flex flex-row">
+                    <EditTagButton
+                      location={interestedLocations}
+                      setPrimaryData={setPrimary}
                     />
-                  ),
+                    {result.primaryData != null &&
+                    result.primaryData.length > 0 ? null : (
+                      <RequestDatasetButton
+                        query={
+                          message.text + `|Location:${interestedLocations}`
+                        }
+                        aiMessage={result.aiMessage}
+                      />
+                    )}
+                  </div>
+                ),
               } as ChatMessage,
             ]);
             setPrimary(result.primaryData);

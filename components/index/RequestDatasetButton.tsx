@@ -12,6 +12,7 @@ const RequestDatasetButton = ({ query, aiMessage }: Props) => {
 
   const onSubmit = async () => {
     await addDataRequest(query, aiMessage);
+    setSuccess(true);
   };
 
   return (

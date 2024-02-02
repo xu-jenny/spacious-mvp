@@ -7,6 +7,7 @@ import { jsonParse } from "@/utils/json";
 import { useEffect, useState } from "react";
 
 import { Dataset, getDataset } from "./util";
+import { addQueries } from "@/utils/supabaseLogger";
 
 export default function DatasetPage({
   params: { id },
@@ -71,6 +72,17 @@ export default function DatasetPage({
       ]);
     }
   };
+
+  useEffect(() => {
+    if (
+      chatHistory.length % 2 == 0 &&
+      chatHistory.length > 0 &&
+      process.env.NODE_ENV === "production"
+    ) {
+      console.log("calling addQueries", chatHistory);
+      addQueries(chatHistory, `dataset-${id}`, Date.now());
+    }
+  }, [chatHistory]);
 
   const showPublisher = (pubStr: string) => {
     const publisher = jsonParse(pubStr);
