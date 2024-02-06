@@ -153,7 +153,8 @@ export async function semanticSearch(
     const { data, error } = await supabaseClient
       .from("master_us")
       .select("id, title, summary, location, topic, publisher, datasetUrl")
-      .like("location", locPattern)
+      // .ilike("location", locPattern)
+      .or(`location.ilike.${locPattern},location.ilike.%United States%`)
       .in("topic", tags);
     console.log("semantic search data: ", data, "error:", error);
     return data;

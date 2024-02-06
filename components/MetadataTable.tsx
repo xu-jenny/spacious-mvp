@@ -60,9 +60,9 @@ const MetadataTable = ({
     columnHelper.accessor("location", {
       cell: (info) => info.getValue(),
     }),
-    columnHelper.accessor("publisher", {
-      cell: (info) => jsonParse(info.getValue())['name'],
-    }),
+    // columnHelper.accessor("publisher", {
+    //   cell: (info) => info.getValue() != null ? jsonParse(info.getValue())['name'] : "",
+    // }),
   ];
 
   return (

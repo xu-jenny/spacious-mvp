@@ -66,7 +66,12 @@ export default function Home() {
     //   },
     // };
     console.log("response from flask server: ", response);
-    if (response["statusCode"] == 200 && response["body"] != null) {
+    if (
+      typeof response === "object" &&
+      "statusCode" in response &&
+      response["statusCode"] == 200 &&
+      response["body"] != null
+    ) {
       if ("message" in response["body"]) {
         setChatHistory([
           ...newChatHistory,
@@ -110,32 +115,8 @@ export default function Home() {
             ]);
             setPrimary(result.primaryData);
             setTangential(result.tangentialData);
-
-            // let data = await getSupabaseData(d, interestedLocations.join(","));
-            // console.log(data);
-            // if (
-            //   data != null &&
-            //   "primaryData" in data &&
-            //   data["primaryData"] != null
-            // ) {
-            //   setPrimary(data["primaryData"]);
-            //   if ("tangentialData" in data && data["tangentialData"] != null) {
-            //     setTangential(data["tangentialData"]);
-            //   }
-            //   let aiMessage = `I think the dataset tag you are interested in is ${d["primary_tag"]}. Some suggested tags are ${d["tangential_tags"]},`;
-            //   aiMessage +=
-            //     data["primaryData"].length > 0
-            //       ? `There are ${data["primaryData"].length} records matching the primary tag.`
-            //       : `There isn't any corresponding record matching the primary tag. If you believe the dataset tag is correct, please press this button to request the dataset!`;
           } else {
-            setChatHistory([
-              ...newChatHistory,
-              {
-                text: "There is an error with the server, please try another message or try again later.",
-                isChatOwner: false,
-                sentAt: new Date(),
-              } as unknown as ChatMessage,
-            ]);
+            addErrorMessage("There is an error with the server, please try another message or try again later.")
           }
         } catch (e) {
           console.error("error when parsing response", e);
@@ -145,6 +126,7 @@ export default function Home() {
               `error when parsing response ${response}`,
               e as string
             );
+            addErrorMessage("An error happened parsing this response, please try to edit tag!")
           }
         }
       } else {
@@ -157,8 +139,32 @@ export default function Home() {
           );
         }
       }
+    }else {
+      console.error("error when getting response back from server", response);
+      if (process.env.NODE_ENV != "development") {
+        addError(
+          newChatHistory,
+          "error when getting response back from server. Response: ",
+          response.toString()
+        );
+      }
     }
   };
+
+  const addErrorMessage = (message: string) => {
+    setChatHistory([
+      ...chatHistory,
+      {
+        text: message,
+        isChatOwner: false,
+        sentAt: new Date(),
+        attachment: <EditTagButton
+        location={interestedLocations?.join(',') || "United States"}
+        setPrimaryData={setPrimary}
+      />
+      } as unknown as ChatMessage,
+    ]);
+  }
 
   const onNewMessage = async (data: ChatMessage) => {
     if (interestedLocations != null) {
