@@ -45,8 +45,8 @@ const LocationInput = ({ setLocations }: Props) => {
       if (watch("latitude") == undefined) {
         return "Both Lat and Lon need to be filled45";
       }
-      if (value! < 113 || value! > 154) {
-        return "Longitude must be in Australia.";
+      if (value! < -160 || value! > -68) {
+        return "Longitude must be in United States.";
       }
       return true;
     }
@@ -61,8 +61,8 @@ const LocationInput = ({ setLocations }: Props) => {
       if (watch("longitude") == undefined) {
         return "Both Lat and Lon need to be filled45";
       }
-      if (value! < -44 || value! > -10) {
-        return "Longitude must be in Australia.";
+      if (value! < 19.5 || value! > 65) {
+        return "Longitude must be in United States.";
       }
       return true;
     }
@@ -127,7 +127,6 @@ const LocationInput = ({ setLocations }: Props) => {
               validate: { validateRegion },
             })}
           />
-          <span>If specifying state, please write NSW instead of New South Wales.</span>
           {errors?.region && (
             <p className="text-red">{errors.region.message}</p>
           )}

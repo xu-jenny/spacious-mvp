@@ -18,8 +18,8 @@ export type DatasetMetadata = {
   metadata: string | null;
   datasetUrl: string;
   publisher: string; 
-  primary_tag: string;
-  tangential_tag: string;
+  topic: string;
+  subtags: string;
   datasetType: DatasetType;
   reportS3Key?: string;
 };

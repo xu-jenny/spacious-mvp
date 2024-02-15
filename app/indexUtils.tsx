@@ -152,7 +152,7 @@ export async function semanticSearch(
     let tags = matchingTags.map((tag) => tag.content);
     const { data, error } = await supabaseClient
       .from("master_us")
-      .select("id, title, summary, location, topic, publisher, datasetUrl")
+      .select("id, title, summary, location, topic, publisher, datasetUrl, subtags")
       // .ilike("location", locPattern)
       .or(`location.ilike.${locPattern},location.ilike.%United States%`)
       .in("topic", tags);

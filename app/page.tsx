@@ -11,6 +11,7 @@ import RequestDatasetButton from "@/components/index/RequestDatasetButton";
 import { addQueries, logError } from "@/utils/supabaseLogger";
 import React from "react";
 import EditTagButton from "@/components/index/EditTagButton";
+import { DatasetList } from "@/components/index/DatasetList";
 
 export default function Home() {
   let [primaryData, setPrimary] = useState<any[]>([]);
@@ -56,13 +57,16 @@ export default function Home() {
       }
     );
     // let response = {
-    //   output: {
-    //     primary_tag: "traffic data",
-    //     tangential_tags:
-    //       "Police reports, Crime rates, Neighborhood demographics, Law enforcement presence",
-    // primary_tag: "crime statistics",
-    //     tangential_tags:
-    //       "crime rates, types of crimes, demographics, law enforcement presence",
+    //   statusCode: 200,
+    //   headers: {
+    //     "Access-Control-Allow-Origin": "*",
+    //   },
+    //   body: {
+    //     output: {
+    //       primary_tag: "crime data",
+    //       tangential_tags:
+    //         "crime rates, types of crimes, demographics, law enforcement presence",
+    //     },
     //   },
     // };
     console.log("response from flask server: ", response);
@@ -116,7 +120,9 @@ export default function Home() {
             setPrimary(result.primaryData);
             setTangential(result.tangentialData);
           } else {
-            addErrorMessage("There is an error with the server, please try another message or try again later.")
+            addErrorMessage(
+              "There is an error with the server, please try another message or try again later."
+            );
           }
         } catch (e) {
           console.error("error when parsing response", e);
@@ -126,7 +132,9 @@ export default function Home() {
               `error when parsing response ${response}`,
               e as string
             );
-            addErrorMessage("An error happened parsing this response, please try to edit tag!")
+            addErrorMessage(
+              "An error happened parsing this response, please try to edit tag!"
+            );
           }
         }
       } else {
@@ -139,7 +147,7 @@ export default function Home() {
           );
         }
       }
-    }else {
+    } else {
       console.error("error when getting response back from server", response);
       if (process.env.NODE_ENV != "development") {
         addError(
@@ -158,13 +166,15 @@ export default function Home() {
         text: message,
         isChatOwner: false,
         sentAt: new Date(),
-        attachment: <EditTagButton
-        location={interestedLocations?.join(',') || "United States"}
-        setPrimaryData={setPrimary}
-      />
+        attachment: (
+          <EditTagButton
+            location={interestedLocations?.join(",") || "United States"}
+            setPrimaryData={setPrimary}
+          />
+        ),
       } as unknown as ChatMessage,
     ]);
-  }
+  };
 
   const onNewMessage = async (data: ChatMessage) => {
     if (interestedLocations != null) {
@@ -212,8 +222,12 @@ export default function Home() {
           {error != null && <span className="text-red ml-7">{error}</span>}
           <ChatInput sendANewMessage={onNewMessage} />
         </div>
-        <div className="w-1/2 bg-sky-50 overflow-auto">
-          <div className="p-4 overflow-auto h-[50vh]">
+        <div className="w-1/2 bg-sky-50 overflow-auto p-2">
+          <DatasetList
+            primaryDataList={primaryData}
+            tangentialDataList={tangentialData}
+          />
+          {/* <div className="p-4 overflow-auto h-[50vh]">
             <h2 className="text-2xl font-semi-bold p-2">Primary Data</h2>
             <MetadataTable
               data={primaryData}
@@ -229,7 +243,7 @@ export default function Home() {
               paginate={true}
               tableName="Tangential"
             />
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
