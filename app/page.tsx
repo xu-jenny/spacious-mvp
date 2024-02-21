@@ -226,6 +226,8 @@ export default function Home() {
           <DatasetList
             primaryDataList={primaryData}
             tangentialDataList={tangentialData}
+            location={interestedLocations?.join(",") || "United States"}
+            setPrimaryData={setPrimary}
           />
           {/* <div className="p-4 overflow-auto h-[50vh]">
             <h2 className="text-2xl font-semi-bold p-2">Primary Data</h2>
