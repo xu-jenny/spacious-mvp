@@ -3,20 +3,24 @@ import React, { useState } from "react";
 import "react-sliding-pane/dist/react-sliding-pane.css";
 import DatasetCard from "@/components/index/DatasetCard";
 import DatasetPane from "@/components/index/DatasetPane";
-import EditTagButton from "@/components/index/EditTagButton";
-import LocationInput from "@/components/index/LocationInput";
-import MetadataTable, { DatasetMetadata } from "@/components/MetadataTable";
+import EditTagButton, {
+  USDatasetSource,
+} from "@/components/index/EditTagButton";
+import { DatasetMetadata } from "@/components/MetadataTable";
 import SlidingPane from "react-sliding-pane";
+import { PaginatedList } from "react-paginated-list";
+import DebouncedInput from "@/components/common/DebouncedInput";
+import { Spinner } from "flowbite-react";
 
 export default function Home() {
-  let [primaryData, setPrimary] = useState<any[]>([]);
-  let [interestedLocations, setLocations] = useState<string[] | null>([
-    "United States",
-  ]);
-  let [error, setError] = useState<string | null>(null);
+  const [primaryData, setPrimary] = useState<any[]>([]);
+  const [interestedLocations, setLocations] = useState<string>("United States");
   const [loading, setLoading] = useState<boolean>(false);
   const [openPanel, setOpenPanel] = useState(false);
   const [currentds, setCurrentds] = useState<DatasetMetadata | null>(null);
+  const [dsSource, setDsSource] = useState<USDatasetSource | null>(null);
+  const [domain, setDomain] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   function setDatasetSelected(ds: DatasetMetadata) {
     setCurrentds(ds);
@@ -26,7 +30,14 @@ export default function Home() {
   return (
     <div className="grid grid-cols-6 h-[100vh]">
       <div className="col-span-1 bg-sky-200 prose">
-        <LocationInput setLocations={setLocations} />
+        {/* <LocationInput setLocations={setLocations} /> */}
+        <div className="p-2">
+          <h3>Set Location</h3>
+          <DebouncedInput
+            placeholder="City/State/Region"
+            onChange={setLocations}
+          />
+        </div>
         <h2 className="fixed bottom-5 left-4">Spacious AI</h2>
       </div>
       <div className="col-span-5 flex h-[100vh]">
@@ -37,19 +48,49 @@ export default function Home() {
         </div> */}
         <div className="w-full bg-sky-50 overflow-auto p-2">
           <EditTagButton
-            location={interestedLocations?.join(",") || "United States"}
+            location={interestedLocations}
             setPrimaryData={setPrimary}
+            dsSource={dsSource}
+            domain={domain}
+            setLoading={setLoading}
           />
-          {primaryData != null &&
-            primaryData.length > 0 &&
-            primaryData.map((data, i) => (
-              <DatasetCard
-                key={i}
-                dataset={data}
-                index={i}
-                setSelectedDataset={setDatasetSelected}
+          {
+            loading ? (
+              <div className="ml-20 mt-20">
+                <Spinner />
+              </div>
+            ) : primaryData != null && primaryData.length > 0 ? (
+              <PaginatedList
+                list={primaryData}
+                itemsPerPage={20}
+                renderList={(list: Array<any>) => (
+                  <>
+                    {list.map((data, i) => (
+                      <DatasetCard
+                        key={i}
+                        dataset={data}
+                        index={i}
+                        setSelectedDataset={setDatasetSelected}
+                      />
+                    ))}
+                  </>
+                )}
               />
-            ))}
+            ) : (
+              <p>
+                There are no results matching your search, try removing some
+                filters or request data through this form
+              </p>
+            )
+            // primaryData.map((data, i) => (
+            //   <DatasetCard
+            //     key={i}
+            //     dataset={data}
+            //     index={i}
+            //     setSelectedDataset={setDatasetSelected}
+            //   />
+            // ))
+          }
         </div>
       </div>
       {currentds != null && (

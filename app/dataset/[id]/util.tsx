@@ -17,8 +17,9 @@ export type Dataset = {
   "df.shape": string | null;
   "df.value_counts": string | null;
   "df.info": string | null;
-  "corr": string | null;
+  corr: string | null;
   csv_url: string | null;
+  originalUrl: string;
 };
 export async function getDataset(id: number): Promise<Dataset | null> {
   const { data, error } = await supabaseClient

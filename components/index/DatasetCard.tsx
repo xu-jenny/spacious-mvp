@@ -56,7 +56,7 @@ function DatasetCard({ dataset, index, setSelectedDataset }: Props) {
   return (
     <Card className="mt-3">
       <h6
-        style={{ color: "blue" }}
+        style={{ cursor: "pointer" }}
         // href={"/dataset/" + dataset.id}
         onClick={() => logLinkClick(dataset, index)}
         className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
@@ -66,11 +66,15 @@ function DatasetCard({ dataset, index, setSelectedDataset }: Props) {
         {longStringShortener(dataset.summary)}
       </p>
       <div className="flex align-middle items-center gap-2">
-        {dataset?.publisher != null && showPublisher(dataset?.publisher)}
+        {/* {dataset?.publisher != null && showPublisher(dataset?.publisher)} */}
         {dataset.location}
         <Badge className="w-fit mt-1">{dataset.topic}</Badge>
       </div>
-      <div>{"subtags" in dataset && showSubtags(dataset?.subtags)}</div>
+      <div>
+        {"subtags" in dataset &&
+          dataset["subtags"] != null &&
+          showSubtags(dataset?.subtags)}
+      </div>
     </Card>
   );
 }

@@ -7,12 +7,18 @@ import { Button } from "flowbite-react";
 import { jsonParse } from "@/utils/json";
 import { Dataset, getDataset } from "@/app/dataset/[id]/util";
 import { InfoDropdown } from "../dataset/InfoDropdown";
+import Link from "next/link";
 
 type Props = {
   dsMetadata: DatasetMetadata;
   id: number;
   openModal: boolean | undefined;
   setOpenModal: (value: SetStateAction<boolean>) => void;
+};
+
+export const openInNewTab = (url: string): void => {
+  const newWindow = window.open(url, "_blank", "noopener,noreferrer");
+  if (newWindow) newWindow.opener = null;
 };
 
 const DatasetPanel = ({ dsMetadata, id, openModal, setOpenModal }: Props) => {
@@ -63,7 +69,7 @@ const DatasetPanel = ({ dsMetadata, id, openModal, setOpenModal }: Props) => {
         return null;
       }
       if (Array.isArray(datasetUrls)) {
-        datasetUrls.map((obj, index) => (
+        return datasetUrls.map((obj, index) => (
           <span key={obj["url"]}>
             <a
               href={obj["url"]}
@@ -76,6 +82,7 @@ const DatasetPanel = ({ dsMetadata, id, openModal, setOpenModal }: Props) => {
       } else {
         return (
           <span>
+            Dataset Download Links:
             <a
               href={datasetUrls["url"]}
               className="text-blue-600 dark:text-blue-500 hover:underline">
@@ -86,7 +93,7 @@ const DatasetPanel = ({ dsMetadata, id, openModal, setOpenModal }: Props) => {
       }
     } catch (e) {
       console.error("Error parsing datasetUrl for dataset: ", id);
-      return <span>{dataset?.datasetUrl}</span>;
+      return <span>Dataset Download Links: {dataset?.datasetUrl}</span>;
     }
   };
 
@@ -95,6 +102,14 @@ const DatasetPanel = ({ dsMetadata, id, openModal, setOpenModal }: Props) => {
       <div className="w-full flex flex-col h-full">
         <article className="prose p-4 max-w-none">
           <h3>{dataset?.title}</h3>
+          {dataset != null && (
+            <Link
+              href={dataset?.originalUrl}
+              target="_blank"
+              className="no-underline text-blue-600">
+              Original Dataset Link
+            </Link>
+          )}
           <p>Summary: {dataset?.summary}</p>
           <p>Location: {dataset?.location}</p>
           {dataset?.lastUpdated != null && (
@@ -107,10 +122,7 @@ const DatasetPanel = ({ dsMetadata, id, openModal, setOpenModal }: Props) => {
             </p>
           )}
           <p>Topic: {dataset?.topic}</p>
-          <div>
-            <span>Dataset Download Links: </span>
-            {showDatasetUrls()}
-          </div>
+          <div>{showDatasetUrls()}</div>
           {dataset?.csv_url != null && dataset["df.head"] != null && (
             <>
               <hr className="my-5 border-double" />

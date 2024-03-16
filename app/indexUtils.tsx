@@ -2,7 +2,7 @@ import { getTagEmbedding, match_tag, supabaseClient } from "@/clients/supabase";
 import { primary_tag_fts, subtags_fts } from "./api/search/utils";
 import { getIntersectPlaces } from "./api/location/utils";
 import { addressToCoord } from "./api/location/utils";
-import { Tensor } from "@xenova/transformers/types/utils/tensor";
+import { USDatasetSource } from "@/components/index/EditTagButton";
 
 export interface IFormInput {
   address?: string;
@@ -50,7 +50,7 @@ export async function parseLocationFormInput(
 export async function supabase_topic_search(
   primary_tag: string,
   queryLoc: string
-): Promise<{ primaryData: any[] | null; tangentialData: any[] | null }> {
+): Promise<any[] | null> {
   console.log(
     `Calling supabase Query with params primaryTag: ${primary_tag}, Location: ${queryLoc}`
   );
@@ -80,18 +80,23 @@ type SearchResult = {
   publisher: string;
   location: string;
   topic: string;
+  dataset_source: string;
+  domain: string;
 };
 
 export async function primaryTagSearch(
   primaryTag: string,
-  locPattern: string
-): Promise<any[]> {
+  locPattern: string,
+  dsSource: USDatasetSource | null,
+  domain: string | null
+): Promise<SearchResult[]> {
+  console.log(primaryTag, locPattern);
   let semanticData = await semanticSearch(primaryTag, locPattern);
   let ftsData = await supabase_topic_search(primaryTag, locPattern);
 
   console.log("fts data:", ftsData, "semantic data: ", semanticData);
   // concat two results together
-  let primaryData: any = [];
+  let primaryData: SearchResult[] = [];
   if (ftsData != null) {
     primaryData = ftsData;
   }
@@ -99,9 +104,30 @@ export async function primaryTagSearch(
     let combined = [...primaryData, ...semanticData];
     primaryData = Array.from(new Set(combined));
   }
+
+  // filter for dataset source and domain
+  if (dsSource != null) {
+    primaryData = primaryData.filter(
+      (result: SearchResult) => result.dataset_source == dsSource
+    );
+  } else if (domain != null) {
+    primaryData = primaryData.filter((result: SearchResult) =>
+      result.domain.includes(domain)
+    );
+  }
+
+  primaryData.sort((a: SearchResult, b: SearchResult) => {
+    if (a.location === locPattern && b.location !== locPattern) {
+      return -1; // a comes first
+    } else if (a.location !== locPattern && b.location === locPattern) {
+      return 1; // b comes first
+    } else {
+      return 0; // Keep original order if both have the same preference
+    }
+  });
   return primaryData;
 }
-
+/*
 export async function processChatResponse(
   d: AgentResponse,
   queryLoc: string
@@ -138,12 +164,12 @@ export async function processChatResponse(
     tangentialData,
   };
 }
-
+*/
 export async function semanticSearch(
   tag: string,
   locPattern: string
 ): Promise<SearchResult[] | null> {
-  let embedding = await getTagEmbedding(tag);
+  let embedding = await getTagEmbedding(tag.toLowerCase());
   if (embedding == null) return null;
   // call semantic search function on supabase
   let matchingTags = await match_tag(embedding);
@@ -152,7 +178,9 @@ export async function semanticSearch(
     let tags = matchingTags.map((tag) => tag.content);
     const { data, error } = await supabaseClient
       .from("master_us")
-      .select("id, title, summary, location, topic, publisher, datasetUrl, subtags")
+      .select(
+        "id, title, summary, location, topic, publisher, datasetUrl, subtags, dataset_source, domain"
+      )
       // .ilike("location", locPattern)
       .or(`location.ilike.${locPattern},location.ilike.%United States%`)
       .in("topic", tags);
