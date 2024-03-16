@@ -1,46 +1,101 @@
 "use client";
-
-import MetadataTable from "@/components/MetadataTable";
-import ChatInput, { ChatMessage } from "@/components/index/ChatInput";
-import { post } from "@/utils/http";
-import { useEffect, useState } from "react";
-import { processChatResponse } from "./indexUtils";
-import ChatBox from "@/components/index/ChatBox";
-import LocationInput from "@/components/index/LocationInput";
-import RequestDatasetButton from "@/components/index/RequestDatasetButton";
-import { addQueries, logError } from "@/utils/supabaseLogger";
-import React from "react";
+import React, { useState } from "react";
+import "react-sliding-pane/dist/react-sliding-pane.css";
+import DatasetCard from "@/components/index/DatasetCard";
+import DatasetPane from "@/components/index/DatasetPane";
 import EditTagButton from "@/components/index/EditTagButton";
-import { DatasetList } from "@/components/index/DatasetList";
+import LocationInput from "@/components/index/LocationInput";
+import MetadataTable, { DatasetMetadata } from "@/components/MetadataTable";
+import SlidingPane from "react-sliding-pane";
 
 export default function Home() {
   let [primaryData, setPrimary] = useState<any[]>([]);
-  let [tangentialData, setTangential] = useState<any[]>([]);
-  let [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   let [interestedLocations, setLocations] = useState<string[] | null>([
     "United States",
   ]);
   let [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [sessionId, setSessionId] = useState<number>(Date.now());
+  const [openPanel, setOpenPanel] = useState(false);
+  const [currentds, setCurrentds] = useState<DatasetMetadata | null>(null);
 
-  const addError = (
-    newChatHistory: ChatMessage[],
-    errorMessage: string,
-    error: string
-  ) => {
-    console.error(errorMessage, error);
-    setChatHistory([
-      ...newChatHistory,
-      {
-        text: "I'm sorry, but there was an error processing your request. Please report the error.",
-        isChatOwner: false,
-        sentAt: new Date(),
-      } as ChatMessage,
-    ]);
-    logError(errorMessage, error);
+  function setDatasetSelected(ds: DatasetMetadata) {
+    setCurrentds(ds);
+    setOpenPanel(true);
+  }
+
+  return (
+    <div className="grid grid-cols-6 h-[100vh]">
+      <div className="col-span-1 bg-sky-200 prose">
+        <LocationInput setLocations={setLocations} />
+        <h2 className="fixed bottom-5 left-4">Spacious AI</h2>
+      </div>
+      <div className="col-span-5 flex h-[100vh]">
+        {/* <div className="w-1/2 flex flex-col h-full">
+          <ChatBox chatHistory={chatHistory} loading={loading} />
+          {error != null && <span className="text-red ml-7">{error}</span>}
+          <ChatInput sendANewMessage={onNewMessage} />
+        </div> */}
+        <div className="w-full bg-sky-50 overflow-auto p-2">
+          <EditTagButton
+            location={interestedLocations?.join(",") || "United States"}
+            setPrimaryData={setPrimary}
+          />
+          {primaryData != null &&
+            primaryData.length > 0 &&
+            primaryData.map((data, i) => (
+              <DatasetCard
+                key={i}
+                dataset={data}
+                index={i}
+                setSelectedDataset={setDatasetSelected}
+              />
+            ))}
+        </div>
+      </div>
+      {currentds != null && (
+        <SlidingPane
+          isOpen={openPanel}
+          width="70%"
+          onRequestClose={() => {
+            setOpenPanel(false);
+          }}>
+          <div>
+            <DatasetPane
+              dsMetadata={currentds}
+              id={currentds.id}
+              openModal={openPanel}
+              setOpenModal={setOpenPanel}
+            />
+          </div>
+        </SlidingPane>
+      )}
+    </div>
+  );
+}
+
+/*
+  const onNewMessage = async (data: ChatMessage) => {
+    if (interestedLocations != null) {
+      setError(null);
+      setLoading(true);
+      console.log(
+        "calling chatWithAgent with ",
+        interestedLocations,
+        data["text"]
+      );
+      await chatWithAgent(
+        {
+          sentAt: new Date(),
+          isChatOwner: true,
+          text: data["text"],
+        },
+        interestedLocations.join(", ")
+      );
+      setLoading(false);
+    } else {
+      setError("Please set the location!");
+    }
   };
-
   const chatWithAgent = async (
     message: ChatMessage,
     interestedLocations: string
@@ -158,94 +213,4 @@ export default function Home() {
       }
     }
   };
-
-  const addErrorMessage = (message: string) => {
-    setChatHistory([
-      ...chatHistory,
-      {
-        text: message,
-        isChatOwner: false,
-        sentAt: new Date(),
-        attachment: (
-          <EditTagButton
-            location={interestedLocations?.join(",") || "United States"}
-            setPrimaryData={setPrimary}
-          />
-        ),
-      } as unknown as ChatMessage,
-    ]);
-  };
-
-  const onNewMessage = async (data: ChatMessage) => {
-    if (interestedLocations != null) {
-      setError(null);
-      setLoading(true);
-      console.log(
-        "calling chatWithAgent with ",
-        interestedLocations,
-        data["text"]
-      );
-      await chatWithAgent(
-        {
-          sentAt: new Date(),
-          isChatOwner: true,
-          text: data["text"],
-        },
-        interestedLocations.join(", ")
-      );
-      setLoading(false);
-    } else {
-      setError("Please set the location!");
-    }
-  };
-
-  useEffect(() => {
-    if (
-      chatHistory.length % 2 == 0 &&
-      chatHistory.length > 0 &&
-      process.env.NODE_ENV === "production"
-    ) {
-      console.log("calling addQueries", chatHistory, interestedLocations);
-      addQueries(chatHistory, interestedLocations?.join(", ") ?? "", sessionId);
-    }
-  }, [chatHistory]);
-
-  return (
-    <div className="grid grid-cols-6 h-[100vh]">
-      <div className="col-span-1 bg-sky-200 prose">
-        <LocationInput setLocations={setLocations} />
-        <h2 className="fixed bottom-5 left-4">Spacious AI</h2>
-      </div>
-      <div className="col-span-5 flex h-[100vh]">
-        <div className="w-1/2 flex flex-col h-full">
-          <ChatBox chatHistory={chatHistory} loading={loading} />
-          {error != null && <span className="text-red ml-7">{error}</span>}
-          <ChatInput sendANewMessage={onNewMessage} />
-        </div>
-        <div className="w-1/2 bg-sky-50 overflow-auto p-2">
-          <DatasetList
-            primaryDataList={primaryData}
-            tangentialDataList={tangentialData}
-          />
-          {/* <div className="p-4 overflow-auto h-[50vh]">
-            <h2 className="text-2xl font-semi-bold p-2">Primary Data</h2>
-            <MetadataTable
-              data={primaryData}
-              paginate={true}
-              tableName="Primary"
-            />
-          </div>
-          <hr />
-          <div className="p-4 overflow-auto">
-            <h2 className="text-2xl font-semi-bold p-2">Tangential Data</h2>
-            <MetadataTable
-              data={tangentialData}
-              paginate={true}
-              tableName="Tangential"
-            />
-          </div> */}
-        </div>
-      </div>
-    </div>
-  );
-}
+*/
