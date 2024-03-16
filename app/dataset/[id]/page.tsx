@@ -79,14 +79,14 @@ export default function DatasetPage({
       console.log("calling addQueries", chatHistory);
       addQueries(chatHistory, `dataset-${id}`, Date.now());
     }
-  }, [chatHistory]);
+  }, [chatHistory, id]);
 
   const showPublisher = (pubStr: string) => {
     try {
       const publisher = jsonParse(pubStr);
       if ("contact" in publisher && publisher.contact != null) {
         return (
-          <a href={publisher.contact} className="font">
+          <a href={"mailto:" + publisher.contact} className="font">
             {publisher.name}
           </a>
         );
@@ -111,7 +111,7 @@ export default function DatasetPage({
         return null;
       }
       if (Array.isArray(datasetUrls)) {
-        datasetUrls.map((obj, index) => (
+        return datasetUrls.map((obj, index) => (
           <span key={obj["url"]}>
             <a
               href={obj["url"]}
@@ -161,6 +161,12 @@ export default function DatasetPage({
             <span>Dataset Download Links: </span>
             {showDatasetUrls()}
           </div>
+          {dataset?.firstPublished != null && (
+            <span>First published: {dataset.firstPublished}</span>
+          )}
+          {dataset?.lastUpdated != null && (
+            <span>Last Updated: {dataset.lastUpdated}</span>
+          )}
           {dataset?.csv_url != null && dataset["df.head"] != null && (
             <>
               <hr className="my-5 border-double" />

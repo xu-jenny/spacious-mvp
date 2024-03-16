@@ -2,18 +2,19 @@
 import { Tabs } from "flowbite-react";
 import { DatasetMetadata } from "../MetadataTable";
 import DatasetCard from "./DatasetCard";
+import EditTagButton from "./EditTagButton";
 
 export const DatasetList = ({
   primaryDataList,
   tangentialDataList,
+  location,
+  setPrimaryData,
 }: {
   primaryDataList: DatasetMetadata[];
   tangentialDataList: DatasetMetadata[];
+  location: string;
+  setPrimaryData: (data: any[]) => void;
 }) => {
-  // const searchByTag = () => <>
-  //   <EditTagButton
-  // </>
-
   return (
     <div className="px-6">
       {/* <Tabs aria-label="Pills" style="pills" className="max-h-8">
