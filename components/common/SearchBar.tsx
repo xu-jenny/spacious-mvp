@@ -39,6 +39,7 @@ const SearchBar = ({ placeHolder, onSubmit }: Props) => {
         placeholder={placeHolder}
         onkeydown={handleKeyDown}
         onChange={setValue}
+        timeout={100}
       />
       <button
         type="submit"

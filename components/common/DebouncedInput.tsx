@@ -6,6 +6,7 @@ type Props = {
   className?: string;
   onChange: React.Dispatch<React.SetStateAction<string>>;
   onkeydown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  timeout?: number;
 };
 
 const debounce = <F extends (...args: any[]) => any>(
@@ -25,11 +26,12 @@ const DebouncedInput = ({
   className,
   onkeydown,
   type = "text",
+  timeout = 500,
 }: Props) => {
   const handleChange = useCallback(
     debounce((nextValue: string) => {
       onChange(nextValue);
-    }, 500),
+    }, timeout),
     []
   );
 

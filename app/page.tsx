@@ -13,7 +13,7 @@ import DebouncedInput from "@/components/common/DebouncedInput";
 import { Spinner } from "flowbite-react";
 
 export default function Home() {
-  const [primaryData, setPrimary] = useState<any[]>([]);
+  const [primaryData, setPrimary] = useState<any[] | null>(null);
   const [interestedLocations, setLocations] = useState<string>("United States");
   const [loading, setLoading] = useState<boolean>(false);
   const [openPanel, setOpenPanel] = useState(false);
@@ -61,7 +61,7 @@ export default function Home() {
               </div>
             ) : primaryData != null && primaryData.length > 0 ? (
               <PaginatedList
-                list={primaryData}
+                list={primaryData || []}
                 itemsPerPage={20}
                 renderList={(list: Array<any>) => (
                   <>
@@ -77,10 +77,12 @@ export default function Home() {
                 )}
               />
             ) : (
-              <p>
-                There are no results matching your search, try removing some
-                filters or request data through this form
-              </p>
+              primaryData != null && (
+                <p>
+                  There are no results matching your search, try removing some
+                  filters or request data through this form
+                </p>
+              )
             )
             // primaryData.map((data, i) => (
             //   <DatasetCard
