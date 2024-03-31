@@ -11,6 +11,7 @@ import SlidingPane from "react-sliding-pane";
 import { PaginatedList } from "react-paginated-list";
 import DebouncedInput from "@/components/common/DebouncedInput";
 import { Spinner } from "flowbite-react";
+import { logTableInteraction } from "@/utils/supabaseLogger";
 
 export default function Home() {
   const [primaryData, setPrimary] = useState<any[] | null>(null);
@@ -75,6 +76,15 @@ export default function Home() {
                     ))}
                   </>
                 )}
+                onPageChange={(newItems, newPage) => {
+                  if (process.env.NODE_ENV === "production") {
+                    logTableInteraction(
+                      "NextPage",
+                      newPage,
+                      newItems.length.toString()
+                    );
+                  }
+                }}
               />
             ) : (
               primaryData != null && (
@@ -101,6 +111,9 @@ export default function Home() {
           width="70%"
           onRequestClose={() => {
             setOpenPanel(false);
+            if (process.env.NODE_ENV === "production") {
+              logTableInteraction("CloseDatasetPanel", currentds.id);
+            }
           }}>
           <div>
             <DatasetPane

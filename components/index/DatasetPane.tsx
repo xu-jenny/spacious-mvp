@@ -8,6 +8,7 @@ import { jsonParse } from "@/utils/json";
 import { Dataset, getDataset } from "@/app/dataset/[id]/util";
 import { InfoDropdown } from "../dataset/InfoDropdown";
 import Link from "next/link";
+import { logTableInteraction } from "@/utils/supabaseLogger";
 
 type Props = {
   dsMetadata: DatasetMetadata;
@@ -85,7 +86,16 @@ const DatasetPanel = ({ dsMetadata, id, openModal, setOpenModal }: Props) => {
             Dataset Download Links:
             <a
               href={datasetUrls["url"]}
-              className="text-blue-600 dark:text-blue-500 hover:underline">
+              className="text-blue-600 dark:text-blue-500 hover:underline"
+              onClick={() => {
+                if (process.env.NODE_ENV === "production") {
+                  logTableInteraction(
+                    "DownloadUrlClick",
+                    id,
+                    datasetUrls["url"]
+                  );
+                }
+              }}>
               {datasetUrls["name"]}
             </a>
           </span>
@@ -106,7 +116,12 @@ const DatasetPanel = ({ dsMetadata, id, openModal, setOpenModal }: Props) => {
             <Link
               href={dataset?.originalUrl}
               target="_blank"
-              className="no-underline text-blue-600">
+              className="no-underline text-blue-600"
+              onClick={() => {
+                if (process.env.NODE_ENV === "production") {
+                  logTableInteraction("OriginalUrlClick", id, dataset.title);
+                }
+              }}>
               Original Dataset Link
             </Link>
           )}

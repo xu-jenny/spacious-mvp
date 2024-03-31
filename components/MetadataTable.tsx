@@ -5,8 +5,8 @@ import { logTableInteraction } from "@/utils/supabaseLogger";
 import Link from "next/link";
 import { jsonParse } from "@/utils/json";
 
-type LocationGranularity = "county" | "country" | "state" | "town" | "zip"
-type DatasetType = "csv" | "pdf"
+type LocationGranularity = "county" | "country" | "state" | "town" | "zip";
+type DatasetType = "csv" | "pdf";
 export type DatasetMetadata = {
   id: number;
   created_at: string;
@@ -17,7 +17,7 @@ export type DatasetMetadata = {
   locationGranularity: LocationGranularity;
   metadata: string | null;
   datasetUrl: string;
-  publisher: string; 
+  publisher: string;
   topic: string;
   subtags: string;
   datasetType: DatasetType;
@@ -39,7 +39,9 @@ const MetadataTable = ({
     str != null && str.length > 180 ? `${str.substring(0, 180)}...` : str;
 
   const logLinkClick = (data: DatasetMetadata, index: number) => {
-    logTableInteraction("LinkClick", index, data.title.toString());
+    if (process.env.NODE_ENV === "production") {
+      logTableInteraction("LinkClick", index, data.title.toString());
+    }
   };
 
   const columns = [
@@ -48,8 +50,7 @@ const MetadataTable = ({
         <Link
           style={{ color: "blue" }}
           href={"/dataset/" + props.row.original.id}
-          onClick={() => logLinkClick(props.row.original, props.row.index)}
-        >
+          onClick={() => logLinkClick(props.row.original, props.row.index)}>
           {props.getValue()}
         </Link>
       ),
