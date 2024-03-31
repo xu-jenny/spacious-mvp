@@ -119,7 +119,7 @@ const DatasetPanel = ({ dsMetadata, id, openModal, setOpenModal }: Props) => {
               className="no-underline text-blue-600"
               onClick={() => {
                 if (process.env.NODE_ENV === "production") {
-                  logTableInteraction("OriginalUrlClick", id, dataset.title);
+                  logTableInteraction("OriginalUrlClick", id, dataset?.title);
                 }
               }}>
               Original Dataset Link
