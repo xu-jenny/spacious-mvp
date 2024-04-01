@@ -19,17 +19,16 @@ export const DatasetList = ({
     <div>
       <Tabs aria-label="Pills" style="pills" className="max-h-8">
         <Tabs.Item active title="Primary">
-          {primaryDataList == null ||
-            (primaryDataList.length == 0 && (
-              <>
-                <span className="p-2">If you know the keyword you are looking for, search here!</span>
-                <EditTagButton
-                  location={location}
-                  setPrimaryData={setPrimaryData}
-                  placeHolder="Search with Keyword"
-                />
-              </>
-            ))}
+          <>
+            <span className="p-2">
+              If you know the keyword you are looking for, search here!
+            </span>
+            <EditTagButton
+              location={location}
+              setPrimaryData={setPrimaryData}
+              placeHolder="Search with Keyword"
+            />
+          </>
           {primaryDataList != null &&
             primaryDataList.length > 0 &&
             primaryDataList.map((data, i) => (
@@ -37,6 +36,7 @@ export const DatasetList = ({
             ))}
         </Tabs.Item>
         <Tabs.Item title="Tangential">
+          <span>Use the chat box to see results for tangential data</span>
           {tangentialDataList != null &&
             tangentialDataList.length > 0 &&
             tangentialDataList.map((data, i) => (

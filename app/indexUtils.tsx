@@ -11,6 +11,7 @@ export interface IFormInput {
   longitude?: number;
   radius?: number;
   message: string;
+  dataSource?: string;
 }
 
 export async function parseLocationFormInput(
@@ -102,9 +103,12 @@ export async function primaryTagSearch(
   return primaryData;
 }
 
+export type DataSource = 'USGOV' | 'NYOPEN' | 'USGS'
+
 export async function processChatResponse(
   d: AgentResponse,
-  queryLoc: string
+  queryLoc: string,
+  datasource: DataSource
 ): Promise<{
   aiMessage: string;
   primaryData: any[];

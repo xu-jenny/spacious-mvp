@@ -1,10 +1,8 @@
 "use client";
-
-import MetadataTable from "@/components/MetadataTable";
 import ChatInput, { ChatMessage } from "@/components/index/ChatInput";
 import { post } from "@/utils/http";
 import { useEffect, useState } from "react";
-import { processChatResponse } from "./indexUtils";
+import { DataSource, processChatResponse } from "./indexUtils";
 import ChatBox from "@/components/index/ChatBox";
 import LocationInput from "@/components/index/LocationInput";
 import RequestDatasetButton from "@/components/index/RequestDatasetButton";
@@ -20,6 +18,7 @@ export default function Home() {
   let [interestedLocations, setLocations] = useState<string[] | null>([
     "United States",
   ]);
+  let [dataSource, setDataSource] = useState<DataSource | null>(null);
   let [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [sessionId, setSessionId] = useState<number>(Date.now());
@@ -91,7 +90,11 @@ export default function Home() {
           let d = response["body"]["output"];
           // let d = jsonParse(output);
           if (d != null) {
-            let result = await processChatResponse(d, interestedLocations);
+            let result = await processChatResponse(
+              d,
+              interestedLocations,
+              dataSource
+            );
             setChatHistory([
               ...newChatHistory,
               {
@@ -229,23 +232,6 @@ export default function Home() {
             location={interestedLocations?.join(",") || "United States"}
             setPrimaryData={setPrimary}
           />
-          {/* <div className="p-4 overflow-auto h-[50vh]">
-            <h2 className="text-2xl font-semi-bold p-2">Primary Data</h2>
-            <MetadataTable
-              data={primaryData}
-              paginate={true}
-              tableName="Primary"
-            />
-          </div>
-          <hr />
-          <div className="p-4 overflow-auto">
-            <h2 className="text-2xl font-semi-bold p-2">Tangential Data</h2>
-            <MetadataTable
-              data={tangentialData}
-              paginate={true}
-              tableName="Tangential"
-            />
-          </div> */}
         </div>
       </div>
     </div>
