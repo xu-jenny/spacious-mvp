@@ -88,7 +88,7 @@ const LocationInput = ({ setLocations }: Props) => {
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className="flex flex-col p-4">
         <h3>Set Location</h3>
-        <span className="text-xs text-slate-500 mb-2">
+        {/* <span className="text-xs text-slate-500 mb-2">
           Please provide one or more of the following
         </span>
         <input
@@ -117,9 +117,9 @@ const LocationInput = ({ setLocations }: Props) => {
           {errors?.longitude && (
             <p className="text-red">{errors.longitude.message}</p>
           )}
-        </div>
+        </div> */}
         <div>
-          <label>OR</label>
+          {/* <label>OR</label> */}
           <input
             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             placeholder="City/State"
@@ -132,21 +132,20 @@ const LocationInput = ({ setLocations }: Props) => {
             <p className="text-red">{errors.region.message}</p>
           )}
         </div>
-        <hr className="h-px my-4 bg-gray-500 border-0 dark:bg-gray-700"></hr>
-        <span>Radius of interest</span>
+        {/* <hr className="h-px my-4 bg-gray-500 border-0 dark:bg-gray-700"></hr> */}
+        {/* <span>Radius of interest</span>
         <div className="p-2">
           <input
             className="mx-auto bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             type="number"
             step="0.5"
-            placeholder="Km"
+            placeholder="Miles"
             {...register("radius", { max: 5000, min: 0 })}
           />
-        </div>
+        </div> */}
         <button
           type="submit"
-          className="mt-4 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
-        >
+          className="mt-4 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
           Confirm
         </button>
       </div>

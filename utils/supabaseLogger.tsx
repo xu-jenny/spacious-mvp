@@ -1,7 +1,14 @@
 import { supabaseClient } from "@/clients/supabase";
 import { ChatMessage } from "@/components/index/ChatInput";
 
-export type TableEventType = "LinkClick" | "NextPage" | "PrevPage" | "EditTag";
+export type TableEventType =
+  | "LinkClick"
+  | "NextPage"
+  | "PrevPage"
+  | "EditTag"
+  | "OriginalUrlClick"
+  | "DownloadUrlClick"
+  | "CloseDatasetPanel";
 export async function logTableInteraction(
   eventType: TableEventType,
   position: number, // page number or row position
