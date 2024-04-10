@@ -92,10 +92,9 @@ export async function primaryTagSearch(
   domain: string | null
 ): Promise<SearchResult[]> {
   console.log(primaryTag, locPattern);
-  let semanticData = await semanticSearch(primaryTag, locPattern);
+  let semanticData = await semanticSearch(primaryTag, locPattern, dsSource);
   let ftsData = await supabase_topic_search(primaryTag, locPattern);
 
-  console.log("fts data:", ftsData, "semantic data: ", semanticData);
   // concat two results together
   let primaryData: SearchResult[] = [];
   if (ftsData != null) {
@@ -111,10 +110,6 @@ export async function primaryTagSearch(
     primaryData = primaryData.filter(
       (result: SearchResult) => result.dataset_source == dsSource
     );
-  } else if (domain != null) {
-    primaryData = primaryData.filter((result: SearchResult) =>
-      result.domain.includes(domain)
-    );
   }
 
   primaryData.sort((a: SearchResult, b: SearchResult) => {
@@ -126,10 +121,11 @@ export async function primaryTagSearch(
       return 0; // Keep original order if both have the same preference
     }
   });
+  console.log(primaryData);
   return primaryData;
 }
 
-export type DataSource = 'USGOV' | 'NYOPEN' | 'USGS'
+export type DataSource = "USGOV" | "NYOPEN" | "USGS";
 
 export async function processChatResponse(
   d: AgentResponse,
@@ -168,10 +164,11 @@ export async function processChatResponse(
     tangentialData,
   };
 }
-*/
+
 export async function semanticSearch(
   tag: string,
-  locPattern: string
+  locPattern: string,
+  dsSource: USDatasetSource | null
 ): Promise<SearchResult[] | null> {
   let embedding = await getTagEmbedding(tag.toLowerCase());
   if (embedding == null) return null;
@@ -180,14 +177,24 @@ export async function semanticSearch(
   if (matchingTags == null) return null;
   if (matchingTags != null && matchingTags.length > 0) {
     let tags = matchingTags.map((tag) => tag.content);
-    const { data, error } = await supabaseClient
+    let query = supabaseClient
       .from("master_us")
       .select(
         "id, title, summary, location, topic, publisher, datasetUrl, subtags, dataset_source, domain"
       )
-      // .ilike("location", locPattern)
-      .or(`location.ilike.${locPattern},location.ilike.%United States%`)
-      .in("topic", tags);
+      // .or(`location.ilike.${locPattern},location.ilike.%United States%`)
+      // .in("topic", tags);
+      .or(`topic.in.(${tags}),subtags.ilike.%${tag}%`)
+    if (dsSource != null) {
+      query = query.eq("dataset_source", dsSource).ilike("title", "%04011%") //.or(`location.ilike.${locPattern}`);
+      // if (dsSource == "LASERFICHE"){
+      //   // tags.forEach((tag) => query = query.ilike("subtags", tag))
+      //   query = query.ilike("subtags", "%soil management%")
+      // }
+    } else {
+      query = query.or(`location.ilike.${locPattern},location.ilike.%United States%`)
+    }
+    const { data, error } = await query;
     console.log("semantic search data: ", data, "error:", error);
     return data;
   }

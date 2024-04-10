@@ -1,11 +1,8 @@
 import { primaryTagSearch } from "@/app/indexUtils";
 import { logTableInteraction } from "@/utils/supabaseLogger";
-import { Button } from "flowbite-react";
-import { useState } from "react";
-import { FaCheck } from "react-icons/fa";
 import SearchBar from "../common/SearchBar";
 
-export type USDatasetSource = "USGS" | "USGOV";
+export type USDatasetSource = "USGS" | "USGOV" | "LASERFICHE" | "NYOPEN";
 
 type Props = {
   location: string;
@@ -27,7 +24,7 @@ const EditTagButton = ({
       setLoading(true);
       let primaryData = await primaryTagSearch(
         value,
-        location,
+        `%${location}%`,
         dsSource,
         domain
       );
