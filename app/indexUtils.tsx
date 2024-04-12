@@ -3,6 +3,7 @@ import { primary_tag_fts, subtags_fts } from "./api/search/utils";
 import { getIntersectPlaces } from "./api/location/utils";
 import { addressToCoord } from "./api/location/utils";
 import { USDatasetSource } from "@/components/index/EditTagButton";
+import { SearchResult } from "./search";
 
 export interface IFormInput {
   address?: string;
@@ -73,23 +74,10 @@ export type AgentResponse = {
   tangential_tags?: string;
 };
 
-type SearchResult = {
-  id: number;
-  title: string;
-  summary: string;
-  datasetUrl: string;
-  publisher: string;
-  location: string;
-  topic: string;
-  dataset_source: string;
-  domain: string;
-};
-
 export async function primaryTagSearch(
   primaryTag: string,
   locPattern: string,
-  dsSource: USDatasetSource | null,
-  domain: string | null
+  dsSource: USDatasetSource | null
 ): Promise<SearchResult[]> {
   console.log(primaryTag, locPattern);
   let semanticData = await semanticSearch(primaryTag, locPattern, dsSource);
@@ -144,7 +132,7 @@ export async function processChatResponse(
       tangentialData: [],
     };
   }
-  let primaryData = await primaryTagSearch(d["primary_tag"], `%${queryLoc}%`);
+  let primaryData = await primaryTagSearch(d["primary_tag"], queryLoc, datasource);
 
   let tangentialData: any = [];
   if ("tangential_tags" in d && d["tangential_tags"] != null) {
@@ -180,7 +168,7 @@ export async function semanticSearch(
     let query = supabaseClient
       .from("master_us")
       .select(
-        "id, title, summary, location, topic, publisher, datasetUrl, subtags, dataset_source, domain"
+        "id, title, summary, location, topic, publisher, datasetUrl, subtags, dataset_source, lastUpdated"
       )
       // .or(`location.ilike.${locPattern},location.ilike.%United States%`)
       // .in("topic", tags);

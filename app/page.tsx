@@ -6,26 +6,24 @@ import DatasetPane from "@/components/index/DatasetPane";
 import EditTagButton, {
   USDatasetSource,
 } from "@/components/index/EditTagButton";
-import { DatasetMetadata } from "@/components/MetadataTable";
 import SlidingPane from "react-sliding-pane";
 import { PaginatedList } from "react-paginated-list";
 import DebouncedInput from "@/components/common/DebouncedInput";
 import { Spinner } from "flowbite-react";
 import { logTableInteraction } from "@/utils/supabaseLogger";
 import DatasourceSelect from "@/components/index/DatasourceSelect";
-
+import { SearchResult } from "./search";
 
 export default function Home() {
-  const [primaryData, setPrimary] = useState<any[] | null>(null);
+  const [primaryData, setPrimary] = useState<SearchResult[] | null>(null);
   const [interestedLocations, setLocations] = useState<string>("United States");
   const [loading, setLoading] = useState<boolean>(false);
   const [openPanel, setOpenPanel] = useState(false);
-  const [currentds, setCurrentds] = useState<DatasetMetadata | null>(null);
-  const [dsSource, setDsSource] = useState<USDatasetSource | null>("LASERFICHE");
-  const [domain, setDomain] = useState<string | null>(null);
+  const [currentds, setCurrentds] = useState<SearchResult | null>(null);
+  const [dsSource, setDsSource] = useState<USDatasetSource | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  function setDatasetSelected(ds: DatasetMetadata) {
+  function setDatasetSelected(ds: SearchResult) {
     setCurrentds(ds);
     setOpenPanel(true);
   }
@@ -41,7 +39,7 @@ export default function Home() {
             onChange={setLocations}
           />
         </div>
-        <DatasourceSelect dataSource={dsSource} setDataSource={setDsSource}/>
+        <DatasourceSelect dataSource={dsSource} setDataSource={setDsSource} />
         <h2 className="fixed bottom-5 left-4">Spacious AI</h2>
       </div>
       <div className="col-span-5 flex h-[100vh]">
@@ -55,52 +53,49 @@ export default function Home() {
             location={interestedLocations}
             setPrimaryData={setPrimary}
             dsSource={dsSource}
-            domain={domain}
             setLoading={setLoading}
           />
-          {/* {loading ? (
+          {loading ? (
             <div className="ml-20 mt-20">
               <Spinner />
             </div>
-          ) : primaryData != null && primaryData.length > 0 ? ( */}
-          <>
-            <PaginatedList
-              list={primaryData || []}
-              itemsPerPage={20}
-              renderList={(list: Array<any>) => (
-                <>
-                  {list.map((data, i) => (
-                    <DatasetCard
-                      key={i}
-                      dataset={data}
-                      index={i}
-                      setSelectedDataset={setDatasetSelected}
-                    />
-                  ))}
-                </>
-              )}
-              onPageChange={(newItems, newPage) => {
-                if (process.env.NODE_ENV === "production") {
-                  logTableInteraction(
-                    "NextPage",
-                    newPage,
-                    newItems.length.toString()
-                  );
-                }
-              }}
-            />
-            <div className="bottom-0 w-[82%] absolute bg-white flex justify-center">
-              
-            </div>
-          </>
-          {/* ) : (
+          ) : primaryData != null && primaryData.length > 0 ? (
+            <>
+              <PaginatedList
+                list={primaryData || []}
+                itemsPerPage={20}
+                renderList={(list: Array<any>) => (
+                  <>
+                    {list.map((data, i) => (
+                      <DatasetCard
+                        key={i}
+                        dataset={data}
+                        index={i}
+                        setSelectedDataset={setDatasetSelected}
+                      />
+                    ))}
+                  </>
+                )}
+                onPageChange={(newItems, newPage) => {
+                  if (process.env.NODE_ENV === "production") {
+                    logTableInteraction(
+                      "NextPage",
+                      newPage,
+                      newItems.length.toString()
+                    );
+                  }
+                }}
+              />
+              <div className="bottom-0 w-[82%] absolute bg-white flex justify-center"></div>
+            </>
+          ) : (
             primaryData != null && (
               <p>
                 There are no results matching your search, try removing some
-                filters or request data through this form
+                filters or request data through the bottom banner
               </p>
             )
-          )} */}
+          )}
         </div>
       </div>
       {currentds != null && (
@@ -110,14 +105,13 @@ export default function Home() {
           onRequestClose={() => {
             setOpenPanel(false);
             if (process.env.NODE_ENV === "production") {
-              logTableInteraction("CloseDatasetPanel", currentds.id);
+              logTableInteraction("CloseDatasetPanel", 0, currentds.id);
             }
           }}
         >
           <div>
             <DatasetPane
               dsMetadata={currentds}
-              id={currentds.id}
               openModal={openPanel}
               setOpenModal={setOpenPanel}
             />

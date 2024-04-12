@@ -1,18 +1,15 @@
 "use client";
 
 import { SetStateAction, useEffect, useState } from "react";
-import { DatasetMetadata } from "../MetadataTable";
-import Modal from "../common/Modal";
-import { Button } from "flowbite-react";
 import { jsonParse } from "@/utils/json";
-import { Dataset, getDataset } from "@/app/dataset/[id]/util";
 import { InfoDropdown } from "../dataset/InfoDropdown";
 import Link from "next/link";
 import { logTableInteraction } from "@/utils/supabaseLogger";
+import { SearchResult } from "@/app/search";
+import { Dataset, getDataset } from "@/clients/supabase";
 
 type Props = {
-  dsMetadata: DatasetMetadata;
-  id: number;
+  dsMetadata: SearchResult;
   openModal: boolean | undefined;
   setOpenModal: (value: SetStateAction<boolean>) => void;
 };
@@ -22,14 +19,15 @@ export const openInNewTab = (url: string): void => {
   if (newWindow) newWindow.opener = null;
 };
 
-const DatasetPanel = ({ dsMetadata, id, openModal, setOpenModal }: Props) => {
+const DatasetPanel = ({ dsMetadata, openModal, setOpenModal }: Props) => {
   let [dataset, setDataset] = useState<Dataset | null>(null);
   let [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const id = dsMetadata.id
 
   useEffect(() => {
     async function fetchDataset() {
-      let result = await getDataset(id);
+      let result = await getDataset(dsMetadata);
       if (result == null) {
         setError("There was no dataset corresponding to the specified ID.");
       } else {
@@ -38,7 +36,7 @@ const DatasetPanel = ({ dsMetadata, id, openModal, setOpenModal }: Props) => {
       }
     }
     fetchDataset();
-  }, [id]);
+  }, [dsMetadata]);
 
   const showPublisher = (pubStr: string) => {
     try {

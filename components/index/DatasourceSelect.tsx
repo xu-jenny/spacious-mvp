@@ -5,13 +5,15 @@ import { Dispatch, SetStateAction } from "react";
 import { USDatasetSource } from "./EditTagButton";
 
 type Props = {
-    dataSource: USDatasetSource;
+    dataSource: USDatasetSource | null;
   setDataSource: Dispatch<SetStateAction<USDatasetSource | null>>;
 }
 const DatasourceSelect = ({ dataSource, setDataSource }: Props) => {
   return (
     <div className="p-3 mt-3">
-      <Dropdown label={dataSource} inline>
+      <span>Specify datasource</span>
+      <Dropdown label={dataSource ?? "Any"} inline>
+        <Dropdown.Item onClick={() => setDataSource(null)}>Any</Dropdown.Item>
         <Dropdown.Item onClick={() => setDataSource('USGS')}>USGS</Dropdown.Item>
         <Dropdown.Item onClick={() => setDataSource('LASERFICHE')}>LaserFiche</Dropdown.Item>
         <Dropdown.Item onClick={() => setDataSource('USGOV')}>US Gov</Dropdown.Item>

@@ -7,7 +7,7 @@ import { jsonParse } from "@/utils/json";
 
 type LocationGranularity = "county" | "country" | "state" | "town" | "zip";
 type DatasetType = "csv" | "pdf";
-export type DatasetMetadata = {
+type DatasetMetadata = {
   id: number;
   created_at: string;
   title: string;

@@ -11,7 +11,7 @@ export type TableEventType =
   | "CloseDatasetPanel";
 export async function logTableInteraction(
   eventType: TableEventType,
-  position: number, // page number or row position
+  position: number | string, // page number or row position
   itemId?: string
 ) {
   const { error } = await supabaseClient.from("events").insert({

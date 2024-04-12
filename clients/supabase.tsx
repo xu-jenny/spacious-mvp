@@ -1,5 +1,5 @@
 import { createEmbedding } from "@/app/indexUtils";
-import { DatasetMetadata } from "@/components/MetadataTable";
+import { SearchResult } from "@/app/search";
 import { createClient } from "@supabase/supabase-js";
 
 // Create a single supabase client for interacting with your database
@@ -91,17 +91,11 @@ export async function getTagEmbedding(
   return null;
 }
 
-export async function sampleData(): Promise<DatasetMetadata[]> {
-  const { data } = await supabaseClient
-    .from("master_us")
-    .select()
-    .limit(5);
-  return data as unknown as DatasetMetadata[];
-}
+export type EmbeddingResult = { id: number; content: string; similarity: number }
 
 export async function match_tag(
   tagEmbedding: string
-): Promise<{ id: number; content: string; similarity: number }[] | null> {
+): Promise<EmbeddingResult[] | null> {
   const { data, error } = await supabaseClient.rpc("match_tags", {
     query_embedding: tagEmbedding,
     match_threshold: 0.7,
@@ -117,5 +111,56 @@ export async function match_tag(
     );
   }
   return data;
+}
+
+
+export type Dataset = {
+  id: number;
+  title: string;
+  summary: string;
+  lastUpdated: string;
+  firstPublished: string;
+  location: string;
+  publisher: string;
+  topic: string;
+  subtags: string;
+  originalUrl: string;
+  // ----------------------------------------------------------------
+  publisherContact?: string | null;
+  metadata?: string | null;
+  datasetUrl?: string | null;
+  locationType?: string | null;
+  license?: string | null;
+  "df.head"?: string | null;
+  "df.shape"?: string | null;
+  "df.value_counts"?: string | null;
+  "df.info"?: string | null;
+  "df.desc"?: string | null;
+  "df.isna"?: string | null;
+  corr?: string | null;
+  csv_url?: string | null;
+};
+export async function getDataset(dsMetadata: SearchResult): Promise<Dataset | null> {
+  let tablename = "US_USGS"
+  switch(dsMetadata.dataset_source){
+    case "USGOV":
+      tablename = "US_USGOV"
+    case "NYOPEN":
+      tablename = "US_NYOPEN"
+    case "LASERFICHE": 
+      tablename = "US_LaserFiche"; 
+  }
+  const { data, error } = await supabaseClient
+    .from(tablename)
+    .select("*")
+    .eq("id", dsMetadata.id);
+  if (error != null) {
+    console.error("error fetching dataset id", dsMetadata.id, error);
+    return null;
+  }
+  if (data == null) {
+    return null;
+  }
+  return data[0];
 }
 
