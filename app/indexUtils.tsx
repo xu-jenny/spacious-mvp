@@ -168,7 +168,7 @@ export async function semanticSearch(
     let query = supabaseClient
       .from("master_us")
       .select(
-        "id, title, summary, location, topic, publisher, datasetUrl, subtags, dataset_source, lastUpdated"
+        "id, title, summary, location, topic, publisher, datasetUrl, subtags, dataset_source, lastUpdated, firstPublished, originalUrl"
       )
       // .or(`location.ilike.${locPattern},location.ilike.%United States%`)
       // .in("topic", tags);

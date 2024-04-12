@@ -115,7 +115,7 @@ export async function match_tag(
 
 
 export type Dataset = {
-  id: number;
+  id: string;
   title: string;
   summary: string;
   lastUpdated: string;
@@ -123,7 +123,7 @@ export type Dataset = {
   location: string;
   publisher: string;
   topic: string;
-  subtags: string;
+  subtags: string[];
   originalUrl: string;
   // ----------------------------------------------------------------
   publisherContact?: string | null;
@@ -141,14 +141,17 @@ export type Dataset = {
   csv_url?: string | null;
 };
 export async function getDataset(dsMetadata: SearchResult): Promise<Dataset | null> {
+  if (dsMetadata.dataset_source === "LASERFICHE"){
+    return dsMetadata as Dataset
+  }
   let tablename = "US_USGS"
   switch(dsMetadata.dataset_source){
     case "USGOV":
       tablename = "US_USGOV"
     case "NYOPEN":
       tablename = "US_NYOPEN"
-    case "LASERFICHE": 
-      tablename = "US_LaserFiche"; 
+    // case "LASERFICHE": 
+    //   tablename = "US_LaserFiche"; 
   }
   const { data, error } = await supabaseClient
     .from(tablename)

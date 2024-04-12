@@ -15,7 +15,9 @@ export type SearchResult = {
   location: string;
   topic: string;
   dataset_source: string;
+  firstPublished: string;
   lastUpdated: string;
+  originalUrl: string;
   subtags: string[];
   score?: number;
 };
@@ -39,7 +41,7 @@ async function semanticFilter(
     let query = supabaseClient
       .from("master")
       .select(
-        "id, title, summary, location, topic, publisher, subtags, dataset_source, lastUpdated"
+        "id, title, summary, location, topic, publisher, subtags, dataset_source, lastUpdated, firstPublished, originalUrl"
       )
       .or(`topic.ilike.%${tag}%,subtags.in.(${tags}),title.ilike.%${tag}%`);
     if (location != "United States") {

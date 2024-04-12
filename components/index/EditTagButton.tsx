@@ -1,4 +1,3 @@
-import { primaryTagSearch } from "@/app/indexUtils";
 import { logTableInteraction } from "@/utils/supabaseLogger";
 import SearchBar from "../common/SearchBar";
 import { searchbarSearch } from "@/app/search";
