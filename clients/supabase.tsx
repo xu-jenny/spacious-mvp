@@ -139,19 +139,20 @@ export type Dataset = {
   "df.isna"?: string | null;
   corr?: string | null;
   csv_url?: string | null;
+  length?: number | null;
 };
 export async function getDataset(dsMetadata: SearchResult): Promise<Dataset | null> {
-  if (dsMetadata.dataset_source === "LASERFICHE"){
-    return dsMetadata as Dataset
-  }
+  // if (dsMetadata.dataset_source === "LASERFICHE"){
+  //   return dsMetadata as Dataset
+  // }
   let tablename = "US_USGS"
   switch(dsMetadata.dataset_source){
     case "USGOV":
       tablename = "US_USGOV"
     case "NYOPEN":
-      tablename = "US_NYOPEN"
-    // case "LASERFICHE": 
-    //   tablename = "US_LaserFiche"; 
+      tablename = "US_nyopen"
+    case "LASERFICHE": 
+      tablename = "US_laserfiche"; 
   }
   const { data, error } = await supabaseClient
     .from(tablename)

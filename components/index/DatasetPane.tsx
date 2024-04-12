@@ -105,6 +105,13 @@ const DatasetPanel = ({ dsMetadata, openModal, setOpenModal }: Props) => {
     }
   };
 
+  const showLocation = (location: string) => {
+    if (dsMetadata.dataset_source !== "LASERFICHE"){
+      return location
+    }
+    return location.substring(location.indexOf("|")+1)
+  }
+
   return (
     <div className="flex h-[100vh]">
       <div className="w-full flex flex-col h-full">
@@ -124,7 +131,7 @@ const DatasetPanel = ({ dsMetadata, openModal, setOpenModal }: Props) => {
             </Link>
           )}
           <p>Summary: {dataset?.summary}</p>
-          <p>Location: {dataset?.location}</p>
+          <p>Location: {showLocation(dataset?.location ?? "")}</p>
           {dataset?.lastUpdated != null && (
             <p>Last updated: {dataset?.lastUpdated}</p>
           )}
@@ -135,6 +142,8 @@ const DatasetPanel = ({ dsMetadata, openModal, setOpenModal }: Props) => {
             </p>
           )}
           <p>Topic: {dataset?.topic}</p>
+          {dataset?.length != null &&
+          <p>Report Length: {dataset?.length} </p>}
           <div>{showDatasetUrls()}</div>
           {dataset?.csv_url != null && dataset["df.head"] != null && (
             <>

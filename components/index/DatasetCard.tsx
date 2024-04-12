@@ -29,6 +29,13 @@ function DatasetCard({ dataset, index, setSelectedDataset }: Props) {
       ));
     }
   };
+
+  const showLocation = (dataset: SearchResult) => {
+    if (dataset.dataset_source !== "LASERFICHE"){
+      return dataset.location
+    }
+    return dataset.location.substring(dataset.location.indexOf("|")+1)
+  }
   
   return (
     <Card className="mt-3">
@@ -43,7 +50,7 @@ function DatasetCard({ dataset, index, setSelectedDataset }: Props) {
         {longStringShortener(dataset.summary)}
       </p>
       <div className="flex align-middle items-center gap-2">
-        {dataset?.publisher != null && dataset?.publisher.length > 1 && `${dataset?.publisher} | `}{dataset.location}
+        {dataset?.publisher != null && dataset?.publisher.length > 1 && `${dataset?.publisher} | `}{showLocation(dataset)}
         <Badge className="w-fit mt-1">{dataset.topic}</Badge>
       </div>
       <div>

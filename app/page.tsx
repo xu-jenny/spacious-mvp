@@ -13,6 +13,7 @@ import { Spinner } from "flowbite-react";
 import { logTableInteraction } from "@/utils/supabaseLogger";
 import DatasourceSelect from "@/components/index/DatasourceSelect";
 import { SearchResult } from "./search";
+import RequestDataBanner from "@/components/index/RequestDataBanner";
 
 export default function Home() {
   const [primaryData, setPrimary] = useState<SearchResult[] | null>(null);
@@ -97,6 +98,7 @@ export default function Home() {
             )
           )}
         </div>
+        {/* <RequestDataBanner /> */}
       </div>
       {currentds != null && (
         <SlidingPane
