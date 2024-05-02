@@ -4,7 +4,6 @@ export async function post(url: string, body: any) {
     headers: {
       "Content-Type": "application/json",
     },
-    mode:'no-cors',
     body: JSON.stringify(body),
   })
     .then((response) => response.json())
