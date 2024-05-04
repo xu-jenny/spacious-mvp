@@ -1,6 +1,5 @@
-import { DatasetMetadata } from "@/components/MetadataTable";
-import { ChatMessage } from "@/components/index/ChatInput";
-import { createEmbedding } from "@/utils/embeddingService";
+import { createEmbedding } from "@/app/indexUtils";
+import { SearchResult } from "@/app/search";
 import { createClient } from "@supabase/supabase-js";
 
 // Create a single supabase client for interacting with your database
@@ -10,7 +9,6 @@ export const supabaseClient = createClient(
 );
 
 export async function filterLocation(location: string) {
-  console.log("hello!");
   const { data, error } = await supabaseClient
     .from("master")
     .select("title, summary, tags")
@@ -53,7 +51,6 @@ export async function invokeSupabaseFunction(functionName: string, args: any) {
   }
   return data;
 }
-
 export async function getTagEmbedding(
   tag: string
 ): Promise<null | undefined | string> {
@@ -75,14 +72,14 @@ export async function getTagEmbedding(
   console.log(
     "embedding doesn't exist in embedding table, created new one.",
     typeof embedding,
-    embedding?.data.length
+    embedding.length
   );
   if (typeof embedding === "string") {
     console.error("error creating embedding:", embedding);
     return null;
   }
   if (embedding != null && typeof embedding === "object") {
-    const vector = `[${embedding.data.join(", ")}]`;
+    const vector = `[${embedding.join(", ")}]`;
     const { error } = await supabaseClient
       .from("embeddings")
       .insert({ embedding: vector, content: tag.toLowerCase() });
@@ -94,21 +91,11 @@ export async function getTagEmbedding(
   return null;
 }
 
-export async function sampleData(): Promise<DatasetMetadata[]> {
-  const { data } = await supabaseClient
-    .from("master")
-    .select(
-      "id, created_at, title, summary, lastUpdated, location, metadata, primary_tag, metadata, datasetUrl, publisher, tangential_tag"
-    )
-    .limit(5);
-  console.log(data);
-  // .eq("tagGroup", "Urban  Land Use");
-  return data as unknown as DatasetMetadata[];
-}
+export type EmbeddingResult = { id: number; content: string; similarity: number }
 
 export async function match_tag(
   tagEmbedding: string
-): Promise<{ id: number; content: string; similarity: number }[] | null> {
+): Promise<EmbeddingResult[] | null> {
   const { data, error } = await supabaseClient.rpc("match_tags", {
     query_embedding: tagEmbedding,
     match_threshold: 0.7,

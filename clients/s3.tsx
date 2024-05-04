@@ -1,8 +1,8 @@
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 // import JSZip from "jszip";
-import AdmZip from 'adm-zip';
-const fs = require('fs');
-import path from "path";
+// import AdmZip from 'adm-zip';
+// const fs = require('fs');
+// import path from "path";
 
 // Initialize the S3 client
 export const s3 = new S3Client({
@@ -13,22 +13,22 @@ export const s3 = new S3Client({
   }
 });
 
-export async function downloadFile(bucketName: string, key: string, downloadFilename: string){
-  try {
-    const command = new GetObjectCommand({
-      Bucket: bucketName,
-      Key: key,
-    });
+// export async function downloadFile(bucketName: string, key: string, downloadFilename: string){
+//   try {
+//     const command = new GetObjectCommand({
+//       Bucket: bucketName,
+//       Key: key,
+//     });
 
-    const publicDirectory = path.resolve("./public");
-    const downloadPath = path.join(publicDirectory, downloadFilename); // Ensure this path is in your 'public' directory
+//     const publicDirectory = path.resolve("./public");
+//     const downloadPath = path.join(publicDirectory, downloadFilename); // Ensure this path is in your 'public' directory
     
-    const response = await s3.send(command);
-    // @ts-ignore
-    const zip = new AdmZip(response.Body)
-    zip.extractAllTo(downloadPath, true);
+//     const response = await s3.send(command);
+//     // @ts-ignore
+//     const zip = new AdmZip(response.Body)
+//     zip.extractAllTo(downloadPath, true);
 
-  } catch (error) {
-    console.error("Error downloading file from s3:", error);
-  }
-}
+//   } catch (error) {
+//     console.error("Error downloading file from s3:", error);
+//   }
+// }

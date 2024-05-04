@@ -1,7 +1,8 @@
 "use client";
-import { Dataset } from "@/app/dataset/[id]/util";
+
 import { ReactNode, useState } from "react";
 import { Dropdown } from "flowbite-react";
+import { Dataset } from "@/clients/supabase";
 
 export const InfoDropdown = ({ dataset }: { dataset: Dataset }) => {
   let [selected, setSelected] = useState<string>("df.desc");
@@ -16,15 +17,21 @@ export const InfoDropdown = ({ dataset }: { dataset: Dataset }) => {
     .map((option) => (option in dataset ? option : null))
     .flatMap((f) => (f ? [f] : []));
 
-  const renderInfo = (info: string | null) => {
-    if (info == null) return <></>;
-    info = info.replace("<class 'pandas.core.frame.DataFrame'>\n", "");
-    info = info.replace("RangeIndex:", "Number of rows:");
-    return <pre>{info}</pre>;
+  const renderInfo = (dataset: Dataset) => {
+    if ("df.info" in dataset && dataset["df.info"] != null){
+      let info = dataset["df.info"]
+      info = info.replace("<class 'pandas.core.frame.DataFrame'>\n", "");
+      info = info.replace("RangeIndex:", "Number of rows:");
+      return <pre>{info}</pre>;
+    }
+    return <></>;
   };
 
-  const renderCorr = (corr: string | null) => {
-    if (corr == null) return <></>;
+  const renderCorr = (dataset: Dataset) => {
+    if ("corr" in dataset || dataset["corr"] == null){
+      return <></>;
+    }
+    let corr = dataset['corr']
     const c = JSON.parse(corr);
     let corrStr = "Highly correlated columns:\n";
     Object.entries(c).forEach(
@@ -41,9 +48,9 @@ export const InfoDropdown = ({ dataset }: { dataset: Dataset }) => {
   const selectedInfo = (): ReactNode => {
     switch (selected) {
       case "df.info":
-        return renderInfo(dataset["df.info"]);
+        return renderInfo(dataset);
       case "corr":
-        return renderCorr(dataset["corr"]);
+        return renderCorr(dataset);
       default:
         // @ts-ignore
         return <pre>{dataset[selected]}</pre>;

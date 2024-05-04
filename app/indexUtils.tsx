@@ -1,7 +1,9 @@
 import { getTagEmbedding, match_tag, supabaseClient } from "@/clients/supabase";
-import { primary_tag_fts, tangential_tag_fts } from "./api/search/utils";
+import { primary_tag_fts, subtags_fts } from "./api/search/utils";
 import { getIntersectPlaces } from "./api/location/utils";
 import { addressToCoord } from "./api/location/utils";
+import { USDatasetSource } from "@/components/index/EditTagButton";
+import { SearchResult } from "./search";
 
 export interface IFormInput {
   address?: string;
@@ -10,6 +12,7 @@ export interface IFormInput {
   longitude?: number;
   radius?: number;
   message: string;
+  dataSource?: string;
 }
 
 export async function parseLocationFormInput(
@@ -46,26 +49,24 @@ export async function parseLocationFormInput(
   return interestedLocations;
 }
 
-export async function getSupabaseData(
+export async function supabase_topic_search(
   primary_tag: string,
-  tangential_tags: string | undefined,
   queryLoc: string
-): Promise<{ primaryData: any[] | null; tangentialData: any[] | null }> {
+): Promise<any[] | null> {
   console.log(
     `Calling supabase Query with params primaryTag: ${primary_tag}, Location: ${queryLoc}`
   );
-  let primaryData = await primary_tag_fts(primary_tag, queryLoc);
-  let tangentialData = null;
-  // if (tangential_tags != null) {
-  //   tangentialData = await tangential_tag_fts(
-  //     tangential_tags.toLowerCase().replaceAll(", ", ","),
-  //     queryLoc
-  //   );
-  // }
-  return {
-    primaryData, //: result["primarytagData"],
-    tangentialData, //: result["tangentialTagData"],
-  };
+  return await primary_tag_fts(primary_tag, queryLoc);
+}
+
+export async function supabase_subtags_search(
+  tangential_tags: string,
+  queryLoc: string
+): Promise<any[] | null> {
+  return await subtags_fts(
+    tangential_tags.toLowerCase().replaceAll(", ", ","),
+    queryLoc
+  );
 }
 
 export type AgentResponse = {
@@ -73,19 +74,51 @@ export type AgentResponse = {
   tangential_tags?: string;
 };
 
-type SearchResult = {
-  id: number;
-  title: string;
-  summary: string;
-  datasetUrl: string;
-  publisher: string;
-  location: string;
-  topic: string;
-};
+export async function primaryTagSearch(
+  primaryTag: string,
+  locPattern: string,
+  dsSource: USDatasetSource | null
+): Promise<SearchResult[]> {
+  console.log(primaryTag, locPattern);
+  let semanticData = await semanticSearch(primaryTag, locPattern, dsSource);
+  let ftsData = await supabase_topic_search(primaryTag, locPattern);
+
+  // concat two results together
+  let primaryData: SearchResult[] = [];
+  if (ftsData != null) {
+    primaryData = ftsData;
+  }
+  if (semanticData != null && semanticData.length > 0) {
+    let combined = [...primaryData, ...semanticData];
+    primaryData = Array.from(new Set(combined));
+  }
+
+  // filter for dataset source and domain
+  if (dsSource != null) {
+    primaryData = primaryData.filter(
+      (result: SearchResult) => result.dataset_source == dsSource
+    );
+  }
+
+  primaryData.sort((a: SearchResult, b: SearchResult) => {
+    if (a.location === locPattern && b.location !== locPattern) {
+      return -1; // a comes first
+    } else if (a.location !== locPattern && b.location === locPattern) {
+      return 1; // b comes first
+    } else {
+      return 0; // Keep original order if both have the same preference
+    }
+  });
+  console.log(primaryData);
+  return primaryData;
+}
+
+export type DataSource = "USGOV" | "NYOPEN" | "USGS";
 
 export async function processChatResponse(
   d: AgentResponse,
-  queryLoc: string
+  queryLoc: string,
+  datasource: DataSource
 ): Promise<{
   aiMessage: string;
   primaryData: any[];
@@ -123,8 +156,6 @@ export async function processChatResponse(
     let combined = [...primaryData, ...semanticData];
     primaryData = Array.from(new Set(combined));
   }
-
-  let tangentialData = ftsData["tangentialData"] || [];
   let aiMessage = `I think the dataset tag you are interested in is ${d["primary_tag"]}. Some suggested tags are ${d["tangential_tags"]},`;
   aiMessage +=
     primaryData.length > 0
@@ -139,22 +170,56 @@ export async function processChatResponse(
 
 export async function semanticSearch(
   tag: string,
-  locPattern: string
+  locPattern: string,
+  dsSource: USDatasetSource | null
 ): Promise<SearchResult[] | null> {
-  let embedding = await getTagEmbedding(tag);
+  let embedding = await getTagEmbedding(tag.toLowerCase());
   if (embedding == null) return null;
   // call semantic search function on supabase
   let matchingTags = await match_tag(embedding);
   if (matchingTags == null) return null;
   if (matchingTags != null && matchingTags.length > 0) {
     let tags = matchingTags.map((tag) => tag.content);
-    const { data, error } = await supabaseClient
+    let query = supabaseClient
       .from("master_us")
-      .select("id, title, summary, location, topic, publisher, datasetUrl")
-      .like("location", locPattern)
-      .in("topic", tags);
+      .select(
+        "id, title, summary, location, topic, publisher, datasetUrl, subtags, dataset_source, lastUpdated, firstPublished, originalUrl"
+      )
+      // .or(`location.ilike.${locPattern},location.ilike.%United States%`)
+      // .in("topic", tags);
+      .or(`topic.in.(${tags}),subtags.ilike.%${tag}%`)
+    if (dsSource != null) {
+      query = query.eq("dataset_source", dsSource).ilike("title", "%04011%") //.or(`location.ilike.${locPattern}`);
+      // if (dsSource == "LASERFICHE"){
+      //   // tags.forEach((tag) => query = query.ilike("subtags", tag))
+      //   query = query.ilike("subtags", "%soil management%")
+      // }
+    } else {
+      query = query.or(`location.ilike.${locPattern},location.ilike.%United States%`)
+    }
+    const { data, error } = await query;
     console.log("semantic search data: ", data, "error:", error);
     return data;
   }
   return null;
+}
+
+export async function createEmbedding(text: string): Promise<Float32Array> {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(
+      new URL("./embeddingWorker.tsx", import.meta.url),
+      { type: "module" }
+    );
+    worker.onmessage = (event: MessageEvent) => {
+      if (event.data.status === "complete") {
+        console.log("finished creating embedding", event.data.output.length);
+        resolve(event.data.output);
+      }
+    };
+    worker.onerror = (error: ErrorEvent) => {
+      console.error(error.message);
+      reject(error);
+    };
+    worker.postMessage({ text });
+  });
 }

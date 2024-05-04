@@ -1,219 +1,125 @@
 "use client";
-
-import MetadataTable from "@/components/MetadataTable";
-import ChatInput, { ChatMessage } from "@/components/index/ChatInput";
-import { post } from "@/utils/http";
-import { useEffect, useState } from "react";
-import { jsonParse } from "@/utils/json";
-import { getSupabaseData, processChatResponse } from "./indexUtils";
-import ChatBox from "@/components/index/ChatBox";
-import LocationInput from "@/components/index/LocationInput";
-import RequestDatasetButton from "@/components/index/RequestDatasetButton";
-import { addQueries, logError } from "@/utils/supabaseLogger";
+import React, { useState } from "react";
+import "react-sliding-pane/dist/react-sliding-pane.css";
+import DatasetCard from "@/components/index/DatasetCard";
+import DatasetPane from "@/components/index/DatasetPane";
+import EditTagButton, {
+  USDatasetSource,
+} from "@/components/index/EditTagButton";
+import SlidingPane from "react-sliding-pane";
+import { PaginatedList } from "react-paginated-list";
+import DebouncedInput from "@/components/common/DebouncedInput";
+import { Spinner } from "flowbite-react";
+import { logTableInteraction } from "@/utils/supabaseLogger";
+import DatasourceSelect from "@/components/index/DatasourceSelect";
+import { SearchResult } from "./search";
+import RequestDataBanner from "@/components/index/RequestDataBanner";
 
 export default function Home() {
-  let [primaryData, setPrimary] = useState<any[]>([]);
-  let [tangentialData, setTangential] = useState<any[]>([]);
-  let [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
-  let [interestedLocations, setLocations] = useState<string | null>(
-    "California"
-  );
-  let [error, setError] = useState<string | null>(null);
+  const [primaryData, setPrimary] = useState<SearchResult[] | null>(null);
+  const [interestedLocations, setLocations] = useState<string>("United States");
   const [loading, setLoading] = useState<boolean>(false);
-  const [sessionId, setSessionId] = useState<number>(Date.now());
+  const [openPanel, setOpenPanel] = useState(false);
+  const [currentds, setCurrentds] = useState<SearchResult | null>(null);
+  const [dsSource, setDsSource] = useState<USDatasetSource | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const addError = (
-    newChatHistory: ChatMessage[],
-    errorMessage: string,
-    error: string
-  ) => {
-    console.error(errorMessage, error);
-    setChatHistory([
-      ...newChatHistory,
-      {
-        text: "I'm sorry, but there was an error processing your request. Please report the error.",
-        isChatOwner: false,
-        sentAt: new Date(),
-      } as ChatMessage,
-    ]);
-    logError(errorMessage, error);
-  };
-
-  const chatWithAgent = async (
-    message: ChatMessage,
-    interestedLocations: string
-  ) => {
-    let newChatHistory = [...chatHistory, message];
-    setChatHistory(newChatHistory);
-    let response = await post(
-      process.env.NODE_ENV == "development"
-        ? "http://127.0.0.1:5000/chat"
-        : process.env.NEXT_PUBLIC_BACKEND_SERVER_URL + "/chat",
-      {
-        query: message,
-        chatHistory: newChatHistory,
-      }
-    );
-    // let response = {
-    //   output: {
-    //     primary_tag: "traffic data",
-    //     tangential_tags:
-    //       "Police reports, Crime rates, Neighborhood demographics, Law enforcement presence",
-    //   },
-    // };
-    
-    // console.log("response from flask server: ", response);
-    if (response != null) {
-      if ("message" in response) {
-        setChatHistory([
-          ...newChatHistory,
-          {
-            text: response.message,
-            isChatOwner: false,
-            sentAt: new Date(),
-          } as ChatMessage,
-        ]);
-      } else if ("output" in response) {
-        console.log(response["output"], typeof response["output"]);
-        // check if answer contain tags
-        try {
-          let d = response["output"];
-          // let d = jsonParse(output);
-          if (d != null) {
-            let result = await processChatResponse(d, interestedLocations);
-            setChatHistory([
-              ...newChatHistory,
-              {
-                text: result.aiMessage,
-                isChatOwner: false,
-                sentAt: new Date(),
-                attachment:
-                  result.primaryData != null &&
-                  result.primaryData.length > 0 ? null : (
-                    <RequestDatasetButton
-                      query={
-                        message.text +
-                        `|Location:${interestedLocations}`
-                      }
-                      aiMessage={result.aiMessage}
-                    />
-                  ),
-              } as ChatMessage,
-            ]);
-            setPrimary(result.primaryData);
-            setTangential(result.tangentialData);
-
-            // let data = await getSupabaseData(d, interestedLocations.join(","));
-            // console.log(data);
-            // if (
-            //   data != null &&
-            //   "primaryData" in data &&
-            //   data["primaryData"] != null
-            // ) {
-            //   setPrimary(data["primaryData"]);
-            //   if ("tangentialData" in data && data["tangentialData"] != null) {
-            //     setTangential(data["tangentialData"]);
-            //   }
-            //   let aiMessage = `I think the dataset tag you are interested in is ${d["primary_tag"]}. Some suggested tags are ${d["tangential_tags"]},`;
-            //   aiMessage +=
-            //     data["primaryData"].length > 0
-            //       ? `There are ${data["primaryData"].length} records matching the primary tag.`
-            //       : `There isn't any corresponding record matching the primary tag. If you believe the dataset tag is correct, please press this button to request the dataset!`;
-          } else {
-            setChatHistory([
-              ...newChatHistory,
-              {
-                text: response["output"],
-                isChatOwner: false,
-                sentAt: new Date(),
-              } as ChatMessage,
-            ]);
-          }
-        } catch (e) {
-          console.error("error when parsing response", e);
-          if (process.env.NODE_ENV != "development") {
-            addError(
-              newChatHistory,
-              `error when parsing response ${response}`,
-              e as string
-            );
-          }
-        }
-      } else {
-        console.error("error when parsing response", e);
-        if (process.env.NODE_ENV != "development") {
-          addError(
-            newChatHistory,
-            "error when waiting for response from server. Response: ",
-            response.toString()
-          );
-        }
-      }
-    }
-  };
-
-  const onNewMessage = async (data: ChatMessage) => {
-    if (interestedLocations != null) {
-      setError(null);
-      setLoading(true);
-      console.log(
-        "calling chatWithAgent with ",
-        interestedLocations,
-        data["text"]
-      );
-      await chatWithAgent(
-        {
-          sentAt: new Date(),
-          isChatOwner: true,
-          text: data["text"],
-        },
-        interestedLocations
-      );
-      setLoading(false);
-    } else {
-      setError("Please set the location!");
-    }
-  };
-
-  useEffect(() => {
-    if (chatHistory.length % 2 == 0 && chatHistory.length > 0 && process.env.NODE_ENV === 'production') {
-      console.log("calling addQueries", chatHistory, interestedLocations);
-      addQueries(chatHistory, interestedLocations, sessionId);
-    }
-  }, [chatHistory]);
+  function setDatasetSelected(ds: SearchResult) {
+    setCurrentds(ds);
+    setOpenPanel(true);
+  }
 
   return (
     <div className="grid grid-cols-6 h-[100vh]">
       <div className="col-span-1 bg-sky-200 prose">
-        <LocationInput setLocations={setLocations} />
+        {/* <LocationInput setLocations={setLocations} /> */}
+        <div className="p-2">
+          <h3>Set Location</h3>
+          <DebouncedInput
+            placeholder="City/State/Region"
+            onChange={setLocations}
+          />
+        </div>
+        <DatasourceSelect dataSource={dsSource} setDataSource={setDsSource} />
         <h2 className="fixed bottom-5 left-4">Spacious AI</h2>
       </div>
       <div className="col-span-5 flex h-[100vh]">
-        <div className="w-1/2 flex flex-col h-full">
+        {/* <div className="w-1/2 flex flex-col h-full">
           <ChatBox chatHistory={chatHistory} loading={loading} />
           {error != null && <span className="text-red ml-7">{error}</span>}
           <ChatInput sendANewMessage={onNewMessage} />
+        </div> */}
+        <div className="w-full bg-sky-50 overflow-auto p-2">
+          <EditTagButton
+            location={interestedLocations}
+            setPrimaryData={setPrimary}
+            dsSource={dsSource}
+            setLoading={setLoading}
+          />
+          {loading ? (
+            <div className="ml-20 mt-20">
+              <Spinner />
+            </div>
+          ) : primaryData != null && primaryData.length > 0 ? (
+            <>
+              <PaginatedList
+                list={primaryData || []}
+                itemsPerPage={20}
+                renderList={(list: Array<any>) => (
+                  <>
+                    {list.map((data, i) => (
+                      <DatasetCard
+                        key={i}
+                        dataset={data}
+                        index={i}
+                        setSelectedDataset={setDatasetSelected}
+                      />
+                    ))}
+                  </>
+                )}
+                onPageChange={(newItems, newPage) => {
+                  if (process.env.NODE_ENV === "production") {
+                    logTableInteraction(
+                      "NextPage",
+                      newPage,
+                      newItems.length.toString()
+                    );
+                  }
+                }}
+              />
+              <div className="bottom-0 w-[82%] absolute bg-white flex justify-center"></div>
+            </>
+          ) : (
+            primaryData != null && (
+              <p>
+                There are no results matching your search, try removing some
+                filters or request data through the bottom banner
+              </p>
+            )
+          )}
         </div>
-        <div className="w-1/2 bg-sky-50 overflow-auto">
-          <div className="p-4 overflow-auto h-[50vh]">
-            <h2 className="text-2xl font-semi-bold p-2">Primary Data</h2>
-            <MetadataTable
-              data={primaryData}
-              paginate={true}
-              tableName="Primary"
-            />
-          </div>
-          <hr />
-          <div className="p-4 overflow-auto">
-            <h2 className="text-2xl font-semi-bold p-2">Tangential Data</h2>
-            <MetadataTable
-              data={tangentialData}
-              paginate={true}
-              tableName="Tangential"
-            />
-          </div>
-        </div>
+        {/* <RequestDataBanner /> */}
       </div>
+      {currentds != null && (
+        <SlidingPane
+          isOpen={openPanel}
+          width="70%"
+          onRequestClose={() => {
+            setOpenPanel(false);
+            if (process.env.NODE_ENV === "production") {
+              logTableInteraction("CloseDatasetPanel", 0, currentds.id);
+            }
+          }}
+        >
+          <div>
+            <DatasetPane
+              dsMetadata={currentds}
+              openModal={openPanel}
+              setOpenModal={setOpenPanel}
+            />
+          </div>
+        </SlidingPane>
+      )}
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { IFormInput, parseLocationFormInput } from "@/app/indexUtils";
 import { Dispatch, SetStateAction, forwardRef, useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 interface Props {
-  setLocations: Dispatch<SetStateAction<string | null>>;
+  setLocations: Dispatch<SetStateAction<string[] | null>>;
 }
 const LocationInput = ({ setLocations }: Props) => {
   let [locationFormValues, setLocationFormValues] = useState<IFormInput>({
@@ -11,6 +11,7 @@ const LocationInput = ({ setLocations }: Props) => {
     latitude: 0,
     longitude: 0,
     radius: 0,
+    dataSource: "",
     message: "",
   });
   const {
@@ -20,7 +21,6 @@ const LocationInput = ({ setLocations }: Props) => {
     formState: { errors },
   } = useForm<IFormInput>();
   const onSubmit: SubmitHandler<IFormInput> = async (data: IFormInput) => {
-    console.log(data);
     const isSameAsPreviousSubmit = Object.keys(data)
       .filter((fieldName) => fieldName !== "message")
       .every((fieldName) => {
@@ -46,8 +46,8 @@ const LocationInput = ({ setLocations }: Props) => {
       if (watch("latitude") == undefined) {
         return "Both Lat and Lon need to be filled45";
       }
-      if (value! < 113 || value! > 154) {
-        return "Longitude must be in Australia.";
+      if (value! < -160 || value! > -68) {
+        return "Longitude must be in United States.";
       }
       return true;
     }
@@ -62,8 +62,8 @@ const LocationInput = ({ setLocations }: Props) => {
       if (watch("longitude") == undefined) {
         return "Both Lat and Lon need to be filled45";
       }
-      if (value! < -44 || value! > -10) {
-        return "Longitude must be in Australia.";
+      if (value! < 19.5 || value! > 65) {
+        return "Longitude must be in United States.";
       }
       return true;
     }
@@ -88,7 +88,7 @@ const LocationInput = ({ setLocations }: Props) => {
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className="flex flex-col p-4">
         <h3>Set Location</h3>
-        <span className="text-xs text-slate-500 mb-2">
+        {/* <span className="text-xs text-slate-500 mb-2">
           Please provide one or more of the following
         </span>
         <input
@@ -117,39 +117,48 @@ const LocationInput = ({ setLocations }: Props) => {
           {errors?.longitude && (
             <p className="text-red">{errors.longitude.message}</p>
           )}
-        </div>
+        </div> */}
         <div>
-          <label>OR</label>
+          {/* <label>OR</label> */}
           <input
             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-            placeholder="City/State/Region"
+            placeholder="City/State"
             {...register("region", {
               required: false,
               validate: { validateRegion },
             })}
           />
-          <span>If specifying state, please write NSW instead of New South Wales.</span>
           {errors?.region && (
             <p className="text-red">{errors.region.message}</p>
           )}
         </div>
-        <hr className="h-px my-4 bg-gray-500 border-0 dark:bg-gray-700"></hr>
-        <span>Radius of interest</span>
+        {/* <hr className="h-px my-4 bg-gray-500 border-0 dark:bg-gray-700"></hr> */}
+        {/* <span>Radius of interest</span>
         <div className="p-2">
           <input
             className="mx-auto bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             type="number"
             step="0.5"
-            placeholder="Km"
+            placeholder="Miles"
             {...register("radius", { max: 5000, min: 0 })}
           />
-        </div>
+        </div> */}
         <button
           type="submit"
-          className="mt-4 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
-        >
+          className="mt-4 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
           Confirm
         </button>
+      </div>
+      <div className="mt-4 p-2">
+        <span>Specifiy Data Source</span>
+        <input
+            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            placeholder="USGS/NYOPEN/USGOV"
+            {...register("dataSource", {
+              required: false,
+              validate: { validateRegion },
+            })}
+          />
       </div>
     </form>
   );
