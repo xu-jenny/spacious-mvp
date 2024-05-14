@@ -113,81 +113,135 @@ export async function match_tag(
   return data;
 }
 
-// for each tag, find all files that match using text_to_pages. in: tag, out: {fn1: [1, 3, 5], fn2: [2,4]}
-async function match_tag2page(
-  tag: string,
-  location: string
-): Promise<Map<string, string[]> | null> {
-  // {fn: [1, 3, 5]}
-  const { data } = await supabaseClient
-    .from("pdf_text_index") // text, matches
-    .select("matches")  // [[camdenSq, [1,4,9]], [westVillage, [1, 8]]]
-    .ilike("location", `%${location}%`)
-    .eq("text", tag);
-  console.log(data); // matches should be [[fn, [1,3,5]], [fn2, [2,4]]
-  if (data && data.length > 0 && 'matches' in data && data['matches'] != null && data['matches'].length > 0) {
-    let results = new Map<string, string[]>();
-    data['matches'].forEach((d) => {
-      results.set(d[0] as string, JSON.parse(d[1]));
-    });
-    return results;
+export type Dataset = {
+  id: string;
+  title: string;
+  summary: string;
+  lastUpdated: string;
+  firstPublished: string;
+  location: string;
+  publisher: string;
+  topic: string;
+  subtags: string[];
+  originalUrl: string;
+  // ----------------------------------------------------------------
+  publisherContact?: string | null;
+  metadata?: string | null;
+  datasetUrl?: string | null;
+  locationType?: string | null;
+  license?: string | null;
+  "df.head"?: string | null;
+  "df.shape"?: string | null;
+  "df.value_counts"?: string | null;
+  "df.info"?: string | null;
+  "df.desc"?: string | null;
+  "df.isna"?: string | null;
+  corr?: string | null;
+  csv_url?: string | null;
+  length?: number | null;
+};
+export async function getDataset(dsMetadata: SearchResult): Promise<Dataset | null> {
+  // if (dsMetadata.dataset_source === "LASERFICHE"){
+  //   return dsMetadata as Dataset
+  // }
+  let tablename = "US_USGS"
+  switch(dsMetadata.dataset_source){
+    case "USGOV":
+      tablename = "US_USGOV"
+    case "NYOPEN":
+      tablename = "US_nyopen"
+    case "LASERFICHE": 
+      tablename = "US_laserfiche"; 
   }
-  return null;
+  const { data, error } = await supabaseClient
+    .from(tablename)
+    .select("*")
+    .eq("id", dsMetadata.id);
+  if (error != null) {
+    console.error("error fetching dataset id", dsMetadata.id, error);
+    return null;
+  }
+  if (data == null) {
+    return null;
+  }
+  return data[0];
 }
 
-// for each tag, find all files that match using text_to_pages. in: tag, out: {fn1 : {score: 4.87, pages: [1, 3, 5]}}
-async function getSearchResults(
-  tag_scores: { content: string; similarity: number }[],
-  location: string
-): Promise<Map<string, <number, string[]>[]> | null> {
-  let all_matches: Map<string, <number, string[]>[]> = new Map<
-    string,
-    <number, string[]>
-  >(); // fn: {score, [1, 3, 5, 7]. all matches for a file
-  for (const tag of tag_scores) {
-    let data: Map<string, string[]> | null = await match_tag2page(  // {fn: [1, 3, 5]}
-      tag["content"],
-      location
-    );
-    if (!data || data == null || data.size == 0) {
-      continue;
-    }
-    const currentTagScore = tag["similarity"];
-    // caluclate ranking scores
-    Object.entries(data).forEach((fn: string, f_pages: string[]) => {
-      if (fn in all_matches){
-        all_matches[fn].pages = Set(all_matches[fn].pages.extend(f_pages))
-        all_matches[fn].score = f_pages.length * currentTagScore
-      } else {
-        let titleMatchScore = tag['content'].includes(fn) ? 0.3 : 0
-        all_matches[fn] = {score: f_pages.length * currentTagScore + titleMatchScore, pages: f_pages}
-      }
-    });
-  }
-  if (all_matches.length > 0) {
-    return all_matches
-  }
-  return null;
-}
+// // for each tag, find all files that match using text_to_pages. in: tag, out: {fn1: [1, 3, 5], fn2: [2,4]}
+// async function match_tag2page(
+//   tag: string,
+//   location: string
+// ): Promise<Map<string, string[]> | null> {
+//   // {fn: [1, 3, 5]}
+//   const { data } = await supabaseClient
+//     .from("pdf_text_index") // text, matches
+//     .select("matches")  // [[camdenSq, [1,4,9]], [westVillage, [1, 8]]]
+//     .ilike("location", `%${location}%`)
+//     .eq("text", tag);
+//   console.log(data); // matches should be [[fn, [1,3,5]], [fn2, [2,4]]
+//   if (data && data.length > 0 && 'matches' in data && data['matches'] != null && data['matches'].length > 0) {
+//     let results = new Map<string, string[]>();
+//     data['matches'].forEach((d) => {
+//       results.set(d[0] as string, JSON.parse(d[1]));
+//     });
+//     return results;
+//   }
+//   return null;
+// }
 
-async function semanticSearchLaserFiche(query: string, location: string): Promise<DatasetMetadata[] | null> {
-  let embedding = await getTagEmbedding(query);
-  if (embedding == null) return null;
-  let matchingTags = await match_tag(embedding);
-  if (matchingTags == null || matchingTags.length == 0) return null;
-  let searchResults = getSearchResults(matchingTags, location)  // fn: {score, [1, 3, 5, 7]} all matches for a file
-  if (searchResults == null) return null;
-  // query datasetMetadata
-  let filenames = searchResults.keys();
-  const { data: metadata, error } = await supabaseClient
-    .from("laserfiche")
-    .select("id, title, summary, location, topic, publisher, datasetUrl")
-    .in("title", filenames);
-  console.log(metadata)
-  if (metadata == null) return null;
-  let finalResults = metadata.map(d => {
-    const sResult = searchResults[d['title']]
-    return {...d, 'score': sResult['score'], 'pages': sResult['pages']}
-  })
-  return finalResults.sort((a, b) => a['score'] - b['score'])
-}
+// // for each tag, find all files that match using text_to_pages. in: tag, out: {fn1 : {score: 4.87, pages: [1, 3, 5]}}
+// async function getSearchResults(
+//   tag_scores: { content: string; similarity: number }[],
+//   location: string
+// ): Promise<Map<string, <number, string[]>[]> | null> {
+//   let all_matches: Map<string, <number, string[]>[]> = new Map<
+//     string,
+//     <number, string[]>
+//   >(); // fn: {score, [1, 3, 5, 7]. all matches for a file
+//   for (const tag of tag_scores) {
+//     let data: Map<string, string[]> | null = await match_tag2page(  // {fn: [1, 3, 5]}
+//       tag["content"],
+//       location
+//     );
+//     if (!data || data == null || data.size == 0) {
+//       continue;
+//     }
+//     const currentTagScore = tag["similarity"];
+//     // caluclate ranking scores
+//     Object.entries(data).forEach((fn: string, f_pages: string[]) => {
+//       if (fn in all_matches){
+//         all_matches[fn].pages = Set(all_matches[fn].pages.extend(f_pages))
+//         all_matches[fn].score = f_pages.length * currentTagScore
+//       } else {
+//         let titleMatchScore = tag['content'].includes(fn) ? 0.3 : 0
+//         all_matches[fn] = {score: f_pages.length * currentTagScore + titleMatchScore, pages: f_pages}
+//       }
+//     });
+//   }
+//   if (all_matches.length > 0) {
+//     return all_matches
+//   }
+//   return null;
+// }
+
+// async function semanticSearchLaserFiche(query: string, location: string): Promise<DatasetMetadata[] | null> {
+//   let embedding = await getTagEmbedding(query);
+//   if (embedding == null) return null;
+//   let matchingTags = await match_tag(embedding);
+//   if (matchingTags == null || matchingTags.length == 0) return null;
+//   let searchResults = getSearchResults(matchingTags, location)  // fn: {score, [1, 3, 5, 7]} all matches for a file
+//   if (searchResults == null) return null;
+//   // query datasetMetadata
+//   let filenames = searchResults.keys();
+//   const { data: metadata, error } = await supabaseClient
+//     .from("laserfiche")
+//     .select("id, title, summary, location, topic, publisher, datasetUrl")
+//     .in("title", filenames);
+//   console.log(metadata)
+//   if (metadata == null) return null;
+//   let finalResults = metadata.map(d => {
+//     const sResult = searchResults[d['title']]
+//     return {...d, 'score': sResult['score'], 'pages': sResult['pages']}
+//   })
+//   return finalResults.sort((a, b) => a['score'] - b['score'])
+// }

@@ -43,17 +43,20 @@ async function semanticFilter(
       .select(
         "id, title, summary, location, topic, publisher, subtags, dataset_source, firstPublished, originalUrl"
       )
-      .or(`topic.ilike.%${tag}%,title.ilike.%${tag}%`); // subtags.in.(${tags})
+      .or(`topic.ilike.%${tag}%,title.ilike.%${tag}%,subtags.ilike.%${tag}%`);
+    console.log(location)
     if (location != "United States") {
       query = query.or(
         `location.ilike.%${location}%,location.ilike.%United States%`
       );
-    } else {
-      query = query.ilike(`location`, `%united states%`);
-    }
+    } 
+    // else {
+    //   query = query.ilike(`location`, `%united states%`);
+    // }
     if (dsSource != null) {
       query = query.eq("dataset_source", dsSource);
     }
+    console.log(query);
     const { data, error } = await query;
     if (data != null) {
       data.forEach((data) => {

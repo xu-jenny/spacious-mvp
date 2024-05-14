@@ -115,59 +115,6 @@ export async function primaryTagSearch(
 
 export type DataSource = "USGOV" | "NYOPEN" | "USGS";
 
-export async function processChatResponse(
-  d: AgentResponse,
-  queryLoc: string,
-  datasource: DataSource
-): Promise<{
-  aiMessage: string;
-  primaryData: any[];
-  tangentialData: any[];
-}> {
-  if (!("primary_tag" in d) || d["primary_tag"] == null) {
-    return {
-      aiMessage:
-        "I'm sorry, I was not able to find a primary tag that matches what you are searching for. Could you please ask me in anther way?",
-      primaryData: [],
-      tangentialData: [],
-    };
-  }
-  const locPattern = `%${queryLoc}%`;
-  
-  let semanticData = await semanticSearch(d["primary_tag"], locPattern);
-  
-  let ftsData = await getSupabaseData(
-    d["primary_tag"],
-    d["tangential_tags"],
-    locPattern
-  );
-  
-  console.log("fts data:", ftsData, "semantic data: ", semanticData);
-  // concat two results together
-  let primaryData = [];
-  if (
-    ftsData != null &&
-    "primaryData" in ftsData &&
-    ftsData["primaryData"] != null
-  ) {
-    primaryData = ftsData["primaryData"];
-  }
-  if (semanticData != null && semanticData.length > 0) {
-    let combined = [...primaryData, ...semanticData];
-    primaryData = Array.from(new Set(combined));
-  }
-  let aiMessage = `I think the dataset tag you are interested in is ${d["primary_tag"]}. Some suggested tags are ${d["tangential_tags"]},`;
-  aiMessage +=
-    primaryData.length > 0
-      ? `There are ${primaryData.length} records matching the primary tag.`
-      : `There isn't any corresponding record matching the primary tag. If you believe the dataset tag is correct, please press this button to request the dataset!`;
-  return {
-    aiMessage,
-    primaryData,
-    tangentialData,
-  };
-}
-
 export async function semanticSearch(
   tag: string,
   locPattern: string,
