@@ -135,12 +135,12 @@ const DatasetPanel = ({ dsMetadata, openModal, setOpenModal }: Props) => {
           {dataset?.lastUpdated != null && (
             <p>Last updated: {dataset?.lastUpdated}</p>
           )}
-          {dataset?.publisher != null && (
+          {/* {dataset?.publisher != null && (
             <p>
               Publisher:{" "}
               {dataset?.publisher != null && showPublisher(dataset?.publisher)}
             </p>
-          )}
+          )} */}
           <p>Topic: {dataset?.topic}</p>
           {dataset?.length != null &&
           <p>Report Length: {dataset?.length} </p>}

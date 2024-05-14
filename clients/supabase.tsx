@@ -156,7 +156,8 @@ export async function getDataset(dsMetadata: SearchResult): Promise<Dataset | nu
   const { data, error } = await supabaseClient
     .from(tablename)
     .select("*")
-    .eq("id", dsMetadata.id);
+    // .eq("id", dsMetadata.id);
+    .eq("originalUrl", dsMetadata.originalUrl)
   if (error != null) {
     console.error("error fetching dataset id", dsMetadata.id, error);
     return null;
