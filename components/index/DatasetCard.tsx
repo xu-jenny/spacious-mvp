@@ -34,7 +34,7 @@ function DatasetCard({ dataset, index, setSelectedDataset }: Props) {
     if (dataset.dataset_source !== "LASERFICHE"){
       return dataset.location
     }
-    return dataset.location.substring(dataset.location.indexOf("|")+1)
+    return dataset.location.substring(0, dataset.location.indexOf("|"))
   }
   
   return (
