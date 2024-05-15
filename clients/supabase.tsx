@@ -1,6 +1,9 @@
 import { createEmbedding } from "@/app/indexUtils";
 import { SearchResult } from "@/app/search";
 import { createClient } from "@supabase/supabase-js";
+import { DataSource } from "../app/indexUtils";
+import { USDatasetSource } from "@/components/index/EditTagButton";
+import { cap } from "@/utils/util";
 
 // Create a single supabase client for interacting with your database
 export const supabaseClient = createClient(
@@ -91,7 +94,11 @@ export async function getTagEmbedding(
   return null;
 }
 
-export type EmbeddingResult = { id: number; content: string; similarity: number }
+export type EmbeddingResult = {
+  id: number;
+  content: string;
+  similarity: number;
+};
 
 export async function match_tag(
   tagEmbedding: string
@@ -140,24 +147,26 @@ export type Dataset = {
   csv_url?: string | null;
   length?: number | null;
 };
-export async function getDataset(dsMetadata: SearchResult): Promise<Dataset | null> {
+export async function getDataset(
+  dsMetadata: SearchResult
+): Promise<Dataset | null> {
   // if (dsMetadata.dataset_source === "LASERFICHE"){
   //   return dsMetadata as Dataset
   // }
-  let tablename = "US_USGS"
-  switch(dsMetadata.dataset_source){
+  let tablename = "US_USGS";
+  switch (dsMetadata.dataset_source) {
     case "USGOV":
-      tablename = "US_USGOV"
+      tablename = "US_USGOV";
     case "NYOPEN":
-      tablename = "US_nyopen"
-    case "LASERFICHE": 
-      tablename = "US_laserfiche"; 
+      tablename = "US_nyopen";
+    case "LASERFICHE":
+      tablename = "US_laserfiche";
   }
   const { data, error } = await supabaseClient
     .from(tablename)
     .select("*")
     // .eq("id", dsMetadata.id);
-    .eq("originalUrl", dsMetadata.originalUrl)
+    .eq("originalUrl", dsMetadata.originalUrl);
   if (error != null) {
     console.error("error fetching dataset id", dsMetadata.id, error);
     return null;
@@ -166,6 +175,33 @@ export async function getDataset(dsMetadata: SearchResult): Promise<Dataset | nu
     return null;
   }
   return data[0];
+}
+
+export async function getDatasetsInLocation(
+  location: string,
+  dsSource: USDatasetSource | null
+) {
+  let query = supabaseClient
+    .from("master")
+    .select(
+      "id, title, summary, location, topic, publisher, subtags, dataset_source, firstPublished, originalUrl"
+    )
+    .ilike("location", `%${location}%`);
+  if(dsSource != null) {
+    query = query.eq("dataset_source", dsSource);
+  }
+  const { data, error } = await query;
+    if (data != null) {
+      data.forEach((data) => {
+        data["subtags"] = eval(data["subtags"]);
+        data['location'] = data["location"];
+        data['publisher'] = cap(data["publisher"]);
+        data['topic'] = cap(data["topic"]);
+      });
+      console.log("getDatasetsInLocation data: ", data, "error:", error);
+      return data;
+    }
+  return [];
 }
 
 // // for each tag, find all files that match using text_to_pages. in: tag, out: {fn1: [1, 3, 5], fn2: [2,4]}

@@ -1,5 +1,6 @@
 import {
   EmbeddingResult,
+  getDatasetsInLocation,
   getTagEmbedding,
   match_tag,
   supabaseClient,
@@ -44,7 +45,6 @@ async function semanticFilter(
         "id, title, summary, location, topic, publisher, subtags, dataset_source, firstPublished, originalUrl"
       )
       .or(`topic.ilike.%${tag}%,title.ilike.%${tag}%,subtags.ilike.%${tag}%`);
-    console.log(location)
     if (location != "United States") {
       query = query.or(
         `location.ilike.%${location}%,location.ilike.%United States%`
@@ -61,7 +61,7 @@ async function semanticFilter(
     if (data != null) {
       data.forEach((data) => {
         data["subtags"] = eval(data["subtags"]);
-        data['location'] = cap(data["location"]);
+        data['location'] = data["location"];
         data['publisher'] = cap(data["publisher"]);
         data['topic'] = cap(data["topic"]);
       });
@@ -120,6 +120,10 @@ export async function searchbarSearch(
   location: string,
   dsSource: USDatasetSource | null
 ): Promise<SearchResult[]> {
+  if (primaryTag.toLowerCase() === 'all') {
+    return getDatasetsInLocation(location, dsSource);
+  }
+
   let filteredData = await semanticFilter(primaryTag, location, dsSource);
   if (filteredData == null) {
     return [];

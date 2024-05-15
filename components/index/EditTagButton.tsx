@@ -20,6 +20,7 @@ const EditTagButton = ({
   const onSubmit = async (value: string) => {
     if (value && value.length > 2) {
       setLoading(true);
+    
       let primaryData = await searchbarSearch(
         value,
         location,

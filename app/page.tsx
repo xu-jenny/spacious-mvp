@@ -69,7 +69,7 @@ export default function Home() {
                   <>
                     {list.map((data, i) => (
                       <DatasetCard
-                        key={i}
+                        key={data.title + i}
                         dataset={data}
                         index={i}
                         setSelectedDataset={setDatasetSelected}
