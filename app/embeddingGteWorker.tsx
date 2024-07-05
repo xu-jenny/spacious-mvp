@@ -6,7 +6,7 @@ import {
 
 class EmbeddingPipeline {
   static task: PipelineType = "feature-extraction";
-  static model = "WhereIsAi/UAE-Large-V1";
+  static model = "Alibaba-NLP/gte-base-en-v1.5";
   static instance: Promise<FeatureExtractionPipeline> | null = null;
 
   static async getInstance(progress_callback = null) {

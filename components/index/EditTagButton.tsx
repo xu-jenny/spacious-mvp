@@ -2,7 +2,7 @@ import { logTableInteraction } from "@/utils/supabaseLogger";
 import SearchBar from "../common/SearchBar";
 import { searchbarSearch } from "@/app/search";
 
-export type USDatasetSource = "USGS" | "USGOV" | "LASERFICHE" | "NYOPEN";
+export type USDatasetSource = "PFAS" | "LASERFICHE" | "USGS" | "USGOV" | "NYOPEN" | "ANY";
 
 type Props = {
   location: string;
@@ -20,12 +20,7 @@ const EditTagButton = ({
   const onSubmit = async (value: string) => {
     if (value && value.length > 2) {
       setLoading(true);
-    
-      let primaryData = await searchbarSearch(
-        value,
-        location,
-        dsSource
-      );
+      let primaryData = await searchbarSearch(value, location, dsSource);
       setPrimaryData(primaryData);
       if (process.env.NODE_ENV === "production") {
         logTableInteraction("EditTag", 0, value);

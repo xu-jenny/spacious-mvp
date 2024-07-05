@@ -2,15 +2,17 @@
 
 import { Badge, Card } from "flowbite-react";
 import { logTableInteraction } from "@/utils/supabaseLogger";
-import { SearchResult } from "@/app/search";
+import { PFASNodeResult, PFASSearchResult, SearchResult } from "@/app/search";
+import { USDatasetSource } from "./EditTagButton";
 type Props = {
-  dataset: SearchResult;
+  dataset: SearchResult | PFASSearchResult;
   index: number;
-  setSelectedDataset: (x: SearchResult) => void;
+  setSelectedDataset: (x: SearchResult | PFASSearchResult) => void;
+  dsSource: USDatasetSource;
 };
 
-function DatasetCard({ dataset, index, setSelectedDataset }: Props) {
-  const logLinkClick = (data: SearchResult, index: number) => {
+function DatasetCard({ dataset, index, setSelectedDataset, dsSource }: Props) {
+  const logLinkClick = (data: SearchResult | PFASSearchResult, index: number) => {
     logTableInteraction("LinkClick", index, data.title.toString());
     setSelectedDataset(data);
   };
@@ -31,32 +33,50 @@ function DatasetCard({ dataset, index, setSelectedDataset }: Props) {
   };
 
   const showLocation = (dataset: SearchResult) => {
-    if (dataset.dataset_source !== "LASERFICHE"){
-      return dataset.location
+    if (dataset.dataset_source !== "LASERFICHE") {
+      return dataset.location;
     }
-    return dataset.location.substring(0, dataset.location.indexOf("|"))
-  }
-  
+    return dataset.location.substring(0, dataset.location.indexOf("|"));
+  };
+
+  const showNodes = (nodes: PFASNodeResult[]) => {
+    return <p>We found {nodes.length} matches in this document</p>;
+  };
+
   return (
     <Card className="mt-3">
       <h6
         style={{ cursor: "pointer" }}
         // href={"/dataset/" + dataset.id}
         onClick={() => logLinkClick(dataset, index)}
-        className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+        className="text-xl font-bold tracking-tight text-gray-900 dark:text-white"
+      >
         {dataset.title}
       </h6>
       <p className="font-normal text-gray-700 dark:text-gray-400">
         {longStringShortener(dataset.summary)}
       </p>
       <div className="flex align-middle items-center gap-2">
-        {dataset?.publisher != null && dataset?.publisher.length > 1 && `${dataset?.publisher} | `}{showLocation(dataset)}
-        <Badge className="w-fit mt-1">{dataset.topic}</Badge>
+        {dataset?.publisher != null &&
+          dataset?.publisher.length > 1 &&
+          `${dataset?.publisher} | `}
+        {dsSource != "PFAS" && showLocation(dataset as SearchResult)}
+        {dsSource != "PFAS" && (
+          <Badge className="w-fit mt-1">
+            {(dataset as SearchResult).topic}
+          </Badge>
+        )}
       </div>
       <div>
         {"subtags" in dataset &&
           dataset["subtags"] != null &&
           showSubtags(dataset?.subtags)}
+      </div>
+      <div>
+        {dsSource == "PFAS" &&
+          "nodes" in dataset &&
+          dataset["nodes"].length > 0 &&
+          showNodes((dataset as PFASSearchResult).nodes)}
       </div>
     </Card>
   );

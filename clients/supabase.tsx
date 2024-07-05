@@ -187,20 +187,20 @@ export async function getDatasetsInLocation(
       "id, title, summary, location, topic, publisher, subtags, dataset_source, firstPublished, originalUrl"
     )
     .ilike("location", `%${location}%`);
-  if(dsSource != null) {
+  if (dsSource != null) {
     query = query.eq("dataset_source", dsSource);
   }
   const { data, error } = await query;
-    if (data != null) {
-      data.forEach((data) => {
-        data["subtags"] = eval(data["subtags"]);
-        data['location'] = data["location"];
-        data['publisher'] = cap(data["publisher"]);
-        data['topic'] = cap(data["topic"]);
-      });
-      console.log("getDatasetsInLocation data: ", data, "error:", error);
-      return data;
-    }
+  if (data != null) {
+    data.forEach((data) => {
+      data["subtags"] = eval(data["subtags"]);
+      data["location"] = data["location"];
+      data["publisher"] = cap(data["publisher"]);
+      data["topic"] = cap(data["topic"]);
+    });
+    console.log("getDatasetsInLocation data: ", data, "error:", error);
+    return data;
+  }
   return [];
 }
 

@@ -151,10 +151,10 @@ export async function semanticSearch(
   return null;
 }
 
-export async function createEmbedding(text: string): Promise<Float32Array> {
+export async function createEmbedding(text: string, defaultModel="./embeddingWorker.tsx"): Promise<Float32Array> {
   return new Promise((resolve, reject) => {
     const worker = new Worker(
-      new URL("./embeddingWorker.tsx", import.meta.url),
+      new URL(defaultModel, import.meta.url),
       { type: "module" }
     );
     worker.onmessage = (event: MessageEvent) => {

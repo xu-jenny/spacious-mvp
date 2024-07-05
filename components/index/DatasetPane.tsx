@@ -1,17 +1,19 @@
 "use client";
 
-import { SetStateAction, useEffect, useState } from "react";
+import { JSX, SetStateAction, useEffect, useState } from "react";
 import { jsonParse } from "@/utils/json";
 import { InfoDropdown } from "../dataset/InfoDropdown";
 import Link from "next/link";
 import { logTableInteraction } from "@/utils/supabaseLogger";
-import { SearchResult } from "@/app/search";
+import { PFASNodeResult, PFASSearchResult, SearchResult } from "@/app/search";
 import { Dataset, getDataset } from "@/clients/supabase";
+import { USDatasetSource } from "./EditTagButton";
 
 type Props = {
-  dsMetadata: SearchResult;
+  dsMetadata: SearchResult | PFASSearchResult;
   openModal: boolean | undefined;
   setOpenModal: (value: SetStateAction<boolean>) => void;
+  dsSource: USDatasetSource;
 };
 
 export const openInNewTab = (url: string): void => {
@@ -19,15 +21,20 @@ export const openInNewTab = (url: string): void => {
   if (newWindow) newWindow.opener = null;
 };
 
-const DatasetPanel = ({ dsMetadata, openModal, setOpenModal }: Props) => {
-  let [dataset, setDataset] = useState<Dataset | null>(null);
+const DatasetPanel = ({
+  dsMetadata,
+  dsSource,
+  openModal,
+  setOpenModal,
+}: Props) => {
+  let [dataset, setDataset] = useState<Dataset | PFASSearchResult | null>(null);
   let [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const id = dsMetadata.id
+  const id = dsMetadata.id;
 
   useEffect(() => {
     async function fetchDataset() {
-      let result = await getDataset(dsMetadata);
+      let result = await getDataset(dsMetadata as SearchResult);
       if (result == null) {
         setError("There was no dataset corresponding to the specified ID.");
       } else {
@@ -35,8 +42,13 @@ const DatasetPanel = ({ dsMetadata, openModal, setOpenModal }: Props) => {
         console.log(result);
       }
     }
-    fetchDataset();
-  }, [dsMetadata]);
+    if (dsSource != "PFAS") {
+      fetchDataset();
+    } else {
+      console.log(dsMetadata);
+      setDataset(dsMetadata as PFASSearchResult);
+    }
+  }, [dsMetadata, dsSource]);
 
   const showPublisher = (pubStr: string) => {
     try {
@@ -61,8 +73,8 @@ const DatasetPanel = ({ dsMetadata, openModal, setOpenModal }: Props) => {
   const showDatasetUrls = () => {
     try {
       const datasetUrls =
-        dataset != null && dataset?.datasetUrl != null
-          ? jsonParse(dataset?.datasetUrl)
+        dataset != null && (dataset as Dataset)?.datasetUrl != null
+          ? jsonParse((dataset as Dataset)?.datasetUrl ?? "")
           : [];
       if (datasetUrls == null || datasetUrls.length == 0) {
         return null;
@@ -72,7 +84,8 @@ const DatasetPanel = ({ dsMetadata, openModal, setOpenModal }: Props) => {
           <span key={obj["url"]}>
             <a
               href={obj["url"]}
-              className="text-blue-600 dark:text-blue-500 hover:underline">
+              className="text-blue-600 dark:text-blue-500 hover:underline"
+            >
               {obj["name"]}
             </a>
             {index != datasetUrls.length - 1 && " | "}
@@ -93,7 +106,8 @@ const DatasetPanel = ({ dsMetadata, openModal, setOpenModal }: Props) => {
                     datasetUrls["url"]
                   );
                 }
-              }}>
+              }}
+            >
               {datasetUrls["name"]}
             </a>
           </span>
@@ -101,16 +115,40 @@ const DatasetPanel = ({ dsMetadata, openModal, setOpenModal }: Props) => {
       }
     } catch (e) {
       console.error("Error parsing datasetUrl for dataset: ", id);
-      return <span>Dataset Download Links: {dataset?.datasetUrl}</span>;
+      return <span>Dataset Download Links: {(dataset as Dataset)?.datasetUrl}</span>;
     }
   };
 
   const showLocation = (location: string) => {
-    if (dsMetadata.dataset_source !== "LASERFICHE"){
-      return location
+    if (dsSource !== "LASERFICHE") {
+      return location;
     }
-    return location.substring(location.indexOf("|")+1)
-  }
+    return location.substring(location.indexOf("|") + 1);
+  };
+
+  const showNodes = (nodes: PFASNodeResult[]) => {
+    let textNodes: JSX.Element[] = [];
+    let tableNodes: JSX.Element[] = [];
+    nodes.forEach((node: PFASNodeResult) => {
+      if (node.node_type == "text") {
+        console.log(node.content);
+        textNodes.push(
+          <>
+            <p>Text Match {textNodes.length + 1}:</p>
+            <p>{node.content}</p>
+          </>
+        );
+      } else if (node.node_type == "table") {
+        tableNodes.push(
+          <>
+            <p>Table Match {tableNodes.length + 1}</p>
+            <pre>{node.content}</pre>
+          </>
+        );
+      }
+    });
+    return [...textNodes, ...tableNodes];
+  };
 
   return (
     <div className="flex h-[100vh]">
@@ -126,12 +164,15 @@ const DatasetPanel = ({ dsMetadata, openModal, setOpenModal }: Props) => {
                 if (process.env.NODE_ENV === "production") {
                   logTableInteraction("OriginalUrlClick", id, dataset?.title);
                 }
-              }}>
+              }}
+            >
               Original Dataset Link
             </Link>
           )}
           <p>Summary: {dataset?.summary}</p>
-          <p>Location: {showLocation(dataset?.location ?? "")}</p>
+          {dsSource != "PFAS" && (
+            <p>Location: {showLocation((dataset as Dataset)?.location ?? "")}</p>
+          )}
           {dataset?.lastUpdated != null && (
             <p>Last updated: {dataset?.lastUpdated}</p>
           )}
@@ -141,19 +182,28 @@ const DatasetPanel = ({ dsMetadata, openModal, setOpenModal }: Props) => {
               {dataset?.publisher != null && showPublisher(dataset?.publisher)}
             </p>
           )} */}
-          <p>Topic: {dataset?.topic}</p>
-          {dataset?.length != null &&
-          <p>Report Length: {dataset?.length} </p>}
-          <div>{showDatasetUrls()}</div>
-          {dataset?.csv_url != null && dataset["df.head"] != null && (
+          {dsSource != "PFAS" && (
             <>
-              <hr className="my-5 border-double" />
-              <h3>First 5 rows of dataset</h3>
-              <pre>{dataset != null && dataset["df.head"]}</pre>
-              <hr className="w-3/4 h-0.5 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700" />
-              <InfoDropdown dataset={dataset} />
+              <p>Topic: {(dataset as Dataset)?.topic}</p>
+              {(dataset as Dataset)?.length != null && (
+                <p>Report Length: {(dataset as Dataset)?.length} </p>
+              )}
+              <div>{showDatasetUrls()}</div>
+              {(dataset as Dataset)?.csv_url != null && (dataset as Dataset)["df.head"] != null && (
+                <>
+                  <hr className="my-5 border-double" />
+                  <h3>First 5 rows of dataset</h3>
+                  <pre>{dataset != null && (dataset as Dataset)["df.head"]}</pre>
+                  <hr className="w-3/4 h-0.5 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700" />
+                  <InfoDropdown dataset={(dataset as Dataset)} />
+                </>
+              )}
             </>
           )}
+          {dsSource == "PFAS" &&
+            dataset != null &&
+            "nodes" in dataset &&
+            showNodes((dataset as PFASSearchResult).nodes)}
         </article>
         {/* <DynamicTable data={JSON.parse(dataset.metadata)} /> */}
       </div>

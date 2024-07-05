@@ -28,6 +28,7 @@ const DebouncedInput = ({
   type = "text",
   timeout = 500,
 }: Props) => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleChange = useCallback(
     debounce((nextValue: string) => {
       onChange(nextValue);

@@ -12,19 +12,22 @@ import DebouncedInput from "@/components/common/DebouncedInput";
 import { Spinner } from "flowbite-react";
 import { logTableInteraction } from "@/utils/supabaseLogger";
 import DatasourceSelect from "@/components/index/DatasourceSelect";
-import { SearchResult } from "./search";
+import { PFASSearchResult, SearchResult } from "./search";
 import RequestDataBanner from "@/components/index/RequestDataBanner";
 
 export default function Home() {
-  const [primaryData, setPrimary] = useState<SearchResult[] | null>(null);
+  const [primaryData, setPrimary] = useState<
+    SearchResult[] | PFASSearchResult[] | null
+  >(null);
   const [interestedLocations, setLocations] = useState<string>("United States");
   const [loading, setLoading] = useState<boolean>(false);
   const [openPanel, setOpenPanel] = useState(false);
-  const [currentds, setCurrentds] = useState<SearchResult | null>(null);
-  const [dsSource, setDsSource] = useState<USDatasetSource | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [currentds, setCurrentds] = useState<
+    SearchResult | PFASSearchResult | null
+  >(null);
+  const [dsSource, setDsSource] = useState<USDatasetSource>("ANY");
 
-  function setDatasetSelected(ds: SearchResult) {
+  function setDatasetSelected(ds: SearchResult | PFASSearchResult) {
     setCurrentds(ds);
     setOpenPanel(true);
   }
@@ -32,7 +35,6 @@ export default function Home() {
   return (
     <div className="grid grid-cols-6 h-[100vh]">
       <div className="col-span-1 bg-sky-200 prose">
-        {/* <LocationInput setLocations={setLocations} /> */}
         <div className="p-2">
           <h3>Set Location</h3>
           <DebouncedInput
@@ -44,11 +46,6 @@ export default function Home() {
         <h2 className="fixed bottom-5 left-4">Spacious AI</h2>
       </div>
       <div className="col-span-5 flex h-[100vh]">
-        {/* <div className="w-1/2 flex flex-col h-full">
-          <ChatBox chatHistory={chatHistory} loading={loading} />
-          {error != null && <span className="text-red ml-7">{error}</span>}
-          <ChatInput sendANewMessage={onNewMessage} />
-        </div> */}
         <div className="w-full bg-sky-50 overflow-auto p-2">
           <EditTagButton
             location={interestedLocations}
@@ -73,6 +70,7 @@ export default function Home() {
                         dataset={data}
                         index={i}
                         setSelectedDataset={setDatasetSelected}
+                        dsSource={dsSource ?? "ANY"}
                       />
                     ))}
                   </>
@@ -116,6 +114,7 @@ export default function Home() {
               dsMetadata={currentds}
               openModal={openPanel}
               setOpenModal={setOpenPanel}
+              dsSource={dsSource}
             />
           </div>
         </SlidingPane>
