@@ -8,7 +8,7 @@ import {
 import { USDatasetSource } from "@/components/index/EditTagButton";
 import { post } from "@/utils/http";
 import { cap } from "@/utils/util";
-import { createEmbedding } from "./indexUtils";
+import { createGTEEmbedding } from "./indexUtils";
 
 export type SearchResult = {
   id: string;
@@ -205,18 +205,12 @@ async function queryPFASNodes(
 }
 
 export async function pfasSearch(query: string): Promise<PFASSearchResult[]> {
-  // @ts-ignore
-  // let embedding: Float32Array = await getTagEmbedding(
-  //   query.toLowerCase(),
-  //   true
-  // );
-  let embedding = await createEmbedding(query.toLowerCase());
+  let embedding = await createGTEEmbedding(query.toLowerCase());
   if (embedding == null) return [];
-
   let embeddingArr = Array.from(embedding);
   let docs = await queryPFASDocs(query, embeddingArr);
   let ref_doc_ids = docs?.map((doc) => doc["ref_doc_id"]);
-  console.log(ref_doc_ids);
+  console.log("fetched ref_doc_ids from queryPFASDocs", ref_doc_ids);
   let nodes = await queryPFASNodes(query, embeddingArr, ref_doc_ids ?? []);
   let doc_to_nodes = new Map();
   nodes?.forEach((n: PFASNodeResult) => {
@@ -228,7 +222,7 @@ export async function pfasSearch(query: string): Promise<PFASSearchResult[]> {
       doc_to_nodes.set(n.ref_doc_id, [n]);
     }
   });
-  console.log(doc_to_nodes);
+  console.log("PFAS nodes result: ", doc_to_nodes);
   let results: PFASSearchResult[] = [];
   docs?.forEach((doc) => {
     let result: PFASSearchResult = {
@@ -242,7 +236,6 @@ export async function pfasSearch(query: string): Promise<PFASSearchResult[]> {
     };
     results.push(result);
   });
-  console.log(results);
   if (results != null && results.length > 0) {
     return results;
   }
