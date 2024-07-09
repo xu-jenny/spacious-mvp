@@ -1,7 +1,15 @@
+import { post } from "@/utils/http";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
   console.log("hit test GET endpoint");
+  let response = await post(
+    `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/test_post`,
+    {
+      payload: "test post request to python backend"
+    }
+  );
+  console.log(JSON.parse(response));
   // const bucketName = "sp-data-silver"; // Replace with your S3 bucket name
   // const key = "report.html.gz"; // Replace with the key of the file you want to download
   // const publicDirectory = path.resolve('./public');
