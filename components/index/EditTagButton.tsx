@@ -4,11 +4,11 @@ import { searchbarSearch } from "@/app/search";
 
 export type USDatasetSource =
   | "PFAS"
-  | "NC DEQ"
+  | "LASERFICHE"
   | "USGS"
   | "USGOV"
-  | "NY Open Data"
-  | "ALL";
+  | "NYOPEN"
+  | "ANY";
 
 type Props = {
   location: string;

@@ -13,20 +13,20 @@ const DatasourceSelect = ({ dataSource, setDataSource }: Props) => {
     <div className="p-3 mt-3">
       <span>Specify Data Source</span>
       <Dropdown label={dataSource ?? "Any"} inline>
-        <Dropdown.Item onClick={() => setDataSource("ALL")}>ALL</Dropdown.Item>
+        <Dropdown.Item onClick={() => setDataSource("ANY")}>ALL</Dropdown.Item>
         <Dropdown.Item onClick={() => setDataSource("PFAS")}>
           PFAS
         </Dropdown.Item>
         <Dropdown.Item onClick={() => setDataSource("USGS")}>
           USGS
         </Dropdown.Item>
-        <Dropdown.Item onClick={() => setDataSource("NC DEQ")}>
+        <Dropdown.Item onClick={() => setDataSource("LASERFICHE")}>
           NC DEQ
         </Dropdown.Item>
         <Dropdown.Item onClick={() => setDataSource("USGOV")}>
           US Gov
         </Dropdown.Item>
-        <Dropdown.Item onClick={() => setDataSource("NY Open Data")}>
+        <Dropdown.Item onClick={() => setDataSource("NYOPEN")}>
           NY Open Data
         </Dropdown.Item>
       </Dropdown>

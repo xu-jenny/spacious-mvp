@@ -122,7 +122,7 @@ const DatasetPanel = ({
   };
 
   const showLocation = (location: string) => {
-    if (dsSource !== "NC DEQ") {
+    if (dsSource !== "LASERFICHE") {
       return location;
     }
     return location.substring(location.indexOf("|") + 1);
