@@ -12,7 +12,7 @@ const DatasourceSelect = ({ dataSource, setDataSource }: Props) => {
   return (
     <div className="p-3 mt-3">
       <span>Specify Data Source</span>
-      <Dropdown label={dataSource ?? "Any"} inline>
+      <Dropdown label={"Any"} inline>
         <Dropdown.Item onClick={() => setDataSource("ANY")}>ALL</Dropdown.Item>
         <Dropdown.Item onClick={() => setDataSource("PFAS")}>
           PFAS
