@@ -115,12 +115,14 @@ const DatasetPanel = ({
       }
     } catch (e) {
       console.error("Error parsing datasetUrl for dataset: ", id);
-      return <span>Dataset Download Links: {(dataset as Dataset)?.datasetUrl}</span>;
+      return (
+        <span>Dataset Download Links: {(dataset as Dataset)?.datasetUrl}</span>
+      );
     }
   };
 
   const showLocation = (location: string) => {
-    if (dsSource !== "LASERFICHE") {
+    if (dsSource !== "NC DEQ") {
       return location;
     }
     return location.substring(location.indexOf("|") + 1);
@@ -171,7 +173,9 @@ const DatasetPanel = ({
           )}
           <p>Summary: {dataset?.summary}</p>
           {dsSource != "PFAS" && (
-            <p>Location: {showLocation((dataset as Dataset)?.location ?? "")}</p>
+            <p>
+              Location: {showLocation((dataset as Dataset)?.location ?? "")}
+            </p>
           )}
           {dataset?.lastUpdated != null && (
             <p>Last updated: {dataset?.lastUpdated}</p>
@@ -189,15 +193,18 @@ const DatasetPanel = ({
                 <p>Report Length: {(dataset as Dataset)?.length} </p>
               )}
               <div>{showDatasetUrls()}</div>
-              {(dataset as Dataset)?.csv_url != null && (dataset as Dataset)["df.head"] != null && (
-                <>
-                  <hr className="my-5 border-double" />
-                  <h3>First 5 rows of dataset</h3>
-                  <pre>{dataset != null && (dataset as Dataset)["df.head"]}</pre>
-                  <hr className="w-3/4 h-0.5 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700" />
-                  <InfoDropdown dataset={(dataset as Dataset)} />
-                </>
-              )}
+              {(dataset as Dataset)?.csv_url != null &&
+                (dataset as Dataset)["df.head"] != null && (
+                  <>
+                    <hr className="my-5 border-double" />
+                    <h3>First 5 rows of dataset</h3>
+                    <pre>
+                      {dataset != null && (dataset as Dataset)["df.head"]}
+                    </pre>
+                    <hr className="w-3/4 h-0.5 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700" />
+                    <InfoDropdown dataset={dataset as Dataset} />
+                  </>
+                )}
             </>
           )}
           {dsSource == "PFAS" &&
