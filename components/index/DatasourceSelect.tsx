@@ -8,10 +8,21 @@ type Props = {
   dataSource: USDatasetSource | null;
   setDataSource: Dispatch<SetStateAction<USDatasetSource>>;
 };
+
+const dataSourceLabels: { [key in USDatasetSource]: string } = {
+  ANY: "ALL",
+  PFAS: "PFAS",
+  USGS: "USGS",
+  LASERFICHE: "NC DEQ",
+  USGOV: "US Gov",
+  NYOPEN: "NY Open Data",
+};
+
 const DatasourceSelect = ({ dataSource, setDataSource }: Props) => {
+  const currentLabel = dataSource ? dataSourceLabels[dataSource] : "Any";
   return (
     <Dropdown
-      label={dataSource ?? "Any"}
+      label={currentLabel}
       color="light"
       theme={{
         floating: {
