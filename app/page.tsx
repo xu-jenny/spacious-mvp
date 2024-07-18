@@ -35,15 +35,18 @@ export default function Home() {
   return (
     <div className="grid grid-cols-6 h-[100vh]">
       <div className="col-span-1 bg-sky-200 prose">
+        <h2 className="mt-6 ml-3 mb-2">Spacious AI</h2>
         <div className="p-2">
-          <h3>Set Location</h3>
+          <h4>Set Location</h4>
           <DebouncedInput
             placeholder="City/State/Region"
             onChange={setLocations}
           />
         </div>
-        <DatasourceSelect dataSource={dsSource} setDataSource={setDsSource} />
-        <h2 className="fixed bottom-5 left-4">Spacious AI</h2>
+        <div className="p-2">
+          <h4>Specify Data Source</h4>
+          <DatasourceSelect dataSource={dsSource} setDataSource={setDsSource} />
+        </div>
       </div>
       <div className="col-span-5 flex h-[100vh]">
         <div className="w-full bg-sky-50 overflow-auto p-2">
