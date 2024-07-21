@@ -1,28 +1,23 @@
-import { useEffect, useState } from "react";
-import { addDataRequest } from "@/utils/supabaseLogger";
-import Button from "../common/Button";
+import React from "react";
+import Fab from "@mui/material/Fab";
+import AddIcon from "@mui/icons-material/Add";
 
-type Props = {
-  query: string;
-  aiMessage: string;
-};
-
-const RequestDatasetButton = ({ query, aiMessage }: Props) => {
-  const [success, setSuccess] = useState<boolean>(false);
-
-  const onSubmit = async () => {
-    await addDataRequest(query, aiMessage);
-    setSuccess(true);
+const OpenLinkButton = () => {
+  const onClick = () => {
+    window.open(
+      "https://docs.google.com/forms/d/e/1FAIpQLSdN0oChtUybmYKpA-CYYS4_G_Sfofc5onEEoCSX9Pn7oFZBlw/viewform",
+      "_blank",
+      "width=800,height=600"
+    );
   };
 
   return (
     <div className="w-30">
-      <Button text="Request Data" theme="primary" onClick={onSubmit} />
-      {success && (
-        <span>Data requuest sent. Thank you for making Spacious Better!</span>
-      )}
+      <Fab size="small" color="primary" aria-label="add" onClick={onClick}>
+        <AddIcon />
+      </Fab>
     </div>
   );
 };
 
-export default RequestDatasetButton;
+export default OpenLinkButton;
