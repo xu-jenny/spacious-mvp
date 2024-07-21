@@ -22,6 +22,7 @@ export type SearchResults =
   | PFASSearchResult
   | USGSWaterSearchResult;
 import OpenLinkButton from "@/components/index/RequestDataButton";
+import OpenLinkButton from "@/components/index/RequestDatasetButton";
 
 export default function Home() {
   const [primaryData, setPrimary] = useState<SearchResults[] | null>(null);
@@ -57,6 +58,10 @@ export default function Home() {
           <DatasourceSelect dataSource={dsSource} setDataSource={setDsSource} />
         </div>
         <div className="p-2 mt-auto">
+          <OpenLinkButton />
+        </div>
+        <div className="p-2 mt-auto">
+          <h5>Request Data</h5>
           <OpenLinkButton />
         </div>
       </div>
