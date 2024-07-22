@@ -14,7 +14,7 @@ import { logTableInteraction } from "@/utils/supabaseLogger";
 import DatasourceSelect from "@/components/index/DatasourceSelect";
 import { PFASSearchResult, SearchResult } from "./search";
 import RequestDataBanner from "@/components/index/RequestDataBanner";
-import OpenLinkButton from "@/components/index/RequestDatasetButton";
+import OpenLinkButton from "@/components/index/RequestDataButton";
 
 export default function Home() {
   const [primaryData, setPrimary] = useState<
