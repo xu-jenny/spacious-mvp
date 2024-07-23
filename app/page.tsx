@@ -49,7 +49,6 @@ export default function Home() {
           <DatasourceSelect dataSource={dsSource} setDataSource={setDsSource} />
         </div>
         <div className="p-2 mt-auto">
-          <h5>Request Data</h5>
           <OpenLinkButton />
         </div>
       </div>
