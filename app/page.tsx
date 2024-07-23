@@ -60,7 +60,9 @@ export default function Home() {
           <OpenLinkButton />
         </div>
         <div className="p-2 mt-auto">
-          <h5>Request Data</h5>
+          <OpenLinkButton />
+        </div>
+        <div className="p-2 mt-auto">
           <OpenLinkButton />
         </div>
       </div>
