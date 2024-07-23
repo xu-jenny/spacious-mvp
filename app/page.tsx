@@ -48,11 +48,6 @@ export default function Home() {
   return (
     <div className="grid grid-cols-6 h-[100vh]">
       <div className="col-span-1 white prose flex flex-col h-full border-r border-gray-300">
-        <img
-          src={logo.src}
-          alt="Spacious AI"
-          className="object-contain w-full mb-1"
-        />
         <div className="p-2">
           <img
             src={logo.src}
