@@ -30,7 +30,7 @@ const DatasourceSelect = ({ dataSource, setDataSource }: Props) => {
           target:
             "shadow block w-full text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500",
           item: {
-            base: "px-3 py-1 text-left hover:bg-gray-300 w-full rounded-lg dark:hover:bg-blue-600 dark:text-blue-300",
+            base: "px-3 py-1 text-left hover:bg-blue-200 w-full rounded dark:hover:bg-blue-600 dark:text-blue-300",
           },
         },
       }}
