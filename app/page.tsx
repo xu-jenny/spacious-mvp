@@ -14,6 +14,7 @@ import { logTableInteraction } from "@/utils/supabaseLogger";
 import DatasourceSelect from "@/components/index/DatasourceSelect";
 import { PFASSearchResult, SearchResult } from "./search";
 import RequestDataBanner from "@/components/index/RequestDataBanner";
+import OpenLinkButton from "@/components/index/RequestDataButton";
 
 export default function Home() {
   const [primaryData, setPrimary] = useState<
@@ -34,7 +35,7 @@ export default function Home() {
 
   return (
     <div className="grid grid-cols-6 h-[100vh]">
-      <div className="col-span-1 bg-sky-200 prose">
+      <div className="col-span-1 bg-sky-200 prose flex flex-col h-full">
         <h2 className="mt-6 ml-3 mb-2">Spacious AI</h2>
         <div className="p-2">
           <h4>Set Location</h4>
@@ -46,6 +47,9 @@ export default function Home() {
         <div className="p-2">
           <h4>Specify Data Source</h4>
           <DatasourceSelect dataSource={dsSource} setDataSource={setDsSource} />
+        </div>
+        <div className="p-2 mt-auto">
+          <OpenLinkButton />
         </div>
       </div>
       <div className="col-span-5 flex h-[100vh]">
