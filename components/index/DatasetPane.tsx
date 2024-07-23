@@ -8,9 +8,10 @@ import { logTableInteraction } from "@/utils/supabaseLogger";
 import { PFASNodeResult, PFASSearchResult, SearchResult } from "@/app/search";
 import { Dataset, getDataset } from "@/clients/supabase";
 import { USDatasetSource } from "./EditTagButton";
+import { SearchResults } from "@/app/page";
 
 type Props = {
-  dsMetadata: SearchResult | PFASSearchResult;
+  dsMetadata: SearchResults;
   openModal: boolean | undefined;
   setOpenModal: (value: SetStateAction<boolean>) => void;
   dsSource: USDatasetSource;

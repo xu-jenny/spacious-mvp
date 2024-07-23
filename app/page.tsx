@@ -1,36 +1,44 @@
 "use client";
 import React, { useState } from "react";
 import "react-sliding-pane/dist/react-sliding-pane.css";
-import DatasetCard from "@/components/index/DatasetCard";
 import DatasetPane from "@/components/index/DatasetPane";
 import EditTagButton, {
   USDatasetSource,
 } from "@/components/index/EditTagButton";
 import SlidingPane from "react-sliding-pane";
-import { PaginatedList } from "react-paginated-list";
-import DebouncedInput from "@/components/common/DebouncedInput";
 import { Spinner } from "flowbite-react";
 import { logTableInteraction } from "@/utils/supabaseLogger";
 import DatasourceSelect from "@/components/index/DatasourceSelect";
-import { PFASSearchResult, SearchResult } from "./search";
-import RequestDataBanner from "@/components/index/RequestDataBanner";
+import {
+  PFASSearchResult,
+  SearchResult,
+  USGSWaterSearchResult,
+} from "./search";
+import DebouncedInput from "@/components/common/DebouncedInput";
+import SearchResultViewer from "@/components/index/SearchResult/SearchResultViewer";
+
+export type SearchResults =
+  | SearchResult
+  | PFASSearchResult
+  | USGSWaterSearchResult;
 
 export default function Home() {
-  const [primaryData, setPrimary] = useState<
-    SearchResult[] | PFASSearchResult[] | null
-  >(null);
-  const [interestedLocations, setLocations] = useState<string>("United States");
+  const [primaryData, setPrimary] = useState<SearchResults[] | null>(null);
+  const [interestedLocations, setLocations] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [openPanel, setOpenPanel] = useState(false);
-  const [currentds, setCurrentds] = useState<
-    SearchResult | PFASSearchResult | null
-  >(null);
-  const [dsSource, setDsSource] = useState<USDatasetSource>("ANY");
+  const [currentds, setCurrentds] = useState<SearchResults | null>(null);
+  const [dsSource, setDsSource] = useState<USDatasetSource>("USGS_WATER");
 
-  function setDatasetSelected(ds: SearchResult | PFASSearchResult) {
+  function setDatasetSelected(ds: SearchResults) {
     setCurrentds(ds);
     setOpenPanel(true);
   }
+
+  const now = new Date().toISOString();
+  const sevenDaysAgo = new Date(
+    Date.now() - 7 * 24 * 60 * 60 * 1000
+  ).toISOString();
 
   return (
     <div className="grid grid-cols-6 h-[100vh]">
@@ -39,7 +47,7 @@ export default function Home() {
         <div className="p-2">
           <h4>Set Location</h4>
           <DebouncedInput
-            placeholder="City/State/Region"
+            placeholder="City/State/Lat,Lng"
             onChange={setLocations}
           />
         </div>
@@ -55,41 +63,20 @@ export default function Home() {
             setPrimaryData={setPrimary}
             dsSource={dsSource}
             setLoading={setLoading}
+            startTime={sevenDaysAgo}
+            endTime={now}
           />
           {loading ? (
             <div className="ml-20 mt-20">
               <Spinner />
             </div>
           ) : primaryData != null && primaryData.length > 0 ? (
-            <>
-              <PaginatedList
-                list={primaryData || []}
-                itemsPerPage={20}
-                renderList={(list: Array<any>) => (
-                  <>
-                    {list.map((data, i) => (
-                      <DatasetCard
-                        key={data.title + i}
-                        dataset={data}
-                        index={i}
-                        setSelectedDataset={setDatasetSelected}
-                        dsSource={dsSource ?? "ANY"}
-                      />
-                    ))}
-                  </>
-                )}
-                onPageChange={(newItems, newPage) => {
-                  if (process.env.NODE_ENV === "production") {
-                    logTableInteraction(
-                      "NextPage",
-                      newPage,
-                      newItems.length.toString()
-                    );
-                  }
-                }}
-              />
-              <div className="bottom-0 w-[82%] absolute bg-white flex justify-center"></div>
-            </>
+            <SearchResultViewer
+              primaryData={primaryData}
+              dsSource={dsSource}
+              setDatasetSelected={setDatasetSelected}
+              location={interestedLocations}
+            />
           ) : (
             primaryData != null && (
               <p>
@@ -99,7 +86,6 @@ export default function Home() {
             )
           )}
         </div>
-        {/* <RequestDataBanner /> */}
       </div>
       {currentds != null && (
         <SlidingPane

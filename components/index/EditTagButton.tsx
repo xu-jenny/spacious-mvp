@@ -1,6 +1,6 @@
 import { logTableInteraction } from "@/utils/supabaseLogger";
 import SearchBar from "../common/SearchBar";
-import { searchbarSearch } from "@/app/search";
+import { searchbarSearch, usgsWaterSearch } from "@/app/search";
 
 export type USDatasetSource =
   | "PFAS"
@@ -8,6 +8,7 @@ export type USDatasetSource =
   | "USGS"
   | "USGOV"
   | "NYOPEN"
+  | "USGS_WATER"
   | "ANY";
 
 type Props = {
@@ -15,6 +16,8 @@ type Props = {
   setPrimaryData: (data: any[]) => void;
   dsSource: USDatasetSource | null;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  startTime?: string
+  endTime?: string
 };
 
 const EditTagButton = ({
@@ -22,11 +25,18 @@ const EditTagButton = ({
   dsSource,
   setPrimaryData,
   setLoading,
+  startTime,
+  endTime,
 }: Props) => {
   const onSubmit = async (value: string) => {
     if (value && value.length > 2) {
       setLoading(true);
-      let primaryData = await searchbarSearch(value, location, dsSource);
+      let primaryData;
+      if (dsSource == 'USGS_WATER' && startTime != null && endTime != null){
+        primaryData = await usgsWaterSearch(value, location, startTime, endTime);
+      }else {
+         primaryData  = await searchbarSearch(value, location, dsSource);
+      }
       setPrimaryData(primaryData);
       if (process.env.NODE_ENV === "production") {
         logTableInteraction("EditTag", 0, value);
@@ -37,7 +47,7 @@ const EditTagButton = ({
 
   return (
     <div className="w-30 flex flex-row p-2">
-      <SearchBar onSubmit={onSubmit} placeHolder="Enter a tag.." />
+      <SearchBar onSubmit={onSubmit} placeHolder="Enter a search term.." />
     </div>
   );
 };

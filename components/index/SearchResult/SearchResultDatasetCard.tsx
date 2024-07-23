@@ -2,17 +2,20 @@
 
 import { Badge, Card } from "flowbite-react";
 import { logTableInteraction } from "@/utils/supabaseLogger";
-import { PFASNodeResult, PFASSearchResult, SearchResult } from "@/app/search";
-import { USDatasetSource } from "./EditTagButton";
+import { SearchResult } from "@/app/search";
+
 type Props = {
-  dataset: SearchResult | PFASSearchResult;
+  dataset: SearchResult;
   index: number;
-  setSelectedDataset: (x: SearchResult | PFASSearchResult) => void;
-  dsSource: USDatasetSource;
+  setSelectedDataset: (x: SearchResult) => void;
 };
 
-function DatasetCard({ dataset, index, setSelectedDataset, dsSource }: Props) {
-  const logLinkClick = (data: SearchResult | PFASSearchResult, index: number) => {
+function SearchResultDatasetCard({
+  dataset,
+  index,
+  setSelectedDataset,
+}: Props) {
+  const logLinkClick = (data: SearchResult, index: number) => {
     logTableInteraction("LinkClick", index, data.title.toString());
     setSelectedDataset(data);
   };
@@ -39,15 +42,10 @@ function DatasetCard({ dataset, index, setSelectedDataset, dsSource }: Props) {
     return dataset.location.substring(0, dataset.location.indexOf("|"));
   };
 
-  const showNodes = (nodes: PFASNodeResult[]) => {
-    return <p>We found {nodes.length} matches in this document</p>;
-  };
-
   return (
     <Card className="mt-3">
       <h6
         style={{ cursor: "pointer" }}
-        // href={"/dataset/" + dataset.id}
         onClick={() => logLinkClick(dataset, index)}
         className="text-xl font-bold tracking-tight text-gray-900 dark:text-white"
       >
@@ -60,26 +58,17 @@ function DatasetCard({ dataset, index, setSelectedDataset, dsSource }: Props) {
         {dataset?.publisher != null &&
           dataset?.publisher.length > 1 &&
           `${dataset?.publisher} | `}
-        {dsSource != "PFAS" && showLocation(dataset as SearchResult)}
-        {dsSource != "PFAS" && (
-          <Badge className="w-fit mt-1">
-            {(dataset as SearchResult).topic}
-          </Badge>
-        )}
+        {showLocation(dataset as SearchResult)}
+        <Badge className="w-fit mt-1">{dataset.topic}</Badge>
       </div>
       <div>
         {"subtags" in dataset &&
           dataset["subtags"] != null &&
           showSubtags(dataset?.subtags)}
       </div>
-      <div>
-        {dsSource == "PFAS" &&
-          "nodes" in dataset &&
-          dataset["nodes"].length > 0 &&
-          showNodes((dataset as PFASSearchResult).nodes)}
-      </div>
+      <div></div>
     </Card>
   );
 }
 
-export default DatasetCard;
+export default SearchResultDatasetCard;

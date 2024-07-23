@@ -15,6 +15,7 @@ const dataSourceLabels: { [key in USDatasetSource]: string } = {
   USGS: "USGS",
   LASERFICHE: "NC DEQ",
   USGOV: "US Gov",
+  USGS_WATER: "USGS Water",
   NYOPEN: "NY Open Data",
 };
 
@@ -36,6 +37,7 @@ const DatasourceSelect = ({ dataSource, setDataSource }: Props) => {
     >
       <Dropdown.Item onClick={() => setDataSource("ANY")}>ALL</Dropdown.Item>
       <Dropdown.Item onClick={() => setDataSource("PFAS")}>PFAS</Dropdown.Item>
+      <Dropdown.Item onClick={() => setDataSource("USGS_WATER")}>USGS Water</Dropdown.Item>
       <Dropdown.Item onClick={() => setDataSource("USGS")}>USGS</Dropdown.Item>
       <Dropdown.Item onClick={() => setDataSource("LASERFICHE")}>
         NC DEQ
