@@ -15,6 +15,7 @@ import DatasourceSelect from "@/components/index/DatasourceSelect";
 import { PFASSearchResult, SearchResult } from "./search";
 import RequestDataBanner from "@/components/index/RequestDataBanner";
 import OpenLinkButton from "@/components/index/RequestDataButton";
+import logo from "../public/logo.jpeg";
 
 export default function Home() {
   const [primaryData, setPrimary] = useState<
@@ -35,8 +36,12 @@ export default function Home() {
 
   return (
     <div className="grid grid-cols-6 h-[100vh]">
-      <div className="col-span-1 bg-sky-200 prose flex flex-col h-full">
-        <h2 className="mt-6 ml-3 mb-2">Spacious AI</h2>
+      <div className="col-span-1 white prose flex flex-col h-full border-r border-gray-300">
+        <img
+          src={logo.src}
+          alt="Spacious AI"
+          className="object-contain w-full mb-1"
+        />
         <div className="p-2">
           <h4>Set Location</h4>
           <DebouncedInput
