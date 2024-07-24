@@ -15,6 +15,7 @@ import {
 } from "./search";
 import DebouncedInput from "@/components/common/DebouncedInput";
 import SearchResultViewer from "@/components/index/SearchResult/SearchResultViewer";
+import DateRangeSelector from "@/components/index/DateRangeSelector";
 
 export type SearchResults =
   | SearchResult
@@ -22,7 +23,7 @@ export type SearchResults =
   | USGSWaterSearchResult;
 import OpenLinkButton from "@/components/index/RequestDataButton";
 import DatasetPanel from "@/components/index/DatasetPane/DatasetPanel";
-import { PDFViewer } from "@/components/index/DatasetPane/PFASDatasetPanel";
+import logo from "../public/logo.jpeg";
 
 export default function Home() {
   const [primaryData, setPrimary] = useState<SearchResults[] | null>(null);
@@ -42,12 +43,20 @@ export default function Home() {
     Date.now() - 7 * 24 * 60 * 60 * 1000
   ).toISOString();
 
+  const [startDate, setStartDate] = useState<string>(sevenDaysAgo);
+  const [endDate, setEndDate] = useState<string>(now);
   return (
     <div className="grid grid-cols-6 h-[100vh]">
-      <div className="col-span-1 bg-sky-200 prose flex flex-col h-full">
-        <h2 className="mt-6 ml-3 mb-2">Spacious AI</h2>
+      <div className="col-span-1 white prose flex flex-col h-full border-r border-gray-300">
         <div className="p-2">
-          <h4>Set Location</h4>
+          <img
+            src={logo.src}
+            alt="Spacious AI"
+            className="object-contain w-full mt-5"
+          />
+        </div>
+        <div className="p-2 border-t ">
+          <h4 className="mt-1">Set Location</h4>
           <DebouncedInput
             placeholder="City/State/Lat,Lng"
             onChange={setLocations}
@@ -56,6 +65,15 @@ export default function Home() {
         <div className="p-2">
           <h4>Specify Data Source</h4>
           <DatasourceSelect dataSource={dsSource} setDataSource={setDsSource} />
+        </div>
+        <div className="p-2">
+          <h4>Select Date Range</h4>
+          <DateRangeSelector
+            startDate={startDate}
+            setStartDate={setStartDate}
+            endDate={endDate}
+            setEndDate={setEndDate}
+          />
         </div>
         <div className="p-2 mt-auto">
           <OpenLinkButton />
@@ -68,8 +86,8 @@ export default function Home() {
             setPrimaryData={setPrimary}
             dsSource={dsSource}
             setLoading={setLoading}
-            startTime={sevenDaysAgo}
-            endTime={now}
+            startTime={startDate}
+            endTime={endDate}
           />
           {/* <PDFViewer fileUrl={"/NCS000050_MONITORING INFO_20181028.pdf"} pagesToJump={[4, 10, 24]}/> */}
           {loading ? (
