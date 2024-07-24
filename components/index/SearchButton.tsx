@@ -1,6 +1,7 @@
 import { logTableInteraction } from "@/utils/supabaseLogger";
 import SearchBar from "../common/SearchBar";
 import { searchbarSearch, usgsWaterSearch } from "@/app/search";
+import { NCDEQWSSearch } from "@/app/NCDEQWSSearch";
 
 export type USDatasetSource =
   | "PFAS"
@@ -9,6 +10,7 @@ export type USDatasetSource =
   | "USGOV"
   | "NYOPEN"
   | "USGS_WATER"
+  | "NC_DEQ_WATERSUPPLY"
   | "ANY";
 
 type Props = {
@@ -20,7 +22,7 @@ type Props = {
   endTime?: string
 };
 
-const EditTagButton = ({
+const SearchButton = ({
   location,
   dsSource,
   setPrimaryData,
@@ -32,12 +34,23 @@ const EditTagButton = ({
     if (value && value.length > 2) {
       setLoading(true);
       let primaryData;
-      if (dsSource == 'USGS_WATER' && startTime != null && endTime != null){
-        primaryData = await usgsWaterSearch(value, location, startTime, endTime);
-      }else {
-         primaryData  = await searchbarSearch(value, location, dsSource);
-      }
-      setPrimaryData(primaryData);
+      switch (dsSource){
+        case 'USGS_WATER':
+          // TODO: we should handle these input cases being null in front end
+          if (startTime != null && endTime != null){
+            primaryData = await usgsWaterSearch(value, location, startTime, endTime);    
+            break;
+          }
+        case 'NC_DEQ_WATERSUPPLY':
+          if (location != null){
+            const year = parseInt(startTime ?? "0")
+            primaryData = await NCDEQWSSearch(location, value, year)
+            break;
+          }
+        default:
+          primaryData  = await searchbarSearch(value, location, dsSource);
+        }
+      setPrimaryData(primaryData ?? []);
       if (process.env.NODE_ENV === "production") {
         logTableInteraction("EditTag", 0, value);
       }
@@ -52,4 +65,4 @@ const EditTagButton = ({
   );
 };
 
-export default EditTagButton;
+export default SearchButton;

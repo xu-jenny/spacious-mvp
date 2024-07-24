@@ -2,7 +2,7 @@ import { createEmbedding } from "@/app/indexUtils";
 import { SearchResult } from "@/app/search";
 import { createClient } from "@supabase/supabase-js";
 import { DataSource } from "../app/indexUtils";
-import { USDatasetSource } from "@/components/index/EditTagButton";
+import { USDatasetSource } from "@/components/index/SearchButton";
 import { cap } from "@/utils/util";
 
 // Create a single supabase client for interacting with your database
@@ -157,10 +157,13 @@ export async function getDataset(
   switch (dsMetadata.dataset_source) {
     case "USGOV":
       tablename = "US_USGOV";
+      break;
     case "NYOPEN":
       tablename = "US_nyopen";
+      break;
     case "LASERFICHE":
       tablename = "US_laserfiche";
+      break;
   }
   const { data, error } = await supabaseClient
     .from(tablename)

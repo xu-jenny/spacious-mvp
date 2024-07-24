@@ -5,7 +5,7 @@ import {
 	match_tag,
 	supabaseClient,
 } from "@/clients/supabase";
-import { USDatasetSource } from "@/components/index/EditTagButton";
+import { USDatasetSource } from "@/components/index/SearchButton";
 import { post } from "@/utils/http";
 import { cap } from "@/utils/util";
 import { createGTEEmbedding } from "./indexUtils";

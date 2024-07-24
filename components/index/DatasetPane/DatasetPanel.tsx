@@ -1,6 +1,6 @@
 "use client";
 import { PFASSearchResult, SearchResult } from "@/app/search";
-import { USDatasetSource } from "../EditTagButton";
+import { USDatasetSource } from "../SearchButton";
 import PFASDatasetPanel from "./PFASDatasetPanel";
 import SearchResultDatasetPanel from "./SearchResultDatasetPane";
 import { SearchResults } from "@/app/page";

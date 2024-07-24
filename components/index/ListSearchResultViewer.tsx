@@ -1,5 +1,5 @@
 import { PaginatedList } from "react-paginated-list";
-import { USDatasetSource } from "./EditTagButton";
+import { USDatasetSource } from "./SearchButton";
 import { logTableInteraction } from "@/utils/supabaseLogger";
 import { SearchResults } from "@/app/page";
 import USGSWaterDatasetCard from "./SearchResult/USGSWaterdatasetCard";

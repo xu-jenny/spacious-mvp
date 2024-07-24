@@ -1,5 +1,5 @@
 import { SearchResults } from "@/app/page";
-import { USDatasetSource } from "../EditTagButton";
+import { USDatasetSource } from "../SearchButton";
 
 import { FaMapMarkedAlt } from "react-icons/fa";
 import { Spinner, Tabs, TabsRef } from "flowbite-react";

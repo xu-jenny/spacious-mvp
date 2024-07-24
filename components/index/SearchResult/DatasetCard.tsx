@@ -1,6 +1,6 @@
 "use client";
 import { PFASSearchResult, SearchResult, USGSWaterSearchResult } from "@/app/search";
-import { USDatasetSource } from "../EditTagButton";
+import { USDatasetSource } from "../SearchButton";
 import USGSWaterDatasetCard from "./USGSWaterdatasetCard";
 import SearchResultDatasetCard from "./SearchResultDatasetCard";
 import PFASSearchResultCard from "./PFASSearchResultCard";

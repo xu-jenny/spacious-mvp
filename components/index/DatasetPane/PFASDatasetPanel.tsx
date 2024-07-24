@@ -136,7 +136,7 @@ const PFASDatasetPanel = ({ dataset }: Props) => {
           {dataset?.lastUpdated != null && (
             <p>Last updated: {dataset?.lastUpdated}</p>
           )}
-          <PDFViewer fileUrl={"/NCS000050_MONITORING INFO_20181028.pdf"} pagesToJump={[6, 8, 10, 12, 15, 30, 44, 66, 86, 95, 112, 129, 131]}/>
+          <PDFViewer fileUrl={"/NCS000050_MONITORING INFO_20181028.pdf"} pagesToJump={[6, 12, 30, 44, 66, 86, 95, 112, 129, 131]}/>
           {/* {"nodes" in dataset && showNodes((dataset as PFASSearchResult).nodes)} */}
         </article>
       </div>
