@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from "react";
 import "react-sliding-pane/dist/react-sliding-pane.css";
-import DatasetPane from "@/components/index/DatasetPane";
 import EditTagButton, {
   USDatasetSource,
 } from "@/components/index/EditTagButton";
@@ -22,6 +21,8 @@ export type SearchResults =
   | PFASSearchResult
   | USGSWaterSearchResult;
 import OpenLinkButton from "@/components/index/RequestDataButton";
+import DatasetPanel from "@/components/index/DatasetPane/DatasetPanel";
+import { PDFViewer } from "@/components/index/DatasetPane/PFASDatasetPanel";
 
 export default function Home() {
   const [primaryData, setPrimary] = useState<SearchResults[] | null>(null);
@@ -70,6 +71,7 @@ export default function Home() {
             startTime={sevenDaysAgo}
             endTime={now}
           />
+          {/* <PDFViewer fileUrl={"/NCS000050_MONITORING INFO_20181028.pdf"} pagesToJump={[4, 10, 24]}/> */}
           {loading ? (
             <div className="ml-20 mt-20">
               <Spinner />
@@ -103,10 +105,8 @@ export default function Home() {
           }}
         >
           <div>
-            <DatasetPane
-              dsMetadata={currentds}
-              openModal={openPanel}
-              setOpenModal={setOpenPanel}
+            <DatasetPanel
+              dataset={currentds}
               dsSource={dsSource}
             />
           </div>
