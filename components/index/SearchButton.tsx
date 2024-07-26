@@ -43,8 +43,7 @@ const SearchButton = ({
           }
         case 'NC_DEQ_WATERSUPPLY':
           if (location != null){
-            const year = parseInt(startTime ?? "0")
-            primaryData = await NCDEQWSSearch(location, value, year)
+            primaryData = await NCDEQWSSearch(value, location)
             break;
           }
         default:

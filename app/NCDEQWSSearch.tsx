@@ -1,5 +1,6 @@
 import { post } from "@/utils/http";
 import { createGTEEmbedding } from "./indexUtils";
+import { jsonParse } from "@/utils/json";
 
 export type NCDEQWSSearchResult = {
 	title: string;
@@ -7,8 +8,9 @@ export type NCDEQWSSearchResult = {
 	summary: string;
   	originalUrl: string;
 	location: string;
-	time_period?: string;
+	time_period?: string[];
 	dataType?: string | null;
+	sample?: string;
 };
 
 export async function NCDEQWSSearch(
@@ -18,21 +20,24 @@ export async function NCDEQWSSearch(
 ): Promise<NCDEQWSSearchResult[] | null> {
 	console.log("NCDEQWSSearch")
 	// create embedding
-	let embedding = await createGTEEmbedding(keyword.toLowerCase());
-	if (embedding == null){
-		console.error("error creating embedding in CEDEQWSSearch for ", keyword)
-	}
-	let embeddingArr = Array.from(embedding);
+	// let embedding = await createGTEEmbedding(keyword.toLowerCase());
+	// if (embedding == null){
+	// 	console.error("error creating embedding in CEDEQWSSearch for ", keyword)
+	// }
+	// let embeddingArr = Array.from(embedding);
 	// backend request
 	let response = await post(
 		`${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/nc_deq_watersupply`,
 		{
-			location: location,
 			query_str: keyword,
-			query_embedding: embeddingArr,
-			year: 2006 //TODO: add input for year. year == null ?  2006 : year
+			location: location
+			// query_embedding: embeddingArr,
+			// year: 2006 //TODO: add input for year. year == null ?  2006 : year
 		}
 	);
+	if (response == null){
+		return null
+	}
 	console.log(`response from nc_deq_watersupply`, JSON.parse(response));
 	let data: NCDEQWSSearchResult[] = [];
 	JSON.parse(response).forEach((row: { [x: string]: any; }) => {
@@ -42,8 +47,9 @@ export async function NCDEQWSSearch(
 			summary: row['summary'],
 			originalUrl: row['originalUrl'],
 			location: row['location'],
-			time_period: row['time_period'],
-			dataType: row['dataType']
+			// time_period: row['time_period'],
+			// dataType: row['dataType'],
+			sample: row['sample']
 		}
 		data.push(result)
 	})
