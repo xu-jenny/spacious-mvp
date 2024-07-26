@@ -17,6 +17,7 @@ import {
 import DebouncedInput from "@/components/common/DebouncedInput";
 import SearchResultViewer from "@/components/index/SearchResult/SearchResultViewer";
 import DateRangeSelector from "@/components/index/DateRangeSelector";
+import GoogleSearchBar from "@/components/index/GoogleSearchBar";
 
 export type SearchResults =
   | SearchResult
@@ -57,8 +58,17 @@ export default function Home() {
         </div>
         <div className="p-2 border-t ">
           <h4 className="mt-1">Set Location</h4>
-          <DebouncedInput
+          {/* <DebouncedInput
             placeholder="City/State/Lat,Lng"
+            onChange={setLocations}
+          /> */}
+          {/* <PeliasAutocomplete
+            placeholder="City/State/Lat,Lng"
+            onChange={setLocations}
+          />*/}
+          <GoogleSearchBar
+            placeholder="Enter a location"
+            value={interestedLocations}
             onChange={setLocations}
           />
         </div>
