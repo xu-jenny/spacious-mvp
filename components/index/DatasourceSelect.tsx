@@ -2,7 +2,7 @@
 
 import { Dropdown } from "flowbite-react";
 import { Dispatch, SetStateAction } from "react";
-import { USDatasetSource } from "./EditTagButton";
+import { USDatasetSource } from "./SearchButton";
 
 type Props = {
   dataSource: USDatasetSource | null;
@@ -17,6 +17,7 @@ const dataSourceLabels: { [key in USDatasetSource]: string } = {
   USGOV: "US Gov",
   USGS_WATER: "USGS Water",
   NYOPEN: "NY Open Data",
+  NC_DEQ_WATERSUPPLY: "NC DEQ Water Supply"
 };
 
 const DatasourceSelect = ({ dataSource, setDataSource }: Props) => {
@@ -35,9 +36,13 @@ const DatasourceSelect = ({ dataSource, setDataSource }: Props) => {
         },
       }}
     >
+      {/* TODO: map this on datasourceLabels */}
       <Dropdown.Item onClick={() => setDataSource("ANY")}>ALL</Dropdown.Item>
       <Dropdown.Item onClick={() => setDataSource("PFAS")}>PFAS</Dropdown.Item>
       <Dropdown.Item onClick={() => setDataSource("USGS_WATER")}>USGS Water</Dropdown.Item>
+      <Dropdown.Item onClick={() => setDataSource("NC_DEQ_WATERSUPPLY")}>
+        NC Deq Water Supply
+      </Dropdown.Item>
       <Dropdown.Item onClick={() => setDataSource("USGS")}>USGS</Dropdown.Item>
       <Dropdown.Item onClick={() => setDataSource("LASERFICHE")}>
         NC DEQ

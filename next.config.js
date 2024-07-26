@@ -11,6 +11,7 @@ const nextConfig = {
       // config.experiments = { asyncWebAssembly: true };
     // }
     config.resolve.fallback = { fs: false };
+    config.resolve.alias.canvas = false;
     return config;
   },
 };

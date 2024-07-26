@@ -1,10 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import "react-sliding-pane/dist/react-sliding-pane.css";
-import DatasetPane from "@/components/index/DatasetPane";
-import EditTagButton, {
-  USDatasetSource,
-} from "@/components/index/EditTagButton";
+import SearchButton, { USDatasetSource } from "@/components/index/SearchButton";
 import SlidingPane from "react-sliding-pane";
 import { Spinner } from "flowbite-react";
 import { logTableInteraction } from "@/utils/supabaseLogger";
@@ -22,9 +19,12 @@ import GoogleSearchBar from "@/components/index/GoogleSearchBar";
 export type SearchResults =
   | SearchResult
   | PFASSearchResult
-  | USGSWaterSearchResult;
+  | USGSWaterSearchResult
+  | NCDEQWSSearchResult;
 import OpenLinkButton from "@/components/index/RequestDataButton";
+import DatasetPanel from "@/components/index/DatasetPane/DatasetPanel";
 import logo from "../public/logo.jpeg";
+import { NCDEQWSSearchResult } from "./NCDEQWSSearch";
 
 export default function Home() {
   const [primaryData, setPrimary] = useState<SearchResults[] | null>(null);
@@ -32,7 +32,8 @@ export default function Home() {
   const [loading, setLoading] = useState<boolean>(false);
   const [openPanel, setOpenPanel] = useState(false);
   const [currentds, setCurrentds] = useState<SearchResults | null>(null);
-  const [dsSource, setDsSource] = useState<USDatasetSource>("USGS_WATER");
+  const [dsSource, setDsSource] =
+    useState<USDatasetSource>("NC_DEQ_WATERSUPPLY");
 
   function setDatasetSelected(ds: SearchResults) {
     setCurrentds(ds);
@@ -76,22 +77,24 @@ export default function Home() {
           <h4>Specify Data Source</h4>
           <DatasourceSelect dataSource={dsSource} setDataSource={setDsSource} />
         </div>
-        <div className="p-2">
-          <h4>Select Date Range</h4>
-          <DateRangeSelector
-            startDate={startDate}
-            setStartDate={setStartDate}
-            endDate={endDate}
-            setEndDate={setEndDate}
-          />
-        </div>
+        {dsSource == "USGS_WATER" && (
+          <div className="p-2">
+            <h4>Select Date Range</h4>
+            <DateRangeSelector
+              startDate={startDate}
+              setStartDate={setStartDate}
+              endDate={endDate}
+              setEndDate={setEndDate}
+            />
+          </div>
+        )}
         <div className="p-2 mt-auto">
           <OpenLinkButton />
         </div>
       </div>
       <div className="col-span-5 flex h-[100vh]">
         <div className="w-full bg-sky-50 overflow-auto p-2">
-          <EditTagButton
+          <SearchButton
             location={interestedLocations}
             setPrimaryData={setPrimary}
             dsSource={dsSource}
@@ -132,12 +135,7 @@ export default function Home() {
           }}
         >
           <div>
-            <DatasetPane
-              dsMetadata={currentds}
-              openModal={openPanel}
-              setOpenModal={setOpenPanel}
-              dsSource={dsSource}
-            />
+            <DatasetPanel dataset={currentds} dsSource={dsSource} />
           </div>
         </SlidingPane>
       )}

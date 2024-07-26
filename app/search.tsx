@@ -5,7 +5,7 @@ import {
   match_tag,
   supabaseClient,
 } from "@/clients/supabase";
-import { USDatasetSource } from "@/components/index/EditTagButton";
+import { USDatasetSource } from "@/components/index/SearchButton";
 import { post } from "@/utils/http";
 import { cap } from "@/utils/util";
 import { createGTEEmbedding } from "./indexUtils";
@@ -132,6 +132,7 @@ export type PFASDocsResult = {
   lastUpdated?: string | null;
 };
 export type PFASNodeResult = {
+  node_id: string;
   node_type: string;
   content: string;
   ref_doc_id: string;
@@ -228,18 +229,19 @@ export async function pfasSearch(query: string): Promise<PFASSearchResult[]> {
   console.log("fetched ref_doc_ids from queryPFASDocs", ref_doc_ids);
   let nodes = await queryPFASNodes(query, embeddingArr, ref_doc_ids ?? []);
   console.log("fetched nodes from queryPFASNodes", nodes);
+  // each doc should have a nodes array
   let doc_to_nodes = new Map();
   nodes?.forEach((n: PFASNodeResult) => {
     if (doc_to_nodes.has(n.ref_doc_id)) {
       let new_nodes = doc_to_nodes.get(n.ref_doc_id);
       new_nodes.push(n);
-      console.log("pushed new node to new_nodes", new_nodes);
       doc_to_nodes.set(n.ref_doc_id, new_nodes);
     } else {
       doc_to_nodes.set(n.ref_doc_id, [n]);
     }
   });
   console.log("PFAS nodes result: ", doc_to_nodes);
+  // map docs to PFAS Search Result
   let results: PFASSearchResult[] = [];
   docs?.forEach((doc) => {
     let result: PFASSearchResult = {
@@ -254,6 +256,8 @@ export async function pfasSearch(query: string): Promise<PFASSearchResult[]> {
     results.push(result);
   });
   if (results != null && results.length > 0) {
+    // sort by nodes length
+    results.sort((a, b) => b.nodes.length - a.nodes.length);
     return results;
   }
   return [];

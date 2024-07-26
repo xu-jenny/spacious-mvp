@@ -2,7 +2,7 @@ import { getTagEmbedding, match_tag, supabaseClient } from "@/clients/supabase";
 import { primary_tag_fts, subtags_fts } from "./api/search/utils";
 import { getIntersectPlaces } from "./api/location/utils";
 import { addressToCoord } from "./api/location/utils";
-import { USDatasetSource } from "@/components/index/EditTagButton";
+import { USDatasetSource } from "@/components/index/SearchButton";
 import { SearchResult } from "./search";
 
 export interface IFormInput {

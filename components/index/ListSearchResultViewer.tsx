@@ -1,11 +1,13 @@
 import { PaginatedList } from "react-paginated-list";
-import { USDatasetSource } from "./EditTagButton";
+import { USDatasetSource } from "./SearchButton";
 import { logTableInteraction } from "@/utils/supabaseLogger";
 import { SearchResults } from "@/app/page";
 import USGSWaterDatasetCard from "./SearchResult/USGSWaterdatasetCard";
 import { PFASSearchResult, SearchResult, USGSWaterSearchResult } from "@/app/search";
 import PFASSearchResultCard from "./SearchResult/PFASSearchResultCard";
 import SearchResultDatasetCard from "./SearchResult/SearchResultDatasetCard";
+import NCDEQWSResultCard from "./SearchResult/NCDEQWSResultCard";
+import { NCDEQWSSearchResult } from "@/app/NCDEQWSSearch";
 
 interface Props {
   primaryData: SearchResults[];
@@ -23,6 +25,8 @@ const ListSearchResultViewer = ({
 				return <USGSWaterDatasetCard key={index} dataset={dataset as USGSWaterSearchResult} index={index} />
 			case 'PFAS':
 				return <PFASSearchResultCard key={index} dataset={dataset as PFASSearchResult} index={index} setSelectedDataset={setDatasetSelected} />
+      case 'NC_DEQ_WATERSUPPLY':
+        return <NCDEQWSResultCard key={index} dataset={dataset as NCDEQWSSearchResult} index={index} setDatasetSelected={setDatasetSelected} />
 			default:
 				return <SearchResultDatasetCard key={index} dataset={dataset as SearchResult} index={index} setSelectedDataset={setDatasetSelected} />
 			
