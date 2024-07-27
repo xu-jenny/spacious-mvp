@@ -81,7 +81,7 @@ const SearchResultDatasetPanel = ({
         );
       }
     } catch (e) {
-      console.error("Error parsing datasetUrl for dataset: ", id);
+      console.error("Error parsing datasetUrl for dataset: ", dataset?.id);
       return (
         <span>Dataset Download Links: {(dataset as Dataset)?.datasetUrl}</span>
       );

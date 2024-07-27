@@ -1,16 +1,11 @@
 "use client";
 
-import { JSX, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { logTableInteraction } from "@/utils/supabaseLogger";
-import { PFASNodeResult, PFASSearchResult } from "@/app/search";
+import { PFASSearchResult } from "@/app/search";
 
 import { Document, Page, pdfjs } from "react-pdf";
-
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url,
-).toString();
 
 interface PdfViewerProps {
   fileUrl: string;
@@ -24,6 +19,15 @@ export const PDFViewer: React.FC<PdfViewerProps> = ({ fileUrl, pagesToJump }) =>
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
       setNumPages(numPages);
   };
+
+  // useEffect(() => {
+  //   if (typeof window !== 'undefined') {
+  //     pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  //       'pdfjs-dist/build/pdf.worker.min.mjs',
+  //       import.meta.url,
+  //     ).toString();      
+  //   }
+  // }, []);
 
   const handleJumpToPage = (page: number) => {
       if (numPages && page >= 1 && page <= numPages) {
@@ -76,31 +80,7 @@ type Props = {
 };
 
 const PFASDatasetPanel = ({ dataset }: Props) => {
-  const showNodes = (nodes: PFASNodeResult[]) => {
-    let textNodes: JSX.Element[] = [];
-    let tableNodes: JSX.Element[] = [];
-    nodes.forEach((node: PFASNodeResult) => {
-      if (node.node_type == "text") {
-        textNodes.push(
-          <div key={node.node_id}>
-            <p>Text Match {textNodes.length + 1}:</p>
-            <p>{node.content}</p>
-          </div>
-        );
-      } else if (node.node_type == "table") {
-        tableNodes.push(
-          <div key={node.node_id}>
-            <p>Table Match {tableNodes.length + 1}</p>
-            <pre>{node.content}</pre>
-          </div>
-        );
-      }
-    });
-    return [...textNodes, ...tableNodes];
-  };
-
   const displaySummary = (summary: string) => {
-    // only show first four sentences
     const sentences = summary.match(/[^\.!\?]+[\.!\?]+/g);
     if (!sentences || sentences.length <= 4) {
       return summary;
@@ -137,7 +117,6 @@ const PFASDatasetPanel = ({ dataset }: Props) => {
             <p>Last updated: {dataset?.lastUpdated}</p>
           )}
           <PDFViewer fileUrl={"/NCS000050_MONITORING INFO_20181028.pdf"} pagesToJump={[6, 12, 30, 44, 66, 86, 95, 112, 129, 131]}/>
-          {/* {"nodes" in dataset && showNodes((dataset as PFASSearchResult).nodes)} */}
         </article>
       </div>
     </div>

@@ -1,11 +1,14 @@
 "use client";
 import { PFASSearchResult, SearchResult } from "@/app/search";
 import { USDatasetSource } from "../SearchButton";
-import PFASDatasetPanel from "./PFASDatasetPanel";
+// import PFASDatasetPanel from "./PFASDatasetPanel";
 import SearchResultDatasetPanel from "./SearchResultDatasetPane";
 import { SearchResults } from "@/app/page";
 import { NCDEQWSSearchResult } from "@/app/NCDEQWSSearch";
 import NCDEQWSDatasetPanel from "./NCDEQWSDatasetPane";
+
+import dynamic from 'next/dynamic';
+const PFASDatasetPanel = dynamic(() => import('./PFASDatasetPanel'), { ssr: false });
 
 type Props = {
 	dataset: SearchResults | null;
