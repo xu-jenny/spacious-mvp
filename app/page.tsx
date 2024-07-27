@@ -34,7 +34,7 @@ export default function Home() {
   const [loading, setLoading] = useState<boolean>(false);
   const [openPanel, setOpenPanel] = useState(false);
   const [currentds, setCurrentds] = useState<SearchResults | null>(null);
-  const [dsSource, setDsSource] = useState<USDatasetSource>("NC_DEQ_WATERSUPPLY");
+  const [dsSource, setDsSource] = useState<USDatasetSource>("USGS_WATER");
 
   function setDatasetSelected(ds: SearchResults) {
     setCurrentds(ds);
@@ -55,6 +55,8 @@ export default function Home() {
           <Image
             src={logo.src}
             alt="Spacious AI"
+            width="200"
+            height="100"
             className="object-contain w-full mt-5"
           />
         </div>
