@@ -1,7 +1,4 @@
 import { getTagEmbedding, match_tag, supabaseClient } from "@/clients/supabase";
-import { primary_tag_fts, subtags_fts } from "./api/search/utils";
-import { getIntersectPlaces } from "./api/location/utils";
-import { addressToCoord } from "./api/location/utils";
 import { USDatasetSource } from "@/components/index/SearchButton";
 import { SearchResult } from "./search";
 
@@ -15,103 +12,11 @@ export interface IFormInput {
   dataSource?: string;
 }
 
-export async function parseLocationFormInput(
-  data: IFormInput
-): Promise<string[] | null> {
-  let interestedLocations = null;
-  if (data["latitude"] && data["longitude"]) {
-    let locations = await getIntersectPlaces(
-      { lat: data["latitude"], lon: data["longitude"] },
-      data["radius"]
-    );
-    interestedLocations = locations;
-  } else if (data["address"]) {
-    let coords = await addressToCoord(data.address);
-    if (coords != null) {
-      let locations = await getIntersectPlaces(coords, data["radius"]);
-      interestedLocations = locations;
-    }
-  } else if (data["region"]) {
-    let stateMap = {
-      Victoria: "VIC",
-      "Western australia": "WA",
-      "New south wales": "NSW",
-      Queensland: "QLD",
-      Tasmaina: "TAS",
-    };
-    if (data["region"] in stateMap) {
-      // @ts-ignore
-      interestedLocations = [stateMap[data["region"]]];
-    } else {
-      interestedLocations = [data["region"]];
-    }
-  }
-  return interestedLocations;
-}
-
-export async function supabase_topic_search(
-  primary_tag: string,
-  queryLoc: string
-): Promise<any[] | null> {
-  console.log(
-    `Calling supabase Query with params primaryTag: ${primary_tag}, Location: ${queryLoc}`
-  );
-  return await primary_tag_fts(primary_tag, queryLoc);
-}
-
-export async function supabase_subtags_search(
-  tangential_tags: string,
-  queryLoc: string
-): Promise<any[] | null> {
-  return await subtags_fts(
-    tangential_tags.toLowerCase().replaceAll(", ", ","),
-    queryLoc
-  );
-}
-
 export type AgentResponse = {
   primary_tag?: string;
   tangential_tags?: string;
 };
 
-export async function primaryTagSearch(
-  primaryTag: string,
-  locPattern: string,
-  dsSource: USDatasetSource | null
-): Promise<SearchResult[]> {
-  console.log(primaryTag, locPattern);
-  let semanticData = await semanticSearch(primaryTag, locPattern, dsSource);
-  let ftsData = await supabase_topic_search(primaryTag, locPattern);
-
-  // concat two results together
-  let primaryData: SearchResult[] = [];
-  if (ftsData != null) {
-    primaryData = ftsData;
-  }
-  if (semanticData != null && semanticData.length > 0) {
-    let combined = [...primaryData, ...semanticData];
-    primaryData = Array.from(new Set(combined));
-  }
-
-  // filter for dataset source and domain
-  if (dsSource != null) {
-    primaryData = primaryData.filter(
-      (result: SearchResult) => result.dataset_source == dsSource
-    );
-  }
-
-  primaryData.sort((a: SearchResult, b: SearchResult) => {
-    if (a.location === locPattern && b.location !== locPattern) {
-      return -1; // a comes first
-    } else if (a.location !== locPattern && b.location === locPattern) {
-      return 1; // b comes first
-    } else {
-      return 0; // Keep original order if both have the same preference
-    }
-  });
-  console.log(primaryData);
-  return primaryData;
-}
 
 export type DataSource = "USGOV" | "NYOPEN" | "USGS";
 

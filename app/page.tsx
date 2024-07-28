@@ -25,6 +25,7 @@ import OpenLinkButton from "@/components/index/RequestDataButton";
 import DatasetPanel from "@/components/index/DatasetPane/DatasetPanel";
 import logo from "../public/logo.jpeg";
 import { NCDEQWSSearchResult } from "./NCDEQWSSearch";
+import Image from "next/image";
 
 export default function Home() {
   const [primaryData, setPrimary] = useState<SearchResults[] | null>(null);
@@ -32,8 +33,7 @@ export default function Home() {
   const [loading, setLoading] = useState<boolean>(false);
   const [openPanel, setOpenPanel] = useState(false);
   const [currentds, setCurrentds] = useState<SearchResults | null>(null);
-  const [dsSource, setDsSource] =
-    useState<USDatasetSource>("NC_DEQ_WATERSUPPLY");
+  const [dsSource, setDsSource] = useState<USDatasetSource>("USGS_WATER");
 
   function setDatasetSelected(ds: SearchResults) {
     setCurrentds(ds);
@@ -51,9 +51,11 @@ export default function Home() {
     <div className="grid grid-cols-6 h-[100vh]">
       <div className="col-span-1 white prose flex flex-col h-full border-r border-gray-300">
         <div className="p-2">
-          <img
+          <Image
             src={logo.src}
             alt="Spacious AI"
+            width="200"
+            height="100"
             className="object-contain w-full mt-5"
           />
         </div>
