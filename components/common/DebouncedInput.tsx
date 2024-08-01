@@ -1,10 +1,10 @@
-import { useCallback } from "react";
+import React, { useCallback } from "react";
 
 type Props = {
   placeholder?: string;
   type?: string;
   className?: string;
-  onChange: React.Dispatch<React.SetStateAction<string>>;
+  onChange: (value: string) => void;
   value?: string;
   onkeydown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   timeout?: number;
@@ -21,7 +21,7 @@ const debounce = <F extends (...args: any[]) => any>(
   } as (...args: Parameters<F>) => void;
 };
 
-const DebouncedInput = ({
+const DebouncedInput: React.FC<Props> = ({
   placeholder,
   value,
   onChange,
@@ -30,13 +30,16 @@ const DebouncedInput = ({
   type = "text",
   timeout = 500,
 }: Props) => {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleChange = useCallback(
     debounce((nextValue: string) => {
       onChange(nextValue);
     }, timeout),
-    []
+    [onChange, timeout] // Adding dependencies to prevent unnecessary re-creations
   );
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleChange(e.target.value);
+  };
 
   return (
     <div>
@@ -50,7 +53,7 @@ const DebouncedInput = ({
         value={value}
         placeholder={placeholder}
         onKeyDown={onkeydown}
-        onChange={(e) => handleChange(e.target.value)}
+        onChange={handleInputChange}
       />
     </div>
   );
