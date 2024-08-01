@@ -11,21 +11,20 @@ import {
   SearchResult,
   USGSWaterSearchResult,
 } from "./search";
-import DebouncedInput from "@/components/common/DebouncedInput";
 import SearchResultViewer from "@/components/index/SearchResult/SearchResultViewer";
 import DateRangeSelector from "@/components/index/DateRangeSelector";
-import GoogleSearchBar from "@/components/index/GoogleSearchBar";
+import OpenLinkButton from "@/components/index/RequestDataButton";
+import DatasetPanel from "@/components/index/DatasetPane/DatasetPanel";
+import logo from "../public/logo.jpeg";
+import { NCDEQWSSearchResult } from "./NCDEQWSSearch";
+import Image from "next/image";
+import LocationSearchBar from "@/components/index/LocationSearchBar";
 
 export type SearchResults =
   | SearchResult
   | PFASSearchResult
   | USGSWaterSearchResult
   | NCDEQWSSearchResult;
-import OpenLinkButton from "@/components/index/RequestDataButton";
-import DatasetPanel from "@/components/index/DatasetPane/DatasetPanel";
-import logo from "../public/logo.jpeg";
-import { NCDEQWSSearchResult } from "./NCDEQWSSearch";
-import Image from "next/image";
 
 export default function Home() {
   const [primaryData, setPrimary] = useState<SearchResults[] | null>(null);
@@ -47,6 +46,7 @@ export default function Home() {
 
   const [startDate, setStartDate] = useState<string>(sevenDaysAgo);
   const [endDate, setEndDate] = useState<string>(now);
+
   return (
     <div className="grid grid-cols-6 h-[100vh]">
       <div className="col-span-1 white prose flex flex-col h-full border-r border-gray-300">
@@ -61,18 +61,11 @@ export default function Home() {
         </div>
         <div className="p-2 border-t ">
           <h4 className="mt-1">Set Location</h4>
-          {/* <DebouncedInput
-            placeholder="City/State/Lat,Lng"
-            onChange={setLocations}
-          /> */}
-          {/* <PeliasAutocomplete
-            placeholder="City/State/Lat,Lng"
-            onChange={setLocations}
-          />*/}
-          <GoogleSearchBar
+          <LocationSearchBar
             placeholder="Enter a location"
             value={interestedLocations}
             onChange={setLocations}
+            dsSource={dsSource}
           />
         </div>
         <div className="p-2">
