@@ -15,7 +15,7 @@ const NCDEQWSDatasetPanel = ({ dataset, location, query }: Props) => {
     const copySharableLink = async () => {
         if ('clipboard' in navigator) {
           try {
-            await navigator.clipboard.writeText(`http://localhost:3000/?loc=${location}&q=${query}&source=nc_deq_watersupply&id=${dataset.id}`);
+            await navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_DOMAIN}/?loc=${location}&q=${query}&source=nc_deq_watersupply&id=${dataset.id}`);
           } catch (err) {
             console.error('Failed to copy text: ', err);
           }
