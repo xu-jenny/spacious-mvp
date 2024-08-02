@@ -21,16 +21,18 @@ const LocationSearchBar: React.FC<Props> = ({
   const renderSearchBar = useCallback(() => {
     switch (dsSource) {
       case "USGS_WATER":
-        return (
-          <GoogleSearchBar
-            placeholder={placeholder}
-            value={value}
-            onChange={onChange}
-            className={className}
-          />
-        );
+        if (process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY !== undefined) {
+          return (
+            <GoogleSearchBar
+              placeholder={placeholder}
+              value={value}
+              onChange={onChange}
+              className={className}
+            />
+          );
+        }
       default:
-        return <DebouncedInput placeholder={placeholder} onChange={onChange} />;
+        return <DebouncedInput placeholder={value ?? placeholder} onChange={onChange} />;
     }
   }, [dsSource, placeholder, value, onChange, className]);
 

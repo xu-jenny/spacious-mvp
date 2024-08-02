@@ -4,10 +4,17 @@ import DebouncedInput from "./DebouncedInput";
 type Props = {
   placeHolder: string;
   onSubmit: (v: string) => Promise<void>;
+  setQuery: (v: string) => void;
+  initalVal?: string | null;
 };
 
-const SearchBar = ({ placeHolder, onSubmit }: Props) => {
-  const [value, setValue] = useState<string>("");
+const SearchBar = ({ placeHolder, onSubmit, initalVal, setQuery }: Props) => {
+  const [value, setValue] = useState<string>(initalVal ?? "");
+
+  const onChange = (v: string) => {
+    setValue(v);
+    setQuery(v);
+  }
 
   const onSearchSubmit = () => {
     onSubmit(value);
@@ -36,10 +43,10 @@ const SearchBar = ({ placeHolder, onSubmit }: Props) => {
       <DebouncedInput
         type="search"
         className="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-        placeholder={placeHolder}
+        placeholder={value ?? placeHolder}
         onkeydown={handleKeyDown}
-        onChange={setValue}
-        timeout={100}
+        onChange={onChange}
+        timeout={500}
       />
       <button
         type="submit"

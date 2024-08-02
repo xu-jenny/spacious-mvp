@@ -9,6 +9,7 @@ export type NCDEQWSSearchResult = {
 	time_period?: string[];
 	dataType?: string | null;
 	sample?: string;
+	csv_filename?: string;
 };
 
 export async function NCDEQWSSearch(
@@ -35,7 +36,8 @@ export async function NCDEQWSSearch(
 			summary: row['summary'],
 			originalUrl: row['originalUrl'],
 			location: row['location'],
-			sample: row['sample']
+			sample: row['sample'],
+			csv_filename: row['csv_filename']
 		}
 		data.push(result)
 	})

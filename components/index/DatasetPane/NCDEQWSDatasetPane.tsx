@@ -2,21 +2,37 @@
 
 import Link from "next/link";
 import { NCDEQWSSearchResult } from "@/app/NCDEQWSSearch";
+import { useRouter } from 'next/navigation';
 
 type Props = {
     dataset: NCDEQWSSearchResult;
+    query?: string;
+    location?: string;
 };
 
-const NCDEQWSDatasetPanel = ({ dataset }: Props) => {
+const NCDEQWSDatasetPanel = ({ dataset, location, query }: Props) => {
+    const bucketUrl = process.env.NEXT_PUBLIC_S3_NC_WATERSUPPLY_URL;
+    const copySharableLink = async () => {
+        if ('clipboard' in navigator) {
+          try {
+            await navigator.clipboard.writeText(`http://localhost:3000/?loc=${location}&q=${query}&source=nc_deq_watersupply&id=${dataset.id}`);
+          } catch (err) {
+            console.error('Failed to copy text: ', err);
+          }
+        } else {
+          document.execCommand('copy', true, `${process.env.NEXT_PUBLIC_DOMAIN}/?loc=${location}&q=${query}&source=nc_deq_watersupply&id=${dataset.id}`);
+        }
+      };
+
     return (
         <div className="flex h-[100vh]">
             <div className="w-full flex flex-col h-full">
                 <article className="prose p-4 max-w-none">
                     <h3>{dataset.location} - {dataset?.title}</h3>
                     <div className="flex gap-4">
-                        {dataset.id != null && (
+                        {dataset.id != null && dataset.csv_filename && (
                             <Link
-                                href={"/sample.csv"}
+                                href={`${bucketUrl}/${dataset.csv_filename.replace(' ', '+').replace(',', '%2C')}`}
                                 target="_blank"
                                 download={dataset?.title}
                                 className="no-underline text-green-500"
@@ -30,6 +46,7 @@ const NCDEQWSDatasetPanel = ({ dataset }: Props) => {
                             className="no-underline text-blue-600">
                             Original Link
                         </Link>
+                        <button onClick={copySharableLink}>Copy Sharable Link</button>
                     </div>
                     <p>Summary: {dataset?.summary}</p>
                     {/* <p>Years Available: {dataset?.time_period}</p> */}

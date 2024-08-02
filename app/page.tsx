@@ -1,7 +1,7 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "react-sliding-pane/dist/react-sliding-pane.css";
-import SearchButton, { USDatasetSource } from "@/components/index/SearchButton";
+import SearchButton, { search, USDatasetSource } from "@/components/index/SearchButton";
 import SlidingPane from "react-sliding-pane";
 import { Spinner } from "flowbite-react";
 import { logTableInteraction } from "@/utils/supabaseLogger";
@@ -19,6 +19,7 @@ import logo from "../public/logo.jpeg";
 import { NCDEQWSSearchResult } from "./NCDEQWSSearch";
 import Image from "next/image";
 import LocationSearchBar from "@/components/index/LocationSearchBar";
+import { useSearchParams } from 'next/navigation'
 
 export type SearchResults =
   | SearchResult
@@ -26,13 +27,30 @@ export type SearchResults =
   | USGSWaterSearchResult
   | NCDEQWSSearchResult;
 
+function sourceSearchParamToDatasetSource(source: string | null): USDatasetSource{
+  if (source == null){
+    return 'USGS_WATER';
+  }
+  switch(source.toLowerCase()){
+    case "usgs_water":
+      return 'USGS_WATER';
+    case "pfas":
+      return 'PFAS';
+    case "nc_deq_watersupply":
+      return 'NC_DEQ_WATERSUPPLY';
+    default:
+      return 'USGS_WATER';
+  }
+}
 export default function Home() {
+  const searchParams = useSearchParams();
   const [primaryData, setPrimary] = useState<SearchResults[] | null>(null);
-  const [interestedLocations, setLocations] = useState<string>("");
+  const [interestedLocations, setLocations] = useState<string>(searchParams.get('loc') ?? "");
   const [loading, setLoading] = useState<boolean>(false);
   const [openPanel, setOpenPanel] = useState(false);
-  const [currentds, setCurrentds] = useState<SearchResults | null>(null);
-  const [dsSource, setDsSource] = useState<USDatasetSource>("USGS_WATER");
+  const [currentds, setCurrentds] = useState<SearchResults | null>();
+  const [dsSource, setDsSource] = useState<USDatasetSource>(sourceSearchParamToDatasetSource(searchParams.get('source')));
+  const [query, setQuery] = useState<string>(searchParams.get('q') || '');
 
   function setDatasetSelected(ds: SearchResults) {
     setCurrentds(ds);
@@ -46,6 +64,26 @@ export default function Home() {
 
   const [startDate, setStartDate] = useState<string>(sevenDaysAgo);
   const [endDate, setEndDate] = useState<string>(now);
+
+  useEffect(() => {
+    async function performSearch() {
+      return await search(query, searchParams.get('loc')!, dsSource, startDate, endDate);
+    }
+    async function fetchData() {
+      if (query != null && searchParams.get('loc') != null) {
+        let result = await performSearch();
+        setPrimary(result);
+        if (searchParams.get('id') != null){
+          let ds = result?.filter(r => r.id == searchParams.get('id'))
+          if (ds != undefined && ds.length > 0){
+            setCurrentds(ds[0]);
+            setOpenPanel(true);
+          }
+        }
+      }
+    }
+    fetchData();
+  }, [searchParams, dsSource, startDate, endDate, query],)
 
   return (
     <div className="grid grid-cols-6 h-[100vh]">
@@ -92,10 +130,12 @@ export default function Home() {
           <SearchButton
             location={interestedLocations}
             setPrimaryData={setPrimary}
+            setQuery={setQuery}
             dsSource={dsSource}
             setLoading={setLoading}
             startTime={startDate}
             endTime={endDate}
+            initalVal={searchParams.get('q')}
           />
           {loading ? (
             <div className="ml-20 mt-20">
@@ -130,7 +170,7 @@ export default function Home() {
           }}
         >
           <div>
-            <DatasetPanel dataset={currentds} dsSource={dsSource} />
+            <DatasetPanel dataset={currentds} dsSource={dsSource} location={interestedLocations} query={query} />
           </div>
         </SlidingPane>
       )}
