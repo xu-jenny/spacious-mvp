@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { NCDEQWSSearchResult } from "@/app/NCDEQWSSearch";
-import { useRouter } from 'next/navigation';
 
 type Props = {
     dataset: NCDEQWSSearchResult;
@@ -12,15 +11,16 @@ type Props = {
 
 const NCDEQWSDatasetPanel = ({ dataset, location, query }: Props) => {
     const bucketUrl = process.env.NEXT_PUBLIC_S3_NC_WATERSUPPLY_URL;
+    const hostname = typeof window !== 'undefined' && window.location.hostname ? window.location.hostname : process.env.NEXT_PUBLIC_DOMAIN;
     const copySharableLink = async () => {
         if ('clipboard' in navigator) {
           try {
-            await navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_DOMAIN}/?loc=${location}&q=${query}&source=nc_deq_watersupply&id=${dataset.id}`);
+            await navigator.clipboard.writeText(`https://${hostname}/?loc=${location}&q=${query}&source=nc_deq_watersupply&id=${dataset.id}`);
           } catch (err) {
             console.error('Failed to copy text: ', err);
           }
         } else {
-          document.execCommand('copy', true, `${process.env.NEXT_PUBLIC_DOMAIN}/?loc=${location}&q=${query}&source=nc_deq_watersupply&id=${dataset.id}`);
+          document.execCommand('copy', true, `https://${hostname}/?loc=${location}&q=${query}&source=nc_deq_watersupply&id=${dataset.id}`);
         }
       };
 

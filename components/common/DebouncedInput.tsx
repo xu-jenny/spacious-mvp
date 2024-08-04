@@ -32,7 +32,6 @@ const DebouncedInput: React.FC<Props> = ({
 }: Props) => {
   const handleChange = useCallback(
     debounce((nextValue: string) => {
-      console.log("decounded location val", nextValue);
       onChange(nextValue);
     }, timeout),
     [onChange, timeout] // Adding dependencies to prevent unnecessary re-creations

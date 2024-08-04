@@ -17,7 +17,6 @@ type Props = {
 };
 
 function DatasetPanel({ dataset, dsSource, location, query }: Props) {
-	console.log(query, location, dataset?.id, dsSource)
 	const searchResultPanel = function(dsType: USDatasetSource){
 		switch(dsType){
 			case 'PFAS':
