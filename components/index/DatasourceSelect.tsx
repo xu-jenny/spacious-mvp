@@ -3,6 +3,7 @@
 import { Dropdown } from "flowbite-react";
 import { Dispatch, SetStateAction } from "react";
 import { USDatasetSource } from "./SearchButton";
+import { useRouter } from 'next/navigation';
 
 type Props = {
   dataSource: USDatasetSource | null;
@@ -21,7 +22,13 @@ const dataSourceLabels: { [key in USDatasetSource]: string } = {
 };
 
 const DatasourceSelect = ({ dataSource, setDataSource }: Props) => {
+  const router = useRouter();
   const currentLabel = dataSource ? dataSourceLabels[dataSource] : "Any";
+
+  const handleSelect = (value: string) => {
+    router.push('/');
+    setDataSource(value as USDatasetSource);
+  };
   return (
     <Dropdown
       label={currentLabel}
@@ -37,20 +44,20 @@ const DatasourceSelect = ({ dataSource, setDataSource }: Props) => {
       }}
     >
       {/* TODO: map this on datasourceLabels */}
-      <Dropdown.Item onClick={() => setDataSource("ANY")}>ALL</Dropdown.Item>
-      <Dropdown.Item onClick={() => setDataSource("PFAS")}>PFAS</Dropdown.Item>
-      <Dropdown.Item onClick={() => setDataSource("USGS_WATER")}>USGS Water</Dropdown.Item>
-      <Dropdown.Item onClick={() => setDataSource("NC_DEQ_WATERSUPPLY")}>
-        NC Deq Water Supply
+      <Dropdown.Item onClick={() => handleSelect("ANY")}>ALL</Dropdown.Item>
+      <Dropdown.Item onClick={() => handleSelect("PFAS")}>PFAS</Dropdown.Item>
+      <Dropdown.Item onClick={() => handleSelect("USGS_WATER")}>USGS Water</Dropdown.Item>
+      <Dropdown.Item onClick={() => handleSelect("NC_DEQ_WATERSUPPLY")}>
+        NC DEQ Water Supply
       </Dropdown.Item>
-      <Dropdown.Item onClick={() => setDataSource("USGS")}>USGS</Dropdown.Item>
-      <Dropdown.Item onClick={() => setDataSource("LASERFICHE")}>
+      <Dropdown.Item onClick={() => handleSelect("USGS")}>USGS</Dropdown.Item>
+      <Dropdown.Item onClick={() => handleSelect("LASERFICHE")}>
         NC DEQ
       </Dropdown.Item>
-      <Dropdown.Item onClick={() => setDataSource("USGOV")}>
+      <Dropdown.Item onClick={() => handleSelect("USGOV")}>
         US Gov
       </Dropdown.Item>
-      <Dropdown.Item onClick={() => setDataSource("NYOPEN")}>
+      <Dropdown.Item onClick={() => handleSelect("NYOPEN")}>
         NY Open Data
       </Dropdown.Item>
     </Dropdown>

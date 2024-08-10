@@ -12,18 +12,15 @@ const PFASDatasetPanel = dynamic(() => import('./PFASDatasetPanel'), { ssr: fals
 type Props = {
 	dataset: SearchResults | null;
 	dsSource: USDatasetSource;
-	location?: string;
-	query?: string;
 };
 
-function DatasetPanel({ dataset, dsSource, location, query }: Props) {
-	console.log(query, location, dataset?.id, dsSource)
+function DatasetPanel({ dataset, dsSource }: Props) {
 	const searchResultPanel = function(dsType: USDatasetSource){
 		switch(dsType){
 			case 'PFAS':
 				return <PFASDatasetPanel dataset={dataset as PFASSearchResult} />
 			case 'NC_DEQ_WATERSUPPLY':
-				return <NCDEQWSDatasetPanel dataset={dataset as NCDEQWSSearchResult} location={location} query={query} />
+				return <NCDEQWSDatasetPanel dataset={dataset as NCDEQWSSearchResult} />
 			default:
 				return <SearchResultDatasetPanel dsMetadata={dataset as SearchResult} />
 			

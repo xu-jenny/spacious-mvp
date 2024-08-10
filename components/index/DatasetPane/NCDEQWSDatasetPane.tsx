@@ -2,25 +2,24 @@
 
 import Link from "next/link";
 import { NCDEQWSSearchResult } from "@/app/NCDEQWSSearch";
-import { useRouter } from 'next/navigation';
+import { useStateContext } from "@/app/StateContext";
 
 type Props = {
     dataset: NCDEQWSSearchResult;
-    query?: string;
-    location?: string;
 };
 
-const NCDEQWSDatasetPanel = ({ dataset, location, query }: Props) => {
+const NCDEQWSDatasetPanel = ({ dataset }: Props) => {
     const bucketUrl = process.env.NEXT_PUBLIC_S3_NC_WATERSUPPLY_URL;
+    const { state } = useStateContext();
     const copySharableLink = async () => {
         if ('clipboard' in navigator) {
           try {
-            await navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_DOMAIN}/?loc=${location}&q=${query}&source=nc_deq_watersupply&id=${dataset.id}`);
+            await navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_DOMAIN}/?loc=${state.location?.name}&q=${state.searchValue}&source=nc_deq_watersupply&id=${dataset.id}`);
           } catch (err) {
             console.error('Failed to copy text: ', err);
           }
         } else {
-          document.execCommand('copy', true, `${process.env.NEXT_PUBLIC_DOMAIN}/?loc=${location}&q=${query}&source=nc_deq_watersupply&id=${dataset.id}`);
+          document.execCommand('copy', true, `${process.env.NEXT_PUBLIC_DOMAIN}/?loc=${state.location?.name}&q=${state.searchValue}&source=nc_deq_watersupply&id=${dataset.id}`);
         }
       };
 

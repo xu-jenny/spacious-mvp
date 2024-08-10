@@ -8,11 +8,11 @@ import { FaList } from "react-icons/fa";
 import ListSearchResultViewer from "@/components/index/ListSearchResultViewer";
 import PigeonMapViewer from "../PigeonMapViewer";
 import { USGSWaterSearchResult } from "@/app/search";
+import { useStateContext } from "@/app/StateContext";
 
 interface Props {
   primaryData: SearchResults[];
   dsSource: USDatasetSource;
-  location: string;
   setDatasetSelected: (ds: SearchResults) => void;
 }
 
@@ -20,9 +20,9 @@ const SearchResultViewer = ({
   primaryData,
   dsSource,
   setDatasetSelected,
-  location,
 }: Props) => {
   const tabsRef = useRef<TabsRef>(null);
+  const { state } = useStateContext();
 
   return (
     <>
@@ -39,10 +39,10 @@ const SearchResultViewer = ({
             />
           </Tabs.Item>
           <Tabs.Item title="Map" icon={FaMapMarkedAlt}>
-            {dsSource == "USGS_WATER" ? (
+            {dsSource == "USGS_WATER" && state.location ? (
               <PigeonMapViewer
-                location={location}
                 data={primaryData as USGSWaterSearchResult[]}
+                location={[Number(state.location.lat), Number(state.location.lon)]}
               />
             ) : (
               <p>

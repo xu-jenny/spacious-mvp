@@ -1,11 +1,12 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 
 type Props = {
+  // onChange: (value: string) => void; // called whenever input change, connect this to a state
+  initalValue: string;
+  onDebounceChange: (value: string) => void; // called when debounce is finished
   placeholder?: string;
   type?: string;
   className?: string;
-  onChange: (value: string) => void;
-  value?: string;
   onkeydown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   timeout?: number;
 };
@@ -23,24 +24,36 @@ const debounce = <F extends (...args: any[]) => any>(
 
 const DebouncedInput: React.FC<Props> = ({
   placeholder,
-  value,
-  onChange,
+  initalValue,
+  // onChange,
+  onDebounceChange,
   className,
   onkeydown,
   type = "text",
   timeout = 500,
 }: Props) => {
-  const handleChange = useCallback(
-    debounce((nextValue: string) => {
-      console.log("decounded location val", nextValue);
-      onChange(nextValue);
-    }, timeout),
-    [onChange, timeout] // Adding dependencies to prevent unnecessary re-creations
-  );
+  const [value, setValue] = useState<string>(initalValue ?? "")
+  // const handleChange = useCallback(
+  //   debounce((nextValue: string) => {
+  //     console.log("decounded location val", nextValue);
+  //     onDebounceChange(nextValue);
+  //   }, timeout),
+  //   [onDebounceChange, timeout] // Adding dependencies to prevent unnecessary re-creations
+  // );
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handleChange(e.target.value);
-  };
+  React.useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      console.log("decounded location val", value);
+      onDebounceChange(value);
+    }, timeout);
+    return () => clearTimeout(timeoutId);
+  }, [value, timeout]);
+
+
+  // const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   handleChange(e.target.value);
+  //   onChange(e.target.value);
+  // };
 
   return (
     <div>
@@ -54,7 +67,7 @@ const DebouncedInput: React.FC<Props> = ({
         value={value}
         placeholder={placeholder}
         onKeyDown={onkeydown}
-        onChange={handleInputChange}
+        onChange={(e) => setValue(e.target.value)}
       />
     </div>
   );

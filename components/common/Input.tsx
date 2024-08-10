@@ -2,7 +2,7 @@ type Props = {
   placeholder?: string;
   type?: string;
   className?: string;
-  onChange: React.Dispatch<React.SetStateAction<string>>;
+  onChange: (value: string) => void;
   value?: string;
   onkeydown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
 };

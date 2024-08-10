@@ -20,6 +20,7 @@ import { NCDEQWSSearchResult } from "./NCDEQWSSearch";
 import Image from "next/image";
 import LocationSearchBar from "@/components/index/LocationSearchBar";
 import { useSearchParams } from 'next/navigation'
+import { useStateContext } from "./StateContext";
 
 export type SearchResults =
   | SearchResult
@@ -44,13 +45,12 @@ function sourceSearchParamToDatasetSource(source: string | null): USDatasetSourc
 }
 export default function Home() {
   const searchParams = useSearchParams();
+  const { state, dispatch } = useStateContext();
   const [primaryData, setPrimary] = useState<SearchResults[] | null>(null);
-  const [interestedLocations, setLocations] = useState<string>(searchParams.get('loc') ?? "");
   const [loading, setLoading] = useState<boolean>(false);
   const [openPanel, setOpenPanel] = useState(false);
   const [currentds, setCurrentds] = useState<SearchResults | null>();
   const [dsSource, setDsSource] = useState<USDatasetSource>(sourceSearchParamToDatasetSource(searchParams.get('source')));
-  const [query, setQuery] = useState<string>(searchParams.get('q') || '');
 
   function setDatasetSelected(ds: SearchResults) {
     setCurrentds(ds);
@@ -67,10 +67,10 @@ export default function Home() {
 
   useEffect(() => {
     async function performSearch() {
-      return await search(query, searchParams.get('loc')!, dsSource, startDate, endDate);
+      return await search(state.searchValue, state.location!, dsSource, startDate, endDate);
     }
     async function fetchData() {
-      if (query != null && searchParams.get('loc') != null) {
+      if (state.searchValue != null && state.location != null) {
         let result = await performSearch();
         setPrimary(result);
         if (searchParams.get('id') != null){
@@ -83,7 +83,7 @@ export default function Home() {
       }
     }
     fetchData();
-  }, [searchParams, dsSource, startDate, endDate, query],)
+  }, [searchParams, dsSource, startDate, endDate, state.searchValue, state.location],)
 
   return (
     <div className="grid grid-cols-6 h-[100vh]">
@@ -100,9 +100,9 @@ export default function Home() {
         <div className="p-2 border-t ">
           <h4 className="mt-1">Set Location</h4>
           <LocationSearchBar
-            placeholder="Enter a location"
-            value={interestedLocations}
-            onChange={setLocations}
+            // placeholder="Enter a location"
+            // value={interestedLocations}
+            // onChange={setLocations}
             dsSource={dsSource}
           />
         </div>
@@ -128,14 +128,12 @@ export default function Home() {
       <div className="col-span-5 flex h-[100vh]">
         <div className="w-full bg-sky-50 overflow-auto p-2">
           <SearchButton
-            location={interestedLocations}
+            // location={interestedLocations}
             setPrimaryData={setPrimary}
-            setQuery={setQuery}
             dsSource={dsSource}
             setLoading={setLoading}
             startTime={startDate}
             endTime={endDate}
-            initalVal={searchParams.get('q')}
           />
           {loading ? (
             <div className="ml-20 mt-20">
@@ -146,7 +144,7 @@ export default function Home() {
               primaryData={primaryData}
               dsSource={dsSource}
               setDatasetSelected={setDatasetSelected}
-              location={interestedLocations}
+              // location={interestedLocations}
             />
           ) : (
             primaryData != null && (
@@ -170,7 +168,7 @@ export default function Home() {
           }}
         >
           <div>
-            <DatasetPanel dataset={currentds} dsSource={dsSource} location={interestedLocations} query={query} />
+            <DatasetPanel dataset={currentds} dsSource={dsSource} />
           </div>
         </SlidingPane>
       )}

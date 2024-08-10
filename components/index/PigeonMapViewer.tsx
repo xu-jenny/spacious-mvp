@@ -3,10 +3,11 @@ import { Map, Marker, Overlay } from "pigeon-maps";
 import { USGSWaterSearchResult } from "@/app/search";
 import { GoDownload } from "react-icons/go";
 import { Button } from "flowbite-react";
+import { useStateContext } from "@/app/StateContext";
 
 interface Props {
-  location: string;
   data: USGSWaterSearchResult[];
+  location: [number, number]
 }
 
 const parseCoordinates = async (
@@ -40,10 +41,7 @@ const parseCoordinates = async (
   return [35.7796, -78.6382];
 };
 
-const PigeonMapViewer = ({ location, data }: Props) => {
-  const [position, setPosition] = useState<[number, number]>([
-    35.7796, -78.6382,
-  ]);
+const PigeonMapViewer = ({ data, location }: Props) => {
   const [overlayItem, setOverlayItem] = useState<USGSWaterSearchResult | null>(
     null
   );
@@ -51,15 +49,6 @@ const PigeonMapViewer = ({ location, data }: Props) => {
   const handleMouseClick = (item: USGSWaterSearchResult) => {
     setOverlayItem(item);
   };
-
-  useEffect(() => {
-    const fetchLatLng = async () => {
-      const pos = await parseCoordinates(location);
-      console.log("new position", pos);
-      setPosition(pos);
-    };
-    fetchLatLng();
-  }, [location]);
 
   return (
     <div
@@ -70,7 +59,7 @@ const PigeonMapViewer = ({ location, data }: Props) => {
         width: "100%",
       }}
     >
-      <Map defaultZoom={12} height={600} center={position}>
+      <Map defaultZoom={12} height={600} center={location}>
         {overlayItem && (
           <Overlay
             anchor={[overlayItem.lat, overlayItem.long]}
@@ -113,7 +102,7 @@ const PigeonMapViewer = ({ location, data }: Props) => {
             />
           ))}
         {data != null && (
-          <Marker width={32} anchor={position} color={"black"} />
+          <Marker width={32} anchor={location} color={"black"} />
         )}
       </Map>
     </div>
