@@ -28,11 +28,11 @@ export type SearchResults =
   | USGSWaterSearchResult
   | NCDEQWSSearchResult;
 
-function sourceSearchParamToDatasetSource(source: string | null): USDatasetSource{
-  if (source == null){
+function sourceSearchParamToDatasetSource(source: string | null): USDatasetSource {
+  if (source == null) {
     return 'USGS_WATER';
   }
-  switch(source.toLowerCase()){
+  switch (source.toLowerCase()) {
     case "usgs_water":
       return 'USGS_WATER';
     case "pfas":
@@ -66,16 +66,18 @@ export default function Home() {
   const [endDate, setEndDate] = useState<string>(now);
 
   useEffect(() => {
+    
     async function performSearch() {
-      return await search(state.searchValue, state.location!, dsSource, startDate, endDate);
+      const loc = {display_name: searchParams.get('loc')!, name: searchParams.get('loc')!, lat: 0.0, lon: 0.0, addresstype: "city"}
+      return await search(state.searchValue, loc, dsSource, startDate, endDate);
     }
     async function fetchData() {
-      if (state.searchValue != null && state.location != null) {
+      if (state.searchValue != null && searchParams.get('loc') != null) {
         let result = await performSearch();
         setPrimary(result);
-        if (searchParams.get('id') != null){
+        if (searchParams.get('id') != null) {
           let ds = result?.filter(r => r.id == searchParams.get('id'))
-          if (ds != undefined && ds.length > 0){
+          if (ds != undefined && ds.length > 0) {
             setCurrentds(ds[0]);
             setOpenPanel(true);
           }
@@ -83,7 +85,7 @@ export default function Home() {
       }
     }
     fetchData();
-  }, [searchParams, dsSource, startDate, endDate, state.searchValue, state.location],)
+  }, [searchParams],) // DO NOT MODIFY
 
   return (
     <div className="grid grid-cols-6 h-[100vh]">
@@ -99,12 +101,7 @@ export default function Home() {
         </div>
         <div className="p-2 border-t ">
           <h4 className="mt-1">Set Location</h4>
-          <LocationSearchBar
-            // placeholder="Enter a location"
-            // value={interestedLocations}
-            // onChange={setLocations}
-            dsSource={dsSource}
-          />
+          <LocationSearchBar />
         </div>
         <div className="p-2">
           <h4>Specify Data Source</h4>
@@ -128,7 +125,7 @@ export default function Home() {
       <div className="col-span-5 flex h-[100vh]">
         <div className="w-full bg-sky-50 overflow-auto p-2">
           <SearchButton
-            // location={interestedLocations}
+
             setPrimaryData={setPrimary}
             dsSource={dsSource}
             setLoading={setLoading}
@@ -144,7 +141,7 @@ export default function Home() {
               primaryData={primaryData}
               dsSource={dsSource}
               setDatasetSelected={setDatasetSelected}
-              // location={interestedLocations}
+
             />
           ) : (
             primaryData != null && (

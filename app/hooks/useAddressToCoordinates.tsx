@@ -40,7 +40,7 @@ export function useAddressToCoordinates() {
       if (!Array.isArray(data) || data.length === 0) {
         throw new Error('No coordinates found for this address');
       }
-
+     
       const match = data[0]; // Assuming the first result is the best match
 
       if (!match || !match.lat || !match.lon) {
