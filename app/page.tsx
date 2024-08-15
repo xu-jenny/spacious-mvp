@@ -21,6 +21,8 @@ import Image from "next/image";
 import LocationSearchBar from "@/components/index/LocationSearchBar";
 import { useSearchParams } from 'next/navigation'
 import { useStateContext } from "./StateContext";
+import { post } from "@/utils/http";
+import moment from "moment";
 
 export type SearchResults =
   | SearchResult
@@ -43,6 +45,7 @@ function sourceSearchParamToDatasetSource(source: string | null): USDatasetSourc
       return 'USGS_WATER';
   }
 }
+
 export default function Home() {
   const searchParams = useSearchParams();
   const { state, dispatch } = useStateContext();
@@ -85,6 +88,7 @@ export default function Home() {
       }
     }
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams],) // DO NOT MODIFY
 
   return (
@@ -141,7 +145,8 @@ export default function Home() {
               primaryData={primaryData}
               dsSource={dsSource}
               setDatasetSelected={setDatasetSelected}
-
+              startTime={startDate}
+              endTime={endDate}
             />
           ) : (
             primaryData != null && (

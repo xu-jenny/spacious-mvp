@@ -81,7 +81,6 @@ const keywords = [
 export function cleanAddress(address: string){
 
     let cleaned = address.replace(/\b\d{5}(?:-\d{4})?\b\s*(,|$)/, '');
-    console.log(cleaned)
     cleaned = cleaned.replace(/,\s*United States/, '');
     cleaned = normalizeAbbreviations(cleaned);
     cleaned = abbreviateStateNames(cleaned);

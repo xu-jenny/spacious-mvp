@@ -13,16 +13,22 @@ interface Props {
   primaryData: SearchResults[];
   setDatasetSelected: (ds: SearchResults) => void;
   dsSource: USDatasetSource;
+  startTime: string;
+  endTime: string;
 }
 const ListSearchResultViewer = ({
   primaryData,
   setDatasetSelected,
   dsSource,
+  startTime,
+  endTime
 }: Props) => {
   const searchResultCard = function(dataset: SearchResults, index: number){
 		switch(dsSource){
 			case 'USGS_WATER':
-				return <USGSWaterDatasetCard key={index} dataset={dataset as USGSWaterSearchResult} index={index} />
+				return <USGSWaterDatasetCard key={index} dataset={dataset as USGSWaterSearchResult} 
+                index={index} setDatasetSelected={setDatasetSelected} 
+                startTime={startTime} endTime={endTime} />
 			case 'PFAS':
 				return <PFASSearchResultCard key={index} dataset={dataset as PFASSearchResult} index={index} setSelectedDataset={setDatasetSelected} />
       case 'NC_DEQ_WATERSUPPLY':

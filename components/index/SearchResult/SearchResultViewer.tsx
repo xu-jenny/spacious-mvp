@@ -14,12 +14,16 @@ interface Props {
   primaryData: SearchResults[];
   dsSource: USDatasetSource;
   setDatasetSelected: (ds: SearchResults) => void;
+  startTime: string;
+  endTime: string;
 }
 
 const SearchResultViewer = ({
   primaryData,
   dsSource,
   setDatasetSelected,
+  startTime,
+  endTime,
 }: Props) => {
   const tabsRef = useRef<TabsRef>(null);
   const { state } = useStateContext();
@@ -36,6 +40,8 @@ const SearchResultViewer = ({
               primaryData={primaryData}
               setDatasetSelected={setDatasetSelected}
               dsSource={dsSource}
+              startTime={startTime}
+              endTime={endTime}
             />
           </Tabs.Item>
           <Tabs.Item title="Map" icon={FaMapMarkedAlt}>
@@ -43,6 +49,8 @@ const SearchResultViewer = ({
               <PigeonMapViewer
                 data={primaryData as USGSWaterSearchResult[]}
                 location={[Number(state.location.lat), Number(state.location.lon)]}
+                startTime={startTime}
+                endTime={endTime}
               />
             ) : (
               <p>
@@ -56,6 +64,8 @@ const SearchResultViewer = ({
           primaryData={primaryData}
           setDatasetSelected={setDatasetSelected}
           dsSource={dsSource}
+          startTime={startTime}
+          endTime={endTime}
         />
       )}
     </>

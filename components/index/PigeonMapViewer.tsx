@@ -4,10 +4,13 @@ import { USGSWaterSearchResult } from "@/app/search";
 import { GoDownload } from "react-icons/go";
 import { Button } from "flowbite-react";
 import { useStateContext } from "@/app/StateContext";
+import { MdOutlineFileDownload } from "react-icons/md";
 
 interface Props {
   data: USGSWaterSearchResult[];
-  location: [number, number]
+  location: [number, number];
+  startTime: string;
+  endTime: string;
 }
 
 const parseCoordinates = async (
@@ -41,13 +44,28 @@ const parseCoordinates = async (
   return [35.7796, -78.6382];
 };
 
-const PigeonMapViewer = ({ data, location }: Props) => {
+const PigeonMapViewer = ({ data, location, startTime, endTime }: Props) => {
   const [overlayItem, setOverlayItem] = useState<USGSWaterSearchResult | null>(
     null
   );
 
   const handleMouseClick = (item: USGSWaterSearchResult) => {
     setOverlayItem(item);
+  };
+
+  const handleDownload = async () => {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/usgs_water_csv/?siteId=${overlayItem?.siteId}&paramCode=${overlayItem?.matchingParamCode[1]}&startTime=${startTime}&endTime=${endTime}`
+    );
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "data.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
   };
 
   return (
@@ -77,17 +95,11 @@ const PigeonMapViewer = ({ data, location }: Props) => {
                   <span className="text-black">X</span>
                 </Button>
               </div>
-              {overlayItem.csv_dl_link && (
-                <Button
-                  size="sm"
-                  href={overlayItem.csv_dl_link}
-                  outline
-                  pill
-                  className="w-fit h-fit"
-                >
-                  <GoDownload className="h-4 w-4" />
-                </Button>
-              )}
+              <MdOutlineFileDownload
+                onClick={handleDownload}
+                className="text-emerald-400 cursor-pointer mx-1"
+                size={30}
+              />
             </div>
           </Overlay>
         )}

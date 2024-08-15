@@ -169,11 +169,15 @@ export type PFASSearchResult = {
 export type USGSWaterSearchResult = {
   title: string;
   id: string;
+  siteId: string;
   summary: string;
   lat: number;
   long: number;
   distanceFromInput: number;
   dataTypes: string;
+  county: string | null;
+  stateCode: string | null;
+  matchingParamCode: string[];
   csv_dl_link?: string;
   unit?: string | null;
   sample_df?: {
@@ -302,6 +306,10 @@ export async function usgsWaterSearch(
       lat: row["lat"],
       long: row["long"],
       dataTypes: "",
+      county: row["county"],
+      stateCode: row["statecode"],
+      siteId: '',
+      matchingParamCode: [],
     };
     result["summary"] = `This is a ${
       row["datatype"]
@@ -309,6 +317,19 @@ export async function usgsWaterSearch(
       row["lat"],
       4
     )}, ${round(row["long"], 4)}).`;
+    result['siteId'] = result['id'].slice(5)
+    const cleanedString = row["paramcodes"].slice(1, -1); 
+    const tupleStrings = cleanedString.split("), ("); // Split by "), ("
+
+    const tuples: [string, string][] = tupleStrings.map((tupleStr: string) => {
+        const cleanedTuple = tupleStr.replace(/[\(\)]/g, ""); // Remove any remaining parentheses
+        const [first, second] = cleanedTuple.split("', '").map(item => item.replace(/^'|'$/g, "").trim()); // Split and remove quotes
+        if (first.toLowerCase().includes(keyword.toLowerCase())) {
+          result['matchingParamCode'] = [first, second]
+        }
+        return [first, second];
+    });
+    
     try {
       const tuples =
         row["paramcodes"]
@@ -317,6 +338,7 @@ export async function usgsWaterSearch(
             const match = tupleStr.match(/\('(.*?)', '.*?'\)/);
             return match ? match[1] : "";
           }) || [];
+      // find unit
       const processedSegments = tuples.map((segment: string) => {
         const parts = segment.split(", ");
         if (parts.length > 1) {
@@ -342,6 +364,7 @@ export async function usgsWaterSearch(
     }
     data.push(result);
   });
+  console.log(data);
   return data;
 }
 
