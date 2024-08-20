@@ -164,7 +164,7 @@ export default function Home() {
                   filters.
                 </p> */}
                 <div className="absolute right-0 left-0 bottom-0 w-full bg-white py-4 flex justify-center items-center gap-4 border">
-                  <span>Not seeing the data you're looking for?</span>
+                  <span>Not seeing the data you&apos;re looking for?</span>
                   <OpenLinkButton />
                 </div>
               </>
