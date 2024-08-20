@@ -31,10 +31,7 @@ const SearchResultViewer = ({
   return (
     <>
       {dsSource == "USGS_WATER" ? (
-        <Tabs
-          aria-label="Default tabs"
-          ref={tabsRef}
-        >
+        <Tabs aria-label="Default tabs" ref={tabsRef}>
           <Tabs.Item active title="List" icon={FaList}>
             <ListSearchResultViewer
               primaryData={primaryData}
@@ -48,7 +45,10 @@ const SearchResultViewer = ({
             {dsSource == "USGS_WATER" && state.location ? (
               <PigeonMapViewer
                 data={primaryData as USGSWaterSearchResult[]}
-                location={[Number(state.location.lat), Number(state.location.lon)]}
+                location={[
+                  Number(state.location.lat),
+                  Number(state.location.lon),
+                ]}
                 startTime={startTime}
                 endTime={endTime}
               />

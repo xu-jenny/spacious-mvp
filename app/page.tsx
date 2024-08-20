@@ -1,7 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import "react-sliding-pane/dist/react-sliding-pane.css";
-import SearchButton, { search, USDatasetSource } from "@/components/index/SearchButton";
+import SearchButton, {
+  search,
+  USDatasetSource,
+} from "@/components/index/SearchButton";
 import SlidingPane from "react-sliding-pane";
 import { Spinner } from "flowbite-react";
 import { logTableInteraction } from "@/utils/supabaseLogger";
@@ -19,7 +22,7 @@ import logo from "../public/logo.jpeg";
 import { NCDEQWSSearchResult } from "./NCDEQWSSearch";
 import Image from "next/image";
 import LocationSearchBar from "@/components/index/LocationSearchBar";
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams } from "next/navigation";
 import { useStateContext } from "./StateContext";
 import { post } from "@/utils/http";
 import moment from "moment";
@@ -30,19 +33,21 @@ export type SearchResults =
   | USGSWaterSearchResult
   | NCDEQWSSearchResult;
 
-function sourceSearchParamToDatasetSource(source: string | null): USDatasetSource {
+function sourceSearchParamToDatasetSource(
+  source: string | null
+): USDatasetSource {
   if (source == null) {
-    return 'USGS_WATER';
+    return "USGS_WATER";
   }
   switch (source.toLowerCase()) {
     case "usgs_water":
-      return 'USGS_WATER';
+      return "USGS_WATER";
     case "pfas":
-      return 'PFAS';
+      return "PFAS";
     case "nc_deq_watersupply":
-      return 'NC_DEQ_WATERSUPPLY';
+      return "NC_DEQ_WATERSUPPLY";
     default:
-      return 'USGS_WATER';
+      return "USGS_WATER";
   }
 }
 
@@ -53,7 +58,9 @@ export default function Home() {
   const [loading, setLoading] = useState<boolean>(false);
   const [openPanel, setOpenPanel] = useState(false);
   const [currentds, setCurrentds] = useState<SearchResults | null>();
-  const [dsSource, setDsSource] = useState<USDatasetSource>(sourceSearchParamToDatasetSource(searchParams.get('source')));
+  const [dsSource, setDsSource] = useState<USDatasetSource>(
+    sourceSearchParamToDatasetSource(searchParams.get("source"))
+  );
 
   function setDatasetSelected(ds: SearchResults) {
     setCurrentds(ds);
@@ -69,17 +76,22 @@ export default function Home() {
   const [endDate, setEndDate] = useState<string>(now);
 
   useEffect(() => {
-    
     async function performSearch() {
-      const loc = {display_name: searchParams.get('loc')!, name: searchParams.get('loc')!, lat: 0.0, lon: 0.0, addresstype: "city"}
+      const loc = {
+        display_name: searchParams.get("loc")!,
+        name: searchParams.get("loc")!,
+        lat: 0.0,
+        lon: 0.0,
+        addresstype: "city",
+      };
       return await search(state.searchValue, loc, dsSource, startDate, endDate);
     }
     async function fetchData() {
-      if (state.searchValue != null && searchParams.get('loc') != null) {
+      if (state.searchValue != null && searchParams.get("loc") != null) {
         let result = await performSearch();
         setPrimary(result);
-        if (searchParams.get('id') != null) {
-          let ds = result?.filter(r => r.id == searchParams.get('id'))
+        if (searchParams.get("id") != null) {
+          let ds = result?.filter((r) => r.id == searchParams.get("id"));
           if (ds != undefined && ds.length > 0) {
             setCurrentds(ds[0]);
             setOpenPanel(true);
@@ -88,8 +100,8 @@ export default function Home() {
       }
     }
     fetchData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams],) // DO NOT MODIFY
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]); // DO NOT MODIFY
 
   return (
     <div className="grid grid-cols-6 h-[100vh]">
@@ -122,14 +134,10 @@ export default function Home() {
             />
           </div>
         )}
-        <div className="p-2 mt-auto">
-          <OpenLinkButton />
-        </div>
       </div>
-      <div className="col-span-5 flex h-[100vh]">
+      <div className="col-span-5 flex h-[100vh] relative">
         <div className="w-full bg-sky-50 overflow-auto p-2">
           <SearchButton
-
             setPrimaryData={setPrimary}
             dsSource={dsSource}
             setLoading={setLoading}
@@ -150,10 +158,16 @@ export default function Home() {
             />
           ) : (
             primaryData != null && (
-              <p>
-                There are no results matching your search, try removing some
-                filters or request data through the bottom banner
-              </p>
+              <>
+                {/* <p>
+                  There are no results matching your search, try removing some
+                  filters.
+                </p> */}
+                <div className="absolute right-0 left-0 bottom-0 w-full bg-white py-4 flex justify-center items-center gap-4 border">
+                  <span>Not seeing the data you&apos;re looking for?</span>
+                  <OpenLinkButton />
+                </div>
+              </>
             )
           )}
         </div>

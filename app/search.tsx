@@ -288,7 +288,10 @@ export async function usgsWaterSearch(
       keyword,
     }
   );
-  console.log(response);
+  if (!response || !response.rows) {
+    console.error("Unexpected response structure:", response);
+    return [];
+  }
   let rows = response.rows;
   if (rows == null || rows.length == 0) {
     return [];
@@ -308,7 +311,7 @@ export async function usgsWaterSearch(
       dataTypes: "",
       county: row["county"],
       stateCode: row["statecode"],
-      siteId: '',
+      siteId: "",
       matchingParamCode: [],
     };
     result["summary"] = `This is a ${
@@ -317,19 +320,21 @@ export async function usgsWaterSearch(
       row["lat"],
       4
     )}, ${round(row["long"], 4)}).`;
-    result['siteId'] = result['id'].slice(5)
-    const cleanedString = row["paramcodes"].slice(1, -1); 
+    result["siteId"] = result["id"].slice(5);
+    const cleanedString = row["paramcodes"].slice(1, -1);
     const tupleStrings = cleanedString.split("), ("); // Split by "), ("
 
     const tuples: [string, string][] = tupleStrings.map((tupleStr: string) => {
-        const cleanedTuple = tupleStr.replace(/[\(\)]/g, ""); // Remove any remaining parentheses
-        const [first, second] = cleanedTuple.split("', '").map(item => item.replace(/^'|'$/g, "").trim()); // Split and remove quotes
-        if (first.toLowerCase().includes(keyword.toLowerCase())) {
-          result['matchingParamCode'] = [first, second]
-        }
-        return [first, second];
+      const cleanedTuple = tupleStr.replace(/[\(\)]/g, ""); // Remove any remaining parentheses
+      const [first, second] = cleanedTuple
+        .split("', '")
+        .map((item) => item.replace(/^'|'$/g, "").trim()); // Split and remove quotes
+      if (first.toLowerCase().includes(keyword.toLowerCase())) {
+        result["matchingParamCode"] = [first, second];
+      }
+      return [first, second];
     });
-    
+
     try {
       const tuples =
         row["paramcodes"]
