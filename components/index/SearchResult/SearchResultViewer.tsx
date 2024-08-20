@@ -1,9 +1,9 @@
+import React, { useState, useEffect } from "react";
 import { SearchResults } from "@/app/page";
 import { USDatasetSource } from "../SearchButton";
-
 import { FaMapMarkedAlt } from "react-icons/fa";
-import { Spinner, Tabs, TabsRef } from "flowbite-react";
-import { useRef, useState } from "react";
+import { Tabs, TabsRef } from "flowbite-react";
+import { useRef } from "react";
 import { FaList } from "react-icons/fa";
 import ListSearchResultViewer from "@/components/index/ListSearchResultViewer";
 import PigeonMapViewer from "../PigeonMapViewer";
@@ -27,14 +27,18 @@ const SearchResultViewer = ({
 }: Props) => {
   const tabsRef = useRef<TabsRef>(null);
   const { state } = useStateContext();
+  const [showBanner, setShowBanner] = useState(false);
+
+  useEffect(() => {
+    if (primaryData.length > 0) {
+      setShowBanner(true);
+    }
+  }, [primaryData]);
 
   return (
     <>
-      {dsSource == "USGS_WATER" ? (
-        <Tabs
-          aria-label="Default tabs"
-          ref={tabsRef}
-        >
+      {dsSource === "USGS_WATER" ? (
+        <Tabs aria-label="Default tabs" ref={tabsRef}>
           <Tabs.Item active title="List" icon={FaList}>
             <ListSearchResultViewer
               primaryData={primaryData}
@@ -45,10 +49,13 @@ const SearchResultViewer = ({
             />
           </Tabs.Item>
           <Tabs.Item title="Map" icon={FaMapMarkedAlt}>
-            {dsSource == "USGS_WATER" && state.location ? (
+            {dsSource === "USGS_WATER" && state.location ? (
               <PigeonMapViewer
                 data={primaryData as USGSWaterSearchResult[]}
-                location={[Number(state.location.lat), Number(state.location.lon)]}
+                location={[
+                  Number(state.location.lat),
+                  Number(state.location.lon),
+                ]}
                 startTime={startTime}
                 endTime={endTime}
               />
@@ -67,6 +74,14 @@ const SearchResultViewer = ({
           startTime={startTime}
           endTime={endTime}
         />
+      )}
+
+      {/* Conditional rendering of the banner */}
+      {showBanner && (
+        <div className="fixed bottom-0 w-full bg-gray-200 text-center py-4">
+          Not seeing the data you're looking for?{" "}
+          <button className="text-blue-600">Request Data</button>
+        </div>
       )}
     </>
   );
