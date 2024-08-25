@@ -24,8 +24,6 @@ import Image from "next/image";
 import LocationSearchBar from "@/components/index/LocationSearchBar";
 import { useSearchParams } from "next/navigation";
 import { useStateContext } from "./StateContext";
-import { post } from "@/utils/http";
-import moment from "moment";
 
 export type SearchResults =
   | SearchResult
@@ -115,13 +113,13 @@ export default function Home() {
             className="object-contain w-full mt-5"
           />
         </div>
-        <div className="p-2 border-t ">
-          <h4 className="mt-1">Set Location</h4>
-          <LocationSearchBar />
-        </div>
-        <div className="p-2">
+        <div className="p-2 pb-4">
           <h4>Specify Data Source</h4>
           <DatasourceSelect dataSource={dsSource} setDataSource={setDsSource} />
+        </div>
+        <div className="p-2 border-t ">
+          <h4 className="mt-1">Set Location</h4>
+          <LocationSearchBar dsSource={dsSource} />
         </div>
         {dsSource == "USGS_WATER" && (
           <div className="p-2">

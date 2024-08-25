@@ -19,9 +19,9 @@ function PFASSearchResultCard({ dataset, index, setSelectedDataset }: Props) {
 	const longStringShortener = (str: string) =>
 		str != null && str.length > 300 ? `${str.substring(0, 300)}...` : str;
 
-        const showNodes = (nodes: PFASNodeResult[]) => {
-            return <p>We found {nodes.length} matches in this document</p>;
-        };
+	const showNodes = (nodes: PFASNodeResult[]) => {
+		return <p>We found {nodes.length} matches in this document</p>;
+	};
 
 	return (
 		<Card className="mt-3" onClick={() => logLinkClick(dataset, index)}>
@@ -31,20 +31,18 @@ function PFASSearchResultCard({ dataset, index, setSelectedDataset }: Props) {
 			>
 				{dataset.title}
 			</h6>
-			<p className="font-normal text-gray-700 dark:text-gray-400">
+			{dataset.summary != null && <p className="font-normal text-gray-700 dark:text-gray-400">
 				{longStringShortener(dataset.summary)}
-			</p>
-			<div className="flex align-middle items-center gap-2">
+			</p>}
+			{dataset.publisher != null && <div className="flex align-middle items-center gap-2">
 				{dataset?.publisher != null &&
 					dataset?.publisher.length > 1 &&
 					`${dataset?.publisher} | `}
-			</div>
-			<div>
-				{"nodes" in dataset &&
-					dataset["nodes"].length > 0 &&
-					showNodes(dataset.nodes)}
-			</div>
-			</Card>
+			</div>}
+			{dataset.nodes != null && "nodes" in dataset &&
+				dataset["nodes"].length > 0 &&
+				showNodes(dataset.nodes)}
+		</Card>
 	);
 }
 

@@ -157,12 +157,12 @@ async function queryPFASDocs(
 export type PFASSearchResult = {
   title: string;
   id: string;
-  summary: string;
-  publisher: string;
-  context_summary: string;
-  originalUrl: string;
-  nodes: PFASNodeResult[];
+  nodes?: PFASNodeResult[];
   firstPublished?: string | null;
+  summary?: string;
+  publisher?: string;
+  context_summary?: string;
+  originalUrl: string;
   lastUpdated?: string | null;
 };
 
@@ -224,7 +224,14 @@ async function queryPFASNodes(
   return response;
 }
 
-export async function pfasSearch(query: string): Promise<PFASSearchResult[]> {
+// export async function laserficheSearch(query: string, location: string):Promise<PFASSearchResult[]> {
+//   // create embedding
+
+//   // map result to PFASSearchResult object
+// }
+
+export async function pfasSearch(query: string, location: string): Promise<PFASSearchResult[]> {
+  // create embedding
   let embedding = await createGTEEmbedding(query.toLowerCase());
   if (embedding == null) return [];
   let embeddingArr = Array.from(embedding);
@@ -377,12 +384,9 @@ export async function searchbarSearch(
   primaryTag: string,
   location: string,
   dsSource: USDatasetSource | null
-): Promise<SearchResult[] | PFASSearchResult[] | USGSWaterSearchResult[]> {
+): Promise<SearchResult[] | USGSWaterSearchResult[]> {
   if (primaryTag.toLowerCase() === "all") {
     return getDatasetsInLocation(location, dsSource);
-  }
-  if (dsSource == "PFAS") {
-    return pfasSearch(primaryTag);
   }
   let filteredData = await semanticFilter(primaryTag, location, dsSource);
   if (filteredData == null) {

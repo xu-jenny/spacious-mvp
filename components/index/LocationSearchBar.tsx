@@ -23,7 +23,7 @@ const isLatLong = (str: string) => {
   return latLongRegex.test(str);
 };
 
-export const LocationSearchBar = () => {
+export const LocationSearchBar = ({ dsSource }: { dsSource: USDatasetSource}) => {
   const searchParams = useSearchParams();
   const urlLocation = searchParams.get('location') || searchParams.get('loc')
   const { state, dispatch } = useStateContext();
@@ -33,7 +33,7 @@ export const LocationSearchBar = () => {
   const [isSelecting, setIsSelecting] = useState<boolean>(false);
 
   useEffect(() => {
-    if (!isSelecting) {
+    if (!isSelecting && dsSource != 'PFAS') {
       const timeoutId = setTimeout(() => {
         // console.log("debounced location val", inputValue);
         if (inputValue.length > 2 && !isLatLong(inputValue)) {
@@ -44,6 +44,11 @@ export const LocationSearchBar = () => {
       }, 500);
 
       return () => clearTimeout(timeoutId);
+    } else if (dsSource == 'PFAS'){
+      const timeoutId = setTimeout(() => {
+        dispatch({ type: 'updateLocation', payload: {lat: 0.0, lon: 0.0, name: inputValue, display_name: inputValue, addresstype: 'string'}} );
+      }, 500);
+      return () => clearTimeout(timeoutId);
     }
   }, [inputValue, isSelecting]);
 
@@ -52,201 +57,9 @@ export const LocationSearchBar = () => {
       if (!isLatLong(query)) {
         const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&countrycodes=us`);
         const data: LocationType[] = await response.json();
-        /*const data = [
-          {
-              "place_id": 15432503,
-              "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
-              "osm_type": "way",
-              "osm_id": 743825610,
-              "lat": "40.7484265",
-              "lon": "-73.8763771",
-              "class": "highway",
-              "type": "secondary",
-              "place_rank": 26,
-              "importance": 0.26929955508049125,
-              "addresstype": "road",
-              "name": "Roosevelt Avenue",
-              "display_name": "Roosevelt Avenue, Queens County, NY",
-              "boundingbox": [
-                  "40.7484160",
-                  "40.7484390",
-                  "-73.8764800",
-                  "-73.8762520"
-              ]
-          },
-          {
-              "place_id": 15425362,
-              "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
-              "osm_type": "way",
-              "osm_id": 198924640,
-              "lat": "40.746471",
-              "lon": "-73.8950324",
-              "class": "highway",
-              "type": "secondary",
-              "place_rank": 26,
-              "importance": 0.26929955508049125,
-              "addresstype": "road",
-              "name": "Roosevelt Avenue",
-              "display_name": "Roosevelt Avenue, Queens County, NY",
-              "boundingbox": [
-                  "40.7464280",
-                  "40.7464710",
-                  "-73.8954210",
-                  "-73.8950324"
-              ]
-          },
-          {
-              "place_id": 15587202,
-              "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
-              "osm_type": "way",
-              "osm_id": 46869112,
-              "lat": "40.760078",
-              "lon": "-73.8280896",
-              "class": "highway",
-              "type": "tertiary",
-              "place_rank": 26,
-              "importance": 0.26929955508049125,
-              "addresstype": "road",
-              "name": "Roosevelt Avenue",
-              "display_name": "Roosevelt Avenue, Flushing Chinatown, Queens County, NY",
-              "boundingbox": [
-                  "40.7595609",
-                  "40.7604640",
-                  "-73.8301360",
-                  "-73.8265410"
-              ]
-          },
-          {
-              "place_id": 395732664,
-              "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
-              "osm_type": "way",
-              "osm_id": 1301675428,
-              "lat": "40.7580967",
-              "lon": "-73.8343208",
-              "class": "highway",
-              "type": "secondary",
-              "place_rank": 26,
-              "importance": 0.26929955508049125,
-              "addresstype": "road",
-              "name": "Roosevelt Avenue",
-              "display_name": "Roosevelt Avenue, Flushing Chinatown, Queens County, NY",
-              "boundingbox": [
-                  "40.7580967",
-                  "40.7581351",
-                  "-73.8343208",
-                  "-73.8342026"
-              ]
-          },
-          {
-              "place_id": 15488826,
-              "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
-              "osm_type": "way",
-              "osm_id": 730891312,
-              "lat": "40.7532491",
-              "lon": "-73.8502095",
-              "class": "highway",
-              "type": "secondary",
-              "place_rank": 26,
-              "importance": 0.26929955508049125,
-              "addresstype": "road",
-              "name": "Roosevelt Avenue",
-              "display_name": "Roosevelt Avenue, Queens County, NY",
-              "boundingbox": [
-                  "40.7532491",
-                  "40.7533024",
-                  "-73.8502095",
-                  "-73.8500292"
-              ]
-          },
-          {
-              "place_id": 15521649,
-              "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
-              "osm_type": "way",
-              "osm_id": 248548566,
-              "lat": "40.7565446",
-              "lon": "-73.8398191",
-              "class": "highway",
-              "type": "secondary",
-              "place_rank": 26,
-              "importance": 0.26929955508049125,
-              "addresstype": "road",
-              "name": "Roosevelt Avenue",
-              "display_name": "Roosevelt Avenue, Flushing Chinatown, Queens County, NY",
-              "boundingbox": [
-                  "40.7565446",
-                  "40.7571999",
-                  "-73.8398191",
-                  "-73.8382131"
-              ]
-          },
-          {
-              "place_id": 15549945,
-              "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
-              "osm_type": "way",
-              "osm_id": 821193575,
-              "lat": "40.7565446",
-              "lon": "-73.8398191",
-              "class": "highway",
-              "type": "secondary",
-              "place_rank": 26,
-              "importance": 0.26929955508049125,
-              "addresstype": "road",
-              "name": "Roosevelt Avenue",
-              "display_name": "Roosevelt Avenue, Queens County, NY",
-              "boundingbox": [
-                  "40.7558774",
-                  "40.7565446",
-                  "-73.8414435",
-                  "-73.8398191"
-              ]
-          },
-          {
-              "place_id": 15583631,
-              "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
-              "osm_type": "way",
-              "osm_id": 198595511,
-              "lat": "40.7516042",
-              "lon": "-73.8557528",
-              "class": "highway",
-              "type": "secondary",
-              "place_rank": 26,
-              "importance": 0.26929955508049125,
-              "addresstype": "road",
-              "name": "Roosevelt Avenue",
-              "display_name": "Roosevelt Avenue, Corona, Queens County, NY",
-              "boundingbox": [
-                  "40.7507153",
-                  "40.7525395",
-                  "-73.8587531",
-                  "-73.8525866"
-              ]
-          },
-          {
-              "place_id": 15267615,
-              "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
-              "osm_type": "way",
-              "osm_id": 5705042,
-              "lat": "40.7430424",
-              "lon": "-73.916215",
-              "class": "highway",
-              "type": "secondary",
-              "place_rank": 26,
-              "importance": 0.26929955508049125,
-              "addresstype": "road",
-              "name": "Roosevelt Avenue",
-              "display_name": "Roosevelt Avenue, Sunnyside Gardens, Queens County, NY",
-              "boundingbox": [
-                  "40.7430424",
-                  "40.7431379",
-                  "-73.9162150",
-                  "-73.9158551"
-              ]
-          }
-      ]*/
         console.log("fetched location suggestions", data)
         data.forEach((d) => {
           d.display_name = cleanAddress(d.display_name);
-          // console.log(d.display_name)
         });
         setLocationList(data.slice(0, Math.min(data.length, 5)));
         setShowDropdown(true);
@@ -258,13 +71,15 @@ export const LocationSearchBar = () => {
 
   const onInputChange = (value: string) => {
     setInputValue(value);
-    setIsSelecting(false);
-    if (isLatLong(value)) {
-      const [lat, lng] = value
-        .split(",")
-        .map((coord) => parseFloat(coord.trim()));
-      dispatch({ type: 'updateLocation', payload: { lat, lon: lng, name: '', display_name: '', addresstype: 'coordinate' } });
-    }
+    if (dsSource != 'PFAS'){
+      setIsSelecting(false);
+      if (isLatLong(value)) {
+        const [lat, lng] = value
+          .split(",")
+          .map((coord) => parseFloat(coord.trim()));
+        dispatch({ type: 'updateLocation', payload: { lat, lon: lng, name: '', display_name: '', addresstype: 'coordinate' } });
+      }
+    } 
   };
 
   const onSelectLocation = (location: LocationType) => {

@@ -1,5 +1,5 @@
 import { logTableInteraction } from "@/utils/supabaseLogger";
-import { searchbarSearch, usgsWaterSearch } from "@/app/search";
+import { pfasSearch, searchbarSearch, usgsWaterSearch } from "@/app/search";
 import { NCDEQWSSearch } from "@/app/NCDEQWSSearch";
 import Input from "../common/Input";
 import { LocationType, useStateContext } from "@/app/StateContext";
@@ -23,6 +23,7 @@ type Props = {
   endTime?: string
 };
 export async function search(value: string, location: LocationType, dsSource: USDatasetSource | null, startTime?: string, endTime?: string){
+  console.log(value, location)
   switch (dsSource){
     case 'USGS_WATER':
       // TODO: we should handle these input cases being null in front end
@@ -32,6 +33,10 @@ export async function search(value: string, location: LocationType, dsSource: US
     case 'NC_DEQ_WATERSUPPLY':
       if (location != null){
         return await NCDEQWSSearch(value, location.name)
+      }
+    case 'PFAS':
+      if (location != null){
+        return pfasSearch(value, location.name);
       }
     default:
       return await searchbarSearch(value, location.name, dsSource);
