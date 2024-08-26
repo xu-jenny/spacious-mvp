@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { logTableInteraction } from "@/utils/supabaseLogger";
-import { PFASSearchResult } from "@/app/search";
+import { LaserficheSearchResult, PFASSearchResult } from "@/app/search";
 
 import { Document, Page, pdfjs } from "react-pdf";
 
@@ -12,34 +12,42 @@ interface PdfViewerProps {
   pagesToJump: number[];
 }
 
-export const PDFViewer: React.FC<PdfViewerProps> = ({ fileUrl, pagesToJump }) => {
+
+export const PDFPanelViewer: React.FC<PdfViewerProps> = ({ fileUrl, pagesToJump }) => {
   const [numPages, setNumPages] = useState<number | null>(null);
+  const [fileData, setFileData] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
   };
 
-  // useEffect(() => {
-  //   if (typeof window !== 'undefined') {
-  //     pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  //       'pdfjs-dist/build/pdf.worker.min.mjs',
-  //       import.meta.url,
-  //     ).toString();      
-  //   }
-  // }, []);
-
   const handleJumpToPage = (page: number) => {
     if (numPages && page >= 1 && page <= numPages) {
       const pageElement = document.getElementById(`page_${page}`);
       if (pageElement && containerRef.current) {
         containerRef.current.scrollTo({
-          top: pageElement.offsetTop,
+          top: pageElement.offsetTop - 200,
           behavior: 'smooth',
         });
       }
     }
   };
+
+  useEffect(() => {
+    const fetchPDF = async () => {
+      try {
+        const response = await fetch(fileUrl);
+        const blob = await response.blob();
+        const objectURL = URL.createObjectURL(blob);
+        setFileData(objectURL);
+      } catch (error) {
+        console.error('Error fetching the PDF:', error);
+      }
+    };
+
+    fetchPDF();
+  }, [fileUrl]);
 
   return (
     <div>
@@ -59,7 +67,7 @@ export const PDFViewer: React.FC<PdfViewerProps> = ({ fileUrl, pagesToJump }) =>
           border: '1px solid #ccc',
         }}
       >
-        <Document
+        {fileData && <Document
           file={fileUrl}
           onLoadSuccess={onDocumentLoadSuccess}
         >
@@ -69,18 +77,18 @@ export const PDFViewer: React.FC<PdfViewerProps> = ({ fileUrl, pagesToJump }) =>
                 <Page pageNumber={index + 1} renderTextLayer={false} className="ml-auto mr-auto" />
               </div>
             ))}
-        </Document>
+        </Document>}
       </div>
     </div>
   );
 };
 
 type Props = {
-  dataset: PFASSearchResult;
+  dataset: LaserficheSearchResult;
   pages: number[]
 };
 
-const PFASDatasetPanel = ({ dataset, pages = [6, 12, 30, 44, 66, 86, 95, 112, 129, 131] }: Props) => {
+const PFASDatasetPanel = ({ dataset, pages = [] }: Props) => {
   const displaySummary = (summary: string) => {
     const sentences = summary.match(/[^\.!\?]+[\.!\?]+/g);
     if (!sentences || sentences.length <= 4) {
@@ -89,7 +97,7 @@ const PFASDatasetPanel = ({ dataset, pages = [6, 12, 30, 44, 66, 86, 95, 112, 12
     return sentences.slice(0, 4).join(" ");
   };
 
-  const pdfUrl = "/NCS000050_MONITORING INFO_20181028.pdf"
+  const pdfUrl = `https://sp-mvp.s3.us-east-2.amazonaws.com/laserfiche/${dataset.id}.pdf`
 
   return (
     <div className="flex h-[100vh]">
@@ -115,11 +123,11 @@ const PFASDatasetPanel = ({ dataset, pages = [6, 12, 30, 44, 66, 86, 95, 112, 12
               Download PDF
             </Link>
           )}
-          {dataset?.summary != null && <p>Summary: {displaySummary(dataset?.summary)}</p>}
+          {/* {dataset?.summary != null && <p>Summary: {displaySummary(dataset?.summary)}</p>}
           {dataset?.lastUpdated != null && (
             <p>Last updated: {dataset?.lastUpdated}</p>
-          )}
-          <PDFViewer fileUrl={pdfUrl} pagesToJump={pages} />
+          )} */}
+          <PDFPanelViewer fileUrl={"/NCS000050_MONITORING INFO_20181028.pdf"} pagesToJump={pages} />
         </article>
       </div>
     </div>

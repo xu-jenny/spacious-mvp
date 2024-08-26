@@ -2,6 +2,7 @@
 const nextConfig = {
   webpack: (config, { isServer }) => {
     // See https://webpack.js.org/configuration/resolve/#resolvealias
+    config.resolve.alias.canvas = false,
     config.resolve.alias = {
       ...config.resolve.alias,
       sharp$: false,

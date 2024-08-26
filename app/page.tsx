@@ -10,6 +10,7 @@ import { Spinner } from "flowbite-react";
 import { logTableInteraction } from "@/utils/supabaseLogger";
 import DatasourceSelect from "@/components/index/DatasourceSelect";
 import {
+  LaserficheSearchResult,
   PFASSearchResult,
   SearchResult,
   USGSWaterSearchResult,
@@ -21,15 +22,18 @@ import DatasetPanel from "@/components/index/DatasetPane/DatasetPanel";
 import logo from "../public/logo.jpeg";
 import { NCDEQWSSearchResult } from "./NCDEQWSSearch";
 import Image from "next/image";
-import LocationSearchBar from "@/components/index/LocationSearchBar";
+import LocationSearchBar, { LaserficheLocationBar } from "@/components/index/LocationSearchBar";
 import { useSearchParams } from "next/navigation";
 import { useStateContext } from "./StateContext";
+import { pdfjs } from 'react-pdf';
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 export type SearchResults =
   | SearchResult
   | PFASSearchResult
   | USGSWaterSearchResult
-  | NCDEQWSSearchResult;
+  | NCDEQWSSearchResult
+  | LaserficheSearchResult;
 
 function sourceSearchParamToDatasetSource(
   source: string | null
@@ -51,7 +55,7 @@ function sourceSearchParamToDatasetSource(
 
 export default function Home() {
   const searchParams = useSearchParams();
-  const { state, dispatch } = useStateContext();
+  const { state } = useStateContext();
   const [primaryData, setPrimary] = useState<SearchResults[] | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [openPanel, setOpenPanel] = useState(false);
@@ -119,7 +123,7 @@ export default function Home() {
         </div>
         <div className="p-2 border-t ">
           <h4 className="mt-1">Set Location</h4>
-          <LocationSearchBar dsSource={dsSource} />
+          {dsSource == 'PFAS' ? <LaserficheLocationBar /> : <LocationSearchBar />}
         </div>
         {dsSource == "USGS_WATER" && (
           <div className="p-2">
@@ -157,10 +161,6 @@ export default function Home() {
           ) : (
             primaryData != null && (
               <>
-                {/* <p>
-                  There are no results matching your search, try removing some
-                  filters.
-                </p> */}
                 <div className="absolute right-0 left-0 bottom-0 w-full bg-white py-4 flex justify-center items-center gap-4 border">
                   <span>Not seeing the data you&apos;re looking for?</span>
                   <OpenLinkButton />

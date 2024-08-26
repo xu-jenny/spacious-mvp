@@ -1,5 +1,5 @@
 import { logTableInteraction } from "@/utils/supabaseLogger";
-import { pfasSearch, searchbarSearch, usgsWaterSearch } from "@/app/search";
+import { laserficheSearch, searchbarSearch, usgsWaterSearch } from "@/app/search";
 import { NCDEQWSSearch } from "@/app/NCDEQWSSearch";
 import Input from "../common/Input";
 import { LocationType, useStateContext } from "@/app/StateContext";
@@ -22,12 +22,11 @@ type Props = {
   startTime?: string
   endTime?: string
 };
-export async function search(value: string, location: LocationType, dsSource: USDatasetSource | null, startTime?: string, endTime?: string){
-  console.log(value, location)
+export async function search(value: string, location: LocationType | null, dsSource: USDatasetSource | null, startTime?: string, endTime?: string){
   switch (dsSource){
     case 'USGS_WATER':
       // TODO: we should handle these input cases being null in front end
-      if (startTime != null && endTime != null){
+      if (startTime != null && endTime != null && location != null){ // TODO: handle this in UI
         return await usgsWaterSearch(value, `${location.lat},${location.lon}`, startTime, endTime);    
       }
     case 'NC_DEQ_WATERSUPPLY':
@@ -35,11 +34,11 @@ export async function search(value: string, location: LocationType, dsSource: US
         return await NCDEQWSSearch(value, location.name)
       }
     case 'PFAS':
-      if (location != null){
-        return pfasSearch(value, location.name);
-      }
+      const loc = location?.name ?? "ncs000050";
+      console.log(loc, location?.name)
+      return laserficheSearch(value, loc);
     default:
-      return await searchbarSearch(value, location.name, dsSource);
+      return await searchbarSearch(value, location?.name ?? "", dsSource);
     }
 }
 
@@ -54,7 +53,7 @@ const SearchButton = ({
   const [searchValue, setSearchValue] = useState<string>(state.searchValue);
 
   const onSubmit = async (value: string) => {
-    if (value && value.length > 2 && state.location != null) { // TODO: show error message for invalid input
+    if (value && value.length > 2) { // TODO: show error message for invalid input
       setLoading(true);
       let primaryData = await search(value, state.location, dsSource, startTime, endTime);
       setPrimaryData(primaryData ?? []);

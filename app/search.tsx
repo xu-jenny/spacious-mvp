@@ -224,11 +224,40 @@ async function queryPFASNodes(
   return response;
 }
 
-// export async function laserficheSearch(query: string, location: string):Promise<PFASSearchResult[]> {
-//   // create embedding
+export type LaserficheSearchResult = {
+  title: string;
+  id: string;
+  nodes: number[];
+  score: number;
+};
 
-//   // map result to PFASSearchResult object
-// }
+
+export async function laserficheSearch(query: string, location: string): Promise<LaserficheSearchResult[]> {
+  console.log("laserficheSearch", query, location)
+  let response = await post(
+    `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/laserfiche`,
+    {
+      query: query, location: location
+    }
+  );
+  if (response == null){
+    return [];
+  }
+  const doc_results = JSON.parse(response)['doc_results']
+  const node_results = JSON.parse(response)['node_results']
+  let results: LaserficheSearchResult[] = [];
+  console.log(node_results["NCS000050_Permit_Issuance_20230524"])
+  for (const [key, value] of Object.entries(doc_results)) {
+    console.log(`${key}: ${value}`);
+    results.push({
+      title: key,
+      id: key,
+      score: value as number,
+      nodes: node_results[key],
+    })
+  }
+  return results.sort((a,b) => b.score - a.score);;
+}
 
 export async function pfasSearch(query: string, location: string): Promise<PFASSearchResult[]> {
   // create embedding
@@ -268,6 +297,7 @@ export async function pfasSearch(query: string, location: string): Promise<PFASS
   });
   if (results != null && results.length > 0) {
     // sort by nodes length
+    // @ts-ignore
     results.sort((a, b) => b.nodes.length - a.nodes.length);
     return results;
   }
@@ -321,17 +351,16 @@ export async function usgsWaterSearch(
       siteId: "",
       matchingParamCode: [],
     };
-    result["summary"] = `This is a ${
-      row["datatype"]
-    } Station, it's located at ${row["locationname"]} (${round(
-      row["lat"],
-      4
-    )}, ${round(row["long"], 4)}).`;
+    result["summary"] = `This is a ${row["datatype"]
+      } Station, it's located at ${row["locationname"]} (${round(
+        row["lat"],
+        4
+      )}, ${round(row["long"], 4)}).`;
     result["siteId"] = result["id"].slice(5);
     const cleanedString = row["paramcodes"].slice(1, -1);
     const tupleStrings = cleanedString.split("), ("); // Split by "), ("
 
-    const tuples: [string, string][] = tupleStrings.map((tupleStr: string) => {
+    tupleStrings.map((tupleStr: string) => {
       const cleanedTuple = tupleStr.replace(/[\(\)]/g, ""); // Remove any remaining parentheses
       const [first, second] = cleanedTuple
         .split("', '")

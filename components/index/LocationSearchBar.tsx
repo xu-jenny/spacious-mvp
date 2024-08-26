@@ -1,21 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { USDatasetSource } from "@/components/index/SearchButton";
 import { LocationType, useStateContext } from "@/app/StateContext";
 import { useSearchParams } from "next/navigation";
 import { cleanAddress } from "./addressUtil";
 
-type Props = {
-  placeholder?: string;
-  className?: string;
-  // invokeLocUpdateDispatch:(val: string) => void;
-  dsSource: USDatasetSource;
-};
-
-// const [value, setValue] = useState<string>(state.location.display_name);
-// TODO: we need to lift dispatch coordinates to parent, so search bar can invoke it if it's submitted
-// if (!loading && coordinates) {
-//   dispatch({ type: "updateLocation", payload: coordinates });
-// }
+import TextField from '@mui/material/TextField';
+import Autocomplete from '@mui/material/Autocomplete';
 
 const isLatLong = (str: string) => {
   const latLongRegex =
@@ -23,7 +12,7 @@ const isLatLong = (str: string) => {
   return latLongRegex.test(str);
 };
 
-export const LocationSearchBar = ({ dsSource }: { dsSource: USDatasetSource}) => {
+export const LocationSearchBar = () => {
   const searchParams = useSearchParams();
   const urlLocation = searchParams.get('location') || searchParams.get('loc')
   const { state, dispatch } = useStateContext();
@@ -33,7 +22,7 @@ export const LocationSearchBar = ({ dsSource }: { dsSource: USDatasetSource}) =>
   const [isSelecting, setIsSelecting] = useState<boolean>(false);
 
   useEffect(() => {
-    if (!isSelecting && dsSource != 'PFAS') {
+    if (!isSelecting) {
       const timeoutId = setTimeout(() => {
         // console.log("debounced location val", inputValue);
         if (inputValue.length > 2 && !isLatLong(inputValue)) {
@@ -43,11 +32,6 @@ export const LocationSearchBar = ({ dsSource }: { dsSource: USDatasetSource}) =>
         }
       }, 500);
 
-      return () => clearTimeout(timeoutId);
-    } else if (dsSource == 'PFAS'){
-      const timeoutId = setTimeout(() => {
-        dispatch({ type: 'updateLocation', payload: {lat: 0.0, lon: 0.0, name: inputValue, display_name: inputValue, addresstype: 'string'}} );
-      }, 500);
       return () => clearTimeout(timeoutId);
     }
   }, [inputValue, isSelecting]);
@@ -71,15 +55,13 @@ export const LocationSearchBar = ({ dsSource }: { dsSource: USDatasetSource}) =>
 
   const onInputChange = (value: string) => {
     setInputValue(value);
-    if (dsSource != 'PFAS'){
-      setIsSelecting(false);
-      if (isLatLong(value)) {
-        const [lat, lng] = value
-          .split(",")
-          .map((coord) => parseFloat(coord.trim()));
-        dispatch({ type: 'updateLocation', payload: { lat, lon: lng, name: '', display_name: '', addresstype: 'coordinate' } });
-      }
-    } 
+    setIsSelecting(false);
+    if (isLatLong(value)) {
+      const [lat, lng] = value
+        .split(",")
+        .map((coord) => parseFloat(coord.trim()));
+      dispatch({ type: 'updateLocation', payload: { lat, lon: lng, name: '', display_name: '', addresstype: 'coordinate' } });
+    }
   };
 
   const onSelectLocation = (location: LocationType) => {
@@ -113,6 +95,35 @@ export const LocationSearchBar = ({ dsSource }: { dsSource: USDatasetSource}) =>
     )}
 
   </>)
+}
+
+
+export const LaserficheLocationBar = () => {
+  const { dispatch } = useStateContext();
+  const options = ['NCS000050', 'NCG080886', 'NCG240012', 'WI0500447', 'NCG060230'];
+  const [value, setValue] = React.useState<string | null>(options[0]);
+  const [inputValue, setInputValue] = React.useState('');
+
+  return (
+    <div>
+      <Autocomplete
+        value={value}
+        onChange={(event: any, newValue: string | null) => {
+          setValue(newValue);
+          if (newValue != null){
+            dispatch({ type: 'updateLocation', payload: { lat: 0.0, lon: 0.0, name: newValue, display_name: newValue, addresstype: 'string' } });
+          }
+        }}
+        inputValue={inputValue}
+        onInputChange={(event, newInputValue) => {
+          setInputValue(newInputValue);
+        }}
+        id="location-bar"
+        options={options}
+        renderInput={(params) => <TextField {...params} />}
+      />
+    </div>
+  );
 }
 
 // const LocationSearchBar: React.FC<Props> = ({
