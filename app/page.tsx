@@ -22,11 +22,14 @@ import DatasetPanel from "@/components/index/DatasetPane/DatasetPanel";
 import logo from "../public/logo.jpeg";
 import { NCDEQWSSearchResult } from "./NCDEQWSSearch";
 import Image from "next/image";
-import LocationSearchBar, { LaserficheLocationBar } from "@/components/index/LocationSearchBar";
+import LocationSearchBar, {
+  LaserficheLocationBar,
+} from "@/components/index/LocationSearchBar";
 import { useSearchParams } from "next/navigation";
 import { useStateContext } from "./StateContext";
-import { pdfjs } from 'react-pdf';
+import { pdfjs } from "react-pdf";
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+import LocationInfo from "@/components/index/LocationInfo";
 
 export type SearchResults =
   | SearchResult
@@ -107,6 +110,7 @@ export default function Home() {
 
   return (
     <div className="grid grid-cols-6 h-[100vh]">
+      {/* sider */}
       <div className="col-span-1 white prose flex flex-col h-full border-r border-gray-300">
         <div className="p-2">
           <Image
@@ -117,13 +121,19 @@ export default function Home() {
             className="object-contain w-full mt-5"
           />
         </div>
-        <div className="p-2 pb-4">
+        <div className="p-2">
           <h4>Specify Data Source</h4>
           <DatasourceSelect dataSource={dsSource} setDataSource={setDsSource} />
         </div>
+
         <div className="p-2 border-t ">
           <h4 className="mt-1">Set Location</h4>
-          {dsSource == 'PFAS' ? <LaserficheLocationBar /> : <LocationSearchBar />}
+
+          {dsSource == "PFAS" ? (
+            <LaserficheLocationBar />
+          ) : (
+            <LocationSearchBar />
+          )}
         </div>
         {dsSource == "USGS_WATER" && (
           <div className="p-2">
@@ -137,6 +147,8 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      {/* content */}
       <div className="col-span-5 flex h-[100vh] relative">
         <div className="w-full bg-sky-50 overflow-auto p-2">
           <SearchButton
