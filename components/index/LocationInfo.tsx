@@ -34,12 +34,14 @@ const LocationInfo: React.FC<LocationInfoProps> = ({
     <Popover
       aria-labelledby="location-info-popover"
       placement="right"
+      trigger="hover"
+      arrow={false}
       content={
         <div className="w-64 text-sm text-gray-500 dark:text-gray-400">
-          <div className="border-b border-gray-200 bg-gray-100 px-3 py-2 dark:border-gray-600 dark:bg-gray-700">
+          <div className="border-b rounded-md border-gray-200 bg-blue-700 px-3 py-2 dark:border-gray-600 dark:bg-gray-700">
             <h3
               id="location-info-popover"
-              className="font-medium text-gray-900 dark:text-white text-base"
+              className="font-medium text-white dark:text-white text-base"
             >
               {locationName}
             </h3>
