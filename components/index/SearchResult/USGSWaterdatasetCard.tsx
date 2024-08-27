@@ -82,9 +82,10 @@ function USGSWaterDatasetCard({
 	const longStringShortener = (str: string) =>
 		str != null && str.length > 300 ? `${str.substring(0, 300)}...` : str;
 
-	const handleDownload = async () => {
+	const handleDownload = async (isDailySum = false) => {
+		const endpoint = isDailySum ? "usgs_water_dailysum_csv" : "usgs_water_csv"
 		const response = await fetch(
-			`${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/usgs_water_csv/?siteId=${dataset.siteId}&paramCode=${dataset.matchingParamCode[1]}&startTime=${startTime}&endTime=${endTime}`
+			`${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/${endpoint}/?siteId=${dataset.siteId}&paramCode=${dataset.matchingParamCode[1]}&startTime=${startTime}&endTime=${endTime}`
 		);
 		const blob = await response.blob();
 		const url = window.URL.createObjectURL(blob);
@@ -127,7 +128,15 @@ function USGSWaterDatasetCard({
 					</FlowTooltip>
 					<FlowTooltip content={`Download CSV for ${dataset.matchingParamCode[0]}`}>
 						<MdOutlineFileDownload
-							onClick={handleDownload}
+							onClick={() => handleDownload(false)}
+							className="text-emerald-400 cursor-pointer mx-1"
+							size={30}
+						/>
+					</FlowTooltip>
+					<FlowTooltip content={`Download Daily Sums CSV for ${dataset.matchingParamCode[0]}`}>
+						<MdOutlineFileDownload
+							color="blue"
+							onClick={() => handleDownload(true)}
 							className="text-emerald-400 cursor-pointer mx-1"
 							size={30}
 						/>
