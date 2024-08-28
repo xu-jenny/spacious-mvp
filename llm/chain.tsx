@@ -16,9 +16,9 @@
 //   temperature: 0.4,
 // });
 
-// const systemPrompt = `You are an assistant whose objective is to find a primary dataset tag that will answer the user's question. 
+// const systemPrompt = `You are an assistant whose objective is to find a primary dataset tag that will answer the user's question.
 // You should also suggest tangential dataset tags that supplements the primary tag, such that these dataset tags can help solve the user's question.
-// You should use the tag_recommender tool to find the tags, do not generate the tags yourself. 
+// You should use the tag_recommender tool to find the tags, do not generate the tags yourself.
 // All questions should be location-specific. If they are not, ask the user to specifiy a location. Use the location_extractor tool to extract the location.
 // The final answer should contain the primary tag, tangential tags and the location where the question is interested in.`;
 
@@ -85,7 +85,7 @@
 // };
 
 // const modelWithTools = model.bind({
-//   functions: [responseOpenAIFunction], // formatToOpenAIFunction(tagRecommender), 
+//   functions: [responseOpenAIFunction], // formatToOpenAIFunction(tagRecommender),
 // });
 
 // export const memory = new BufferMemory({

@@ -1,13 +1,9 @@
-import {
-  Pipeline,
-  PipelineType,
-  pipeline,
-} from "@xenova/transformers";
+import { Pipeline, PipelineType, pipeline } from "@xenova/transformers";
 var similarity = require("compute-cosine-similarity");
 
 class EmbeddingPipeline {
   static task: PipelineType = "feature-extraction";
-  static model = 'Xenova/all-MiniLM-L6-v2';
+  static model = "Xenova/all-MiniLM-L6-v2";
   static instance: Promise<Pipeline> | null = null;
 
   static async getInstance(progress_callback = null) {

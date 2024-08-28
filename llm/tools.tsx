@@ -72,7 +72,6 @@
 //   return locations;
 // }
 
-
 // async function recommendTag(query: string): Promise<string> {
 //     let tags = await relevantTagsWithoutParsing(query);
 //     if(tags == null){
@@ -93,4 +92,3 @@
 //       "Generate a primary tag that directly relates to a question and tangential tags that supplement the primary tag.",
 //     func: recommendTag,
 //   })
-

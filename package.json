@@ -38,6 +38,7 @@
     "node-fetch": "^3.3.2",
     "openai": "^4.19.1",
     "pigeon-maps": "^0.21.6",
+    "prettier": "^3.3.3",
     "python-shell": "^5.0.0",
     "react": "^18",
     "react-dom": "^18",

@@ -9,8 +9,8 @@ export const s3 = new S3Client({
   region: "us-east-2", // Replace with your S3 bucket region
   credentials: {
     accessKeyId: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY || "", // Replace with your access key
-    secretAccessKey: process.env.NEXT_PUBLIC_AWS_SECRET_KEY || "" // Replace with your secret key
-  }
+    secretAccessKey: process.env.NEXT_PUBLIC_AWS_SECRET_KEY || "", // Replace with your secret key
+  },
 });
 
 // export async function downloadFile(bucketName: string, key: string, downloadFilename: string){
@@ -22,7 +22,7 @@ export const s3 = new S3Client({
 
 //     const publicDirectory = path.resolve("./public");
 //     const downloadPath = path.join(publicDirectory, downloadFilename); // Ensure this path is in your 'public' directory
-    
+
 //     const response = await s3.send(command);
 //     // @ts-ignore
 //     const zip = new AdmZip(response.Body)

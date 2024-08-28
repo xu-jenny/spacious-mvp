@@ -50,7 +50,8 @@ const MetadataTable = ({
         <Link
           style={{ color: "blue" }}
           href={"/dataset/" + props.row.original.id}
-          onClick={() => logLinkClick(props.row.original, props.row.index)}>
+          onClick={() => logLinkClick(props.row.original, props.row.index)}
+        >
           {props.getValue()}
         </Link>
       ),

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 type WorkerInstance = Worker | null;
 export default function Page() {
   // const [downloadState, setDownloadState] = useState<boolean>(false);
-  const [text1, setText1] = useState('');
+  const [text1, setText1] = useState("");
   const [newMessage, setNewMessage] = useState("");
   const [result, setResult] = useState<boolean | null>(null);
   const [ready, setReady] = useState<boolean | null>(null);
@@ -32,7 +32,7 @@ export default function Page() {
 
     // Create a callback function for messages from the worker thread.
     const onMessageReceived = (e: MessageEvent) => {
-      console.log(e.data.status)
+      console.log(e.data.status);
       switch (e.data.status) {
         case "initiate":
           setReady(false);
@@ -63,7 +63,7 @@ export default function Page() {
 
   const handleSubmit = () => {
     if (newMessage && newMessage.length > 0 && text1 && text1.length > 0) {
-      classify(text1, newMessage)
+      classify(text1, newMessage);
     }
   };
 
@@ -87,7 +87,9 @@ export default function Page() {
     //   <button onClick={fetchData}>Chat with Agent</button>
     // </div>
     <main className="flex min-h-screen flex-col items-center justify-center p-12">
-      <h2 className="text-2xl mb-4 text-center">Find similiar between 2 texts</h2>
+      <h2 className="text-2xl mb-4 text-center">
+        Find similiar between 2 texts
+      </h2>
 
       <input
         className="w-full max-w-xs p-2 border border-gray-300 rounded mb-4"
@@ -107,7 +109,6 @@ export default function Page() {
         onKeyDown={handleKeyDown}
       />
       <button onClick={() => handleSubmit()}>Calculate Distance</button>
-
 
       <pre className="bg-gray-100 p-2 rounded">
         {!ready || !result ? "Loading..." : JSON.stringify(result, null, 2)}
