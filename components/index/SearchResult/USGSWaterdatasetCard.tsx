@@ -1,8 +1,13 @@
 "use client";
 
-import { Badge, Tooltip as FlowTooltip, Card } from "flowbite-react";
-import { logTableInteraction } from "@/utils/supabaseLogger";
+import Link from "next/link";
+import { Badge, Card } from "flowbite-react";
 import { USGSWaterSearchResult } from "@/app/search";
+import { MdOutlineFileDownload, MdContentCopy } from "react-icons/md";
+import { CiShare1 } from "react-icons/ci";
+import { FcCollapse, FcExpand } from "react-icons/fc";
+import moment from "moment";
+import { useState } from "react";
 
 import {
   LineChart,
@@ -13,14 +18,7 @@ import {
   Legend,
   ResponsiveContainer,
   Tooltip,
-  Label,
 } from "recharts";
-import { MdKeyboardArrowRight, MdOutlineFileDownload } from "react-icons/md";
-import { CiShare1 } from "react-icons/ci";
-import { FcCollapse, FcExpand } from "react-icons/fc";
-import moment from "moment";
-import Link from "next/link";
-import { useState } from "react";
 
 const DataChart = ({
   data,
@@ -73,11 +71,7 @@ function USGSWaterDatasetCard({
   endTime,
 }: Props) {
   const [chart, setChart] = useState(dataset.sample_df ?? []);
-  const [expanded, setExpanded] = useState(chart?.length > 0); //null check
-  const logLinkClick = (data: USGSWaterSearchResult, index: number) => {
-    logTableInteraction("LinkClick", index, data.title.toString());
-    // setDatasetSelected(data);
-  };
+  const [expanded, setExpanded] = useState(chart?.length > 0);
 
   const longStringShortener = (str: string) =>
     str != null && str.length > 300 ? `${str.substring(0, 300)}...` : str;
@@ -99,12 +93,11 @@ function USGSWaterDatasetCard({
   };
 
   const toggleSample = async () => {
-    if (expanded == false && chart.length == 0) {
+    if (expanded === false && chart.length === 0) {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/usgs_water_detail/?siteId=${dataset.siteId}&paramCode=${dataset.matchingParamCode[1]}&startTime=${startTime}&endTime=${endTime}`
       ).then((resp) => resp.json());
       setChart(response.data);
-      console.log(response.data);
     }
     setExpanded(!expanded);
   };
@@ -112,47 +105,45 @@ function USGSWaterDatasetCard({
   return (
     <Card className="mt-3">
       <div className="flex justify-between">
-        <div className="flex items-center">
+        <div>
           <h6
             style={{ cursor: "pointer" }}
-            // onClick={() => logLinkClick(dataset, index)}
             onClick={() => toggleSample()}
             className="text-xl font-bold tracking-tight text-gray-900 dark:text-white"
           >
             {dataset.title}
           </h6>
-          <FlowTooltip content={``}>
+          <div className="flex gap-4 mt-2">
             <Link
               href={`https://dashboard.waterdata.usgs.gov/api/gwis/2.1.1/service/site?agencyCode=USGS&siteNumber=${dataset.id.substring(
                 5
               )}&open=53764`}
               rel="noopener noreferrer"
               target="_blank"
+              className="flex items-center text-blue-600 hover:text-blue-700"
             >
-              <CiShare1 size={24} className="cursor-pointer mx-2" />
+              <CiShare1 size={24} className="mr-1" />
+              Original Link
             </Link>
-          </FlowTooltip>
-          <FlowTooltip content={``}>
-            <MdOutlineFileDownload
+            <button
               onClick={() => handleDownload(false)}
-              className="text-emerald-400 cursor-pointer mx-1"
-              size={30}
-            />
-          </FlowTooltip>
-          <FlowTooltip
-            content={`Download Daily Sums CSV for ${dataset.matchingParamCode[0]}`}
-          >
-            <MdOutlineFileDownload
-              color="blue"
+              className="flex items-center text-green-500 hover:text-green-600"
+            >
+              <MdOutlineFileDownload size={24} className="mr-1" />
+              Download CSV
+            </button>
+            <button
               onClick={() => handleDownload(true)}
-              className="text-emerald-400 cursor-pointer mx-1"
-              size={30}
-            />
-          </FlowTooltip>
+              className="flex items-center text-blue-600 hover:text-blue-700"
+            >
+              <MdOutlineFileDownload size={24} className="mr-1" />
+              Download Daily Sums CSV
+            </button>
+          </div>
         </div>
         <span>
-          {index == 0 && <Badge color="info">Closest Station</Badge>}
-          {dataset.distanceFromInput} mi{" "}
+          {index === 0 && <Badge color="info">Closest Station</Badge>}
+          {dataset.distanceFromInput} mi
         </span>
       </div>
       <p

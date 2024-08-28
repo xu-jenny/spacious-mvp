@@ -58,7 +58,7 @@ export const LocationSearchBar = () => {
     try {
       if (!isLatLong(query)) {
         const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?q=${query}&format=json&countrycodes=us`
+          `https://nominatim.openstreetmap.org/search?q=${query}&format=json&countrycodes=us&addressdetails=1`
         );
         const data: LocationType[] = await response.json();
         console.log("fetched location suggestions", data);
@@ -128,10 +128,24 @@ export const LocationSearchBar = () => {
         <div className="absolute right-2 top-2">
           <LocationInfo
             locationName={state.location?.name || "Location Info"}
-            locationDetails={{
-              display_name:
-                state.location?.display_name || "No details available",
-            }}
+            locationDetails={
+              state.location || {
+                lat: 0,
+                lon: 0,
+                name: "",
+                display_name: "",
+                addresstype: "unknown",
+                address: {
+                  house_number: "",
+                  road: "",
+                  city: "",
+                  county: "",
+                  state: "",
+                  postcode: "",
+                  country: "",
+                },
+              }
+            }
           />
         </div>
         {showDropdown && locationList.length > 0 && (
@@ -152,7 +166,6 @@ export const LocationSearchBar = () => {
   );
 };
 
-// Keeping the LaserficheLocationBar as is
 export const LaserficheLocationBar = () => {
   const { dispatch } = useStateContext();
   const options = [

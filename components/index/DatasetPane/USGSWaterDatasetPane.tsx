@@ -19,7 +19,7 @@ const USGSWaterDatasetPane = ({ dataset }: Props) => {
       `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/usgs_water_csv`,
       {
         siteId: dataset.siteId,
-        parameterCode: "00045", //dataset.matchingParamCode,
+        parameterCode: dataset.matchingParamCode,
         startTime: sevenDaysAgo,
         endTime: now,
       }
