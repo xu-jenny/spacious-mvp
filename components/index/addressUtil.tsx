@@ -50,13 +50,15 @@ const stateAbbreviations = {
   "west virginia": "WV",
   wisconsin: "WI",
   wyoming: "WY",
-};
+} as const;
 
 // Function to abbreviate state names
 const abbreviateStateNames = (address: string) => {
   return address.replace(/,\s*([a-zA-Z\s]+)(?=,|$)/g, (match, stateName) => {
-    const lowerStateName = stateName.toLowerCase().trim();
-    // @ts-ignore
+    const lowerStateName = stateName
+      .toLowerCase()
+      .trim() as keyof typeof stateAbbreviations;
+
     return stateAbbreviations[lowerStateName]
       ? `, ${stateAbbreviations[lowerStateName]}`
       : match;
