@@ -10,9 +10,6 @@ const config: Config = {
   theme: {
     extend: {},
   },
-  plugins: [
-    require('@tailwindcss/typography'),
-    require('flowbite/plugin')
-  ],
+  plugins: [require("@tailwindcss/typography"), require("flowbite/plugin")],
 };
 export default config;

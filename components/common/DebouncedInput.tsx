@@ -32,7 +32,7 @@ const DebouncedInput: React.FC<Props> = ({
   type = "text",
   timeout = 500,
 }: Props) => {
-  const [value, setValue] = useState<string>(initalValue ?? "")
+  const [value, setValue] = useState<string>(initalValue ?? "");
   // const handleChange = useCallback(
   //   debounce((nextValue: string) => {
   //     console.log("decounded location val", nextValue);
@@ -48,7 +48,6 @@ const DebouncedInput: React.FC<Props> = ({
     }, timeout);
     return () => clearTimeout(timeoutId);
   }, [value, timeout, onDebounceChange]);
-
 
   // const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   //   handleChange(e.target.value);

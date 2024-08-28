@@ -17,7 +17,6 @@ export type AgentResponse = {
   tangential_tags?: string;
 };
 
-
 export type DataSource = "USGOV" | "NYOPEN" | "USGS";
 
 export async function semanticSearch(
@@ -39,15 +38,17 @@ export async function semanticSearch(
       )
       // .or(`location.ilike.${locPattern},location.ilike.%United States%`)
       // .in("topic", tags);
-      .or(`topic.in.(${tags}),subtags.ilike.%${tag}%`)
+      .or(`topic.in.(${tags}),subtags.ilike.%${tag}%`);
     if (dsSource != null) {
-      query = query.eq("dataset_source", dsSource).ilike("title", "%04011%") //.or(`location.ilike.${locPattern}`);
+      query = query.eq("dataset_source", dsSource).ilike("title", "%04011%"); //.or(`location.ilike.${locPattern}`);
       // if (dsSource == "LASERFICHE"){
       //   // tags.forEach((tag) => query = query.ilike("subtags", tag))
       //   query = query.ilike("subtags", "%soil management%")
       // }
     } else {
-      query = query.or(`location.ilike.${locPattern},location.ilike.%United States%`)
+      query = query.or(
+        `location.ilike.${locPattern},location.ilike.%United States%`
+      );
     }
     const { data, error } = await query;
     console.log("semantic search data: ", data, "error:", error);
@@ -75,7 +76,6 @@ export async function createEmbedding(text: string): Promise<Float32Array> {
     worker.postMessage({ text });
   });
 }
-
 
 export async function createGTEEmbedding(text: string): Promise<Float32Array> {
   return new Promise((resolve, reject) => {

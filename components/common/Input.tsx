@@ -15,7 +15,6 @@ const Input = ({
   onkeydown,
   type = "text",
 }: Props) => {
-
   return (
     <div>
       <input

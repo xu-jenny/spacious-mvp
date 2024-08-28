@@ -3,7 +3,7 @@
 import { Dropdown } from "flowbite-react";
 import { Dispatch, SetStateAction } from "react";
 import { USDatasetSource } from "./SearchButton";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 
 type Props = {
   dataSource: USDatasetSource | null;
@@ -18,7 +18,7 @@ const dataSourceLabels: { [key in USDatasetSource]: string } = {
   USGOV: "US Gov",
   USGS_WATER: "USGS Water",
   NYOPEN: "NY Open Data",
-  NC_DEQ_WATERSUPPLY: "NC DEQ Water Supply"
+  NC_DEQ_WATERSUPPLY: "NC DEQ Water Supply",
 };
 
 const DatasourceSelect = ({ dataSource, setDataSource }: Props) => {
@@ -26,7 +26,7 @@ const DatasourceSelect = ({ dataSource, setDataSource }: Props) => {
   const currentLabel = dataSource ? dataSourceLabels[dataSource] : "Any";
 
   const handleSelect = (value: string) => {
-    router.push('/');
+    router.push("/");
     setDataSource(value as USDatasetSource);
   };
   return (
@@ -46,7 +46,9 @@ const DatasourceSelect = ({ dataSource, setDataSource }: Props) => {
       {/* TODO: map this on datasourceLabels */}
       <Dropdown.Item onClick={() => handleSelect("ANY")}>ALL</Dropdown.Item>
       <Dropdown.Item onClick={() => handleSelect("PFAS")}>PFAS</Dropdown.Item>
-      <Dropdown.Item onClick={() => handleSelect("USGS_WATER")}>USGS Water</Dropdown.Item>
+      <Dropdown.Item onClick={() => handleSelect("USGS_WATER")}>
+        USGS Water
+      </Dropdown.Item>
       <Dropdown.Item onClick={() => handleSelect("NC_DEQ_WATERSUPPLY")}>
         NC DEQ Water Supply
       </Dropdown.Item>

@@ -18,8 +18,8 @@ export const InfoDropdown = ({ dataset }: { dataset: Dataset }) => {
     .flatMap((f) => (f ? [f] : []));
 
   const renderInfo = (dataset: Dataset) => {
-    if ("df.info" in dataset && dataset["df.info"] != null){
-      let info = dataset["df.info"]
+    if ("df.info" in dataset && dataset["df.info"] != null) {
+      let info = dataset["df.info"];
       info = info.replace("<class 'pandas.core.frame.DataFrame'>\n", "");
       info = info.replace("RangeIndex:", "Number of rows:");
       return <pre>{info}</pre>;
@@ -28,10 +28,10 @@ export const InfoDropdown = ({ dataset }: { dataset: Dataset }) => {
   };
 
   const renderCorr = (dataset: Dataset) => {
-    if ("corr" in dataset || dataset["corr"] == null){
+    if ("corr" in dataset || dataset["corr"] == null) {
       return <></>;
     }
-    let corr = dataset['corr']
+    let corr = dataset["corr"];
     const c = JSON.parse(corr);
     let corrStr = "Highly correlated columns:\n";
     Object.entries(c).forEach(

@@ -99,7 +99,6 @@
 //   return null;
 // }
 
-
 // export const isCoordinate = (location: any) =>
 //   typeof location === "object" &&
 //   "lon" in location &&

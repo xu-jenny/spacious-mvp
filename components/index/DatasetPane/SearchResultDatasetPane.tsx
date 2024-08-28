@@ -5,7 +5,7 @@ import { jsonParse } from "@/utils/json";
 import { InfoDropdown } from "../../dataset/InfoDropdown";
 import Link from "next/link";
 import { logTableInteraction } from "@/utils/supabaseLogger";
-import {  SearchResult } from "@/app/search";
+import { SearchResult } from "@/app/search";
 import { Dataset, getDataset } from "@/clients/supabase";
 import { SearchResults } from "@/app/page";
 
@@ -18,9 +18,7 @@ export const openInNewTab = (url: string): void => {
   if (newWindow) newWindow.opener = null;
 };
 
-const SearchResultDatasetPanel = ({
-  dsMetadata,
-}: Props) => {
+const SearchResultDatasetPanel = ({ dsMetadata }: Props) => {
   let [dataset, setDataset] = useState<Dataset | null>(null);
   let [error, setError] = useState<string | null>(null);
 
@@ -34,7 +32,7 @@ const SearchResultDatasetPanel = ({
         console.log(result);
       }
     }
-      fetchDataset();
+    fetchDataset();
   }, [dsMetadata]);
 
   const showDatasetUrls = () => {
@@ -104,7 +102,11 @@ const SearchResultDatasetPanel = ({
               className="no-underline text-blue-600"
               onClick={() => {
                 if (process.env.NODE_ENV === "production") {
-                  logTableInteraction("OriginalUrlClick", dsMetadata.id, dataset?.title);
+                  logTableInteraction(
+                    "OriginalUrlClick",
+                    dsMetadata.id,
+                    dataset?.title
+                  );
                 }
               }}
             >
@@ -112,29 +114,25 @@ const SearchResultDatasetPanel = ({
             </Link>
           )}
           <p>Summary: {dataset?.summary}</p>
-            <p>
-              Location: {showLocation((dataset as Dataset)?.location ?? "")}
-            </p>
+          <p>Location: {showLocation((dataset as Dataset)?.location ?? "")}</p>
           {dataset?.lastUpdated != null && (
             <p>Last updated: {dataset?.lastUpdated}</p>
           )}
-              <p>Topic: {(dataset as Dataset)?.topic}</p>
-              {(dataset as Dataset)?.length != null && (
-                <p>Report Length: {(dataset as Dataset)?.length} </p>
-              )}
-              <div>{showDatasetUrls()}</div>
-              {(dataset as Dataset)?.csv_url != null &&
-                (dataset as Dataset)["df.head"] != null && (
-                  <>
-                    <hr className="my-5 border-double" />
-                    <h3>First 5 rows of dataset</h3>
-                    <pre>
-                      {dataset != null && (dataset as Dataset)["df.head"]}
-                    </pre>
-                    <hr className="w-3/4 h-0.5 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700" />
-                    <InfoDropdown dataset={dataset as Dataset} />
-                  </>
-                )}
+          <p>Topic: {(dataset as Dataset)?.topic}</p>
+          {(dataset as Dataset)?.length != null && (
+            <p>Report Length: {(dataset as Dataset)?.length} </p>
+          )}
+          <div>{showDatasetUrls()}</div>
+          {(dataset as Dataset)?.csv_url != null &&
+            (dataset as Dataset)["df.head"] != null && (
+              <>
+                <hr className="my-5 border-double" />
+                <h3>First 5 rows of dataset</h3>
+                <pre>{dataset != null && (dataset as Dataset)["df.head"]}</pre>
+                <hr className="w-3/4 h-0.5 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700" />
+                <InfoDropdown dataset={dataset as Dataset} />
+              </>
+            )}
         </article>
       </div>
     </div>

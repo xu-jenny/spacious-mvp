@@ -231,22 +231,25 @@ export type LaserficheSearchResult = {
   score: number;
 };
 
-
-export async function laserficheSearch(query: string, location: string): Promise<LaserficheSearchResult[]> {
-  console.log("laserficheSearch", query, location)
+export async function laserficheSearch(
+  query: string,
+  location: string
+): Promise<LaserficheSearchResult[]> {
+  console.log("laserficheSearch", query, location);
   let response = await post(
     `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/laserfiche`,
     {
-      query: query, location: location
+      query: query,
+      location: location,
     }
   );
-  if (response == null){
+  if (response == null) {
     return [];
   }
-  const doc_results = JSON.parse(response)['doc_results']
-  const node_results = JSON.parse(response)['node_results']
+  const doc_results = JSON.parse(response)["doc_results"];
+  const node_results = JSON.parse(response)["node_results"];
   let results: LaserficheSearchResult[] = [];
-  console.log(node_results["NCS000050_Permit_Issuance_20230524"])
+  console.log(node_results["NCS000050_Permit_Issuance_20230524"]);
   for (const [key, value] of Object.entries(doc_results)) {
     console.log(`${key}: ${value}`);
     results.push({
@@ -254,12 +257,15 @@ export async function laserficheSearch(query: string, location: string): Promise
       id: key,
       score: value as number,
       nodes: node_results[key],
-    })
+    });
   }
-  return results.sort((a,b) => b.score - a.score);;
+  return results.sort((a, b) => b.score - a.score);
 }
 
-export async function pfasSearch(query: string, location: string): Promise<PFASSearchResult[]> {
+export async function pfasSearch(
+  query: string,
+  location: string
+): Promise<PFASSearchResult[]> {
   // create embedding
   let embedding = await createGTEEmbedding(query.toLowerCase());
   if (embedding == null) return [];
@@ -351,11 +357,12 @@ export async function usgsWaterSearch(
       siteId: "",
       matchingParamCode: [],
     };
-    result["summary"] = `This is a ${row["datatype"]
-      } Station, it's located at ${row["locationname"]} (${round(
-        row["lat"],
-        4
-      )}, ${round(row["long"], 4)}).`;
+    result["summary"] = `This is a ${
+      row["datatype"]
+    } Station, it's located at ${row["locationname"]} (${round(
+      row["lat"],
+      4
+    )}, ${round(row["long"], 4)}).`;
     result["siteId"] = result["id"].slice(5);
     const cleanedString = row["paramcodes"].slice(1, -1);
     const tupleStrings = cleanedString.split("), ("); // Split by "), ("
@@ -393,9 +400,8 @@ export async function usgsWaterSearch(
         return segment;
       });
       result["dataTypes"] = processedSegments.join(" | ");
-      result[
-        "summary"
-      ] += ` \n\nAvailable data at station: ${result["dataTypes"]}`;
+      result["summary"] +=
+        ` \n\nAvailable data at station: ${result["dataTypes"]}`;
     } catch {
       console.log("error parsing paramCodes", row);
     }

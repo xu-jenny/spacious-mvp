@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
-import { Table } from '../common/Table';
-import { createColumnHelper } from '@tanstack/react-table';
+import { useMemo } from "react";
+import { Table } from "../common/Table";
+import { createColumnHelper } from "@tanstack/react-table";
 
 type Props = {
   data: any;
@@ -14,7 +14,7 @@ const DynamicTable = ({ data, paginate = true }: Props) => {
       return Object.keys(data[0]).map((key) =>
         columnHelper.accessor(key, {
           cell: (info) => info.getValue(),
-        }),
+        })
       );
     }
     return [];

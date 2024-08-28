@@ -83,7 +83,7 @@
 // 		const [lat, lng] = coordinateString.split(',').map(coord => parseFloat(coord.trim()));
 //         // return { lat, lng };
 //         return [lat, lng]
-// 	} 
+// 	}
 //     // else {
 //     //     const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(coordinateString)}&format=json&addressdetails=1`);
 //     //     const data = await response.json();
@@ -98,7 +98,7 @@
 //     // return {
 //     //     lat: 35.7796,
 //     //     lng: -78.6382,
-//     // };	
+//     // };
 // };
 
 // const USGSWaterMapViewer = ({location, setLocation, data}: Props) => {
