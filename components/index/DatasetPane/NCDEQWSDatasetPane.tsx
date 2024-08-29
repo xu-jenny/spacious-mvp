@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useState } from "react";
 import Link from "next/link";
 import { NCDEQWSSearchResult } from "@/app/NCDEQWSSearch";
 import { useStateContext } from "@/app/StateContext";
@@ -13,13 +14,15 @@ type Props = {
 const NCDEQWSDatasetPanel = ({ dataset }: Props) => {
   const bucketUrl = process.env.NEXT_PUBLIC_S3_NC_WATERSUPPLY_URL;
   const { state } = useStateContext();
+  const [showNotification, setShowNotification] = useState(false);
 
   const copySharableLink = async () => {
     const link = `${process.env.NEXT_PUBLIC_DOMAIN}/?loc=${state.location?.name}&q=${state.searchValue}&source=nc_deq_watersupply&id=${dataset.id}`;
     if ("clipboard" in navigator) {
       try {
         await navigator.clipboard.writeText(link);
-        alert("Link copied to clipboard!");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 3000); // Hide after 2 seconds
       } catch (err) {
         console.error("Failed to copy text: ", err);
       }
@@ -69,6 +72,12 @@ const NCDEQWSDatasetPanel = ({ dataset }: Props) => {
           <p className="p-2">CSV Sample</p>
           <pre className="p-2">{dataset?.sample}</pre>
         </article>
+
+        {showNotification && (
+          <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-md shadow-lg">
+            Link copied to clipboard!
+          </div>
+        )}
       </div>
     </div>
   );
