@@ -36,6 +36,7 @@ export async function search(
 ) {
   switch (dsSource) {
     case "USGS_WATER":
+      // TODO: we should handle these input cases being null in front end
       if (startTime != null && endTime != null && location != null) {
         return await usgsWaterSearch(
           value,
