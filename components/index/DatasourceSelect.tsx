@@ -4,6 +4,7 @@ import { Dropdown } from "flowbite-react";
 import { Dispatch, SetStateAction } from "react";
 import { USDatasetSource } from "./SearchButton";
 import { useRouter } from "next/navigation";
+import { useStateContext } from "@/app/StateContext";
 
 type Props = {
   dataSource: USDatasetSource | null;
@@ -23,12 +24,15 @@ const dataSourceLabels: { [key in USDatasetSource]: string } = {
 
 const DatasourceSelect = ({ dataSource, setDataSource }: Props) => {
   const router = useRouter();
+  const { dispatch } = useStateContext();
   const currentLabel = dataSource ? dataSourceLabels[dataSource] : "Any";
 
   const handleSelect = (value: string) => {
-    router.push("/");
     setDataSource(value as USDatasetSource);
+    dispatch({ type: "resetState" }); // Reset state when switching data sources
+    router.push("/"); // Reset URL
   };
+
   return (
     <Dropdown
       label={currentLabel}
@@ -43,7 +47,6 @@ const DatasourceSelect = ({ dataSource, setDataSource }: Props) => {
         },
       }}
     >
-      {/* TODO: map this on datasourceLabels */}
       <Dropdown.Item onClick={() => handleSelect("ANY")}>ALL</Dropdown.Item>
       <Dropdown.Item onClick={() => handleSelect("PFAS")}>PFAS</Dropdown.Item>
       <Dropdown.Item onClick={() => handleSelect("USGS_WATER")}>

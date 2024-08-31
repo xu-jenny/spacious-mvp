@@ -103,8 +103,8 @@ function USGSWaterDatasetCard({
   };
 
   return (
-    <Card className="mt-3">
-      <div className="flex justify-between">
+    <Card className="mt-3 p-4">
+      <div className="flex justify-between mb-4">
         <div>
           <h6
             style={{ cursor: "pointer" }}

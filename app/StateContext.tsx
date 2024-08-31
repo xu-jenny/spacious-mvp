@@ -35,15 +35,18 @@ type State = {
 
 type Action =
   | { type: "updateSearchValue"; payload: string }
-  | { type: "updateLocation"; payload: LocationType };
+  | { type: "updateLocation"; payload: LocationType }
+  | { type: "resetState" };
 
 function reducer(state: State, action: Action): State {
-  console.log("reducer callled for ", action);
+  console.log("reducer called for ", action);
   switch (action.type) {
     case "updateSearchValue":
       return { ...state, searchValue: action.payload };
     case "updateLocation":
       return { ...state, location: action.payload };
+    case "resetState":
+      return { searchValue: "", location: null };
     default:
       throw new Error(`Unhandled action type: ${action}`);
   }

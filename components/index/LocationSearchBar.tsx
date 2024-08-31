@@ -24,6 +24,15 @@ export const LocationSearchBar = () => {
   );
   const [isSelecting, setIsSelecting] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const isControlledChange = useRef(false);
+
+  useEffect(() => {
+    if (!isControlledChange.current) {
+      setInputValue(state.location?.name ?? "");
+    }
+    isControlledChange.current = false; // Reset flag after setting value
+  }, [state.location]);
+
   useEffect(() => {
     if (!isSelecting) {
       const timeoutId = setTimeout(() => {
@@ -74,6 +83,7 @@ export const LocationSearchBar = () => {
   };
 
   const onInputChange = (value: string) => {
+    isControlledChange.current = true;
     setInputValue(value);
     setIsSelecting(false);
     if (isLatLong(value)) {
