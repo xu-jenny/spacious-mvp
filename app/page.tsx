@@ -58,7 +58,7 @@ function sourceSearchParamToDatasetSource(
 
 export default function Home() {
   const searchParams = useSearchParams();
-  const { state } = useStateContext();
+  const { state, dispatch } = useStateContext();
   const [primaryData, setPrimary] = useState<SearchResults[] | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [openPanel, setOpenPanel] = useState(false);
@@ -79,6 +79,12 @@ export default function Home() {
 
   const [startDate, setStartDate] = useState<string>(sevenDaysAgo);
   const [endDate, setEndDate] = useState<string>(now);
+
+  useEffect(() => {
+    setPrimary(null);
+    setCurrentds(null);
+    dispatch({ type: "resetState" });
+  }, [dsSource, dispatch]);
 
   useEffect(() => {
     async function performSearch() {
