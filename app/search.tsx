@@ -229,6 +229,7 @@ export type LaserficheSearchResult = {
   id: string;
   nodes: number[];
   score: number;
+  containsTable: boolean;
 };
 
 export async function laserficheSearch(
@@ -246,19 +247,20 @@ export async function laserficheSearch(
   if (response == null) {
     return [];
   }
-  const doc_results = JSON.parse(response)["doc_results"];
-  const node_results = JSON.parse(response)["node_results"];
+  const data = JSON.parse(response)
+  // const node_results = JSON.parse(response)["node_results"];
   let results: LaserficheSearchResult[] = [];
-  console.log(node_results["NCS000050_Permit_Issuance_20230524"]);
-  for (const [key, value] of Object.entries(doc_results)) {
-    console.log(`${key}: ${value}`);
+  data.forEach((d: any) => {
+  // for (const [key, value] of Object.entries(data)) {
     results.push({
-      title: key,
-      id: key,
-      score: value as number,
-      nodes: node_results[key],
+      title: d['ref_doc_id'],
+      id: d['ref_doc_id'],
+      score: d['score'] as number,
+      containsTable: d['contains_table'],
+      nodes: d['pages'],
     });
-  }
+  })
+  console.log(results);
   return results.sort((a, b) => b.score - a.score);
 }
 

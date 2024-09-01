@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { LaserficheSearchResult } from "@/app/search";
 import { logTableInteraction } from "@/utils/supabaseLogger";
-import { LaserficheSearchResult, PFASSearchResult } from "@/app/search";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 
-import { Document, Page, pdfjs } from "react-pdf";
+import { Document, Page } from "react-pdf";
 
 interface PdfViewerProps {
   fileUrl: string;
@@ -111,7 +111,7 @@ const PFASDatasetPanel = ({ dataset, pages = [] }: Props) => {
     return sentences.slice(0, 4).join(" ");
   };
 
-  const pdfUrl = `https://sp-mvp.s3.us-east-2.amazonaws.com/laserfiche/${dataset.id}.pdf`;
+  const pdfUrl = `${process.env.NEXT_PUBLIC_S3_LASERFICHE_BUCKET}/${dataset.id}.pdf`;
 
   return (
     <div className="flex h-[100vh]">
@@ -136,6 +136,25 @@ const PFASDatasetPanel = ({ dataset, pages = [] }: Props) => {
             >
               Download PDF
             </Link>
+          )}
+          {dataset.containsTable && (
+            <Link
+            href={`${process.env.NEXT_PUBLIC_S3_LASERFICHE_BUCKET}/${dataset.id}.xlsx`}
+            target="_blank"
+            download={`${dataset?.title}_tables`}
+            className="mx-3 no-underline text-green-500"
+            onClick={() => {
+              if (process.env.NODE_ENV === "production") {
+                logTableInteraction(
+                  "OriginalUrlClick",
+                  dataset.id,
+                  dataset?.title
+                );
+              }
+            }}
+          >
+            Download All Tables
+          </Link>
           )}
           {/* {dataset?.summary != null && <p>Summary: {displaySummary(dataset?.summary)}</p>}
           {dataset?.lastUpdated != null && (

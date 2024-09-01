@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useRef } from "react";
 import { LocationType, useStateContext } from "@/app/StateContext";
 import { useSearchParams } from "next/navigation";
+import React, { useEffect, useRef, useState } from "react";
 import { cleanAddress } from "./addressUtil";
 import LocationInfo from "./LocationInfo";
 
-import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
+import TextField from "@mui/material/TextField";
 
 const isLatLong = (str: string) => {
   const latLongRegex =

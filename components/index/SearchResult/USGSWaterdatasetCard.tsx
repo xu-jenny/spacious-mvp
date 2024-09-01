@@ -1,23 +1,23 @@
 "use client";
 
-import Link from "next/link";
-import { Badge, Card } from "flowbite-react";
 import { USGSWaterSearchResult } from "@/app/search";
-import { MdOutlineFileDownload, MdContentCopy } from "react-icons/md";
+import { Badge, Card } from "flowbite-react";
+import moment from "moment";
+import Link from "next/link";
+import { useState } from "react";
 import { CiShare1 } from "react-icons/ci";
 import { FcCollapse, FcExpand } from "react-icons/fc";
-import moment from "moment";
-import { useState } from "react";
+import { MdOutlineFileDownload } from "react-icons/md";
 
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Legend,
-  ResponsiveContainer,
-  Tooltip,
+	CartesianGrid,
+	Legend,
+	Line,
+	LineChart,
+	ResponsiveContainer,
+	Tooltip,
+	XAxis,
+	YAxis,
 } from "recharts";
 
 const DataChart = ({

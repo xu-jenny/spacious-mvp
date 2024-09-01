@@ -24,7 +24,7 @@ const LocationInfo: React.FC<LocationInfoProps> = ({
       arrow={false}
       content={
         <div className="w-64 text-sm text-black dark:text-gray-400">
-          <div className=" rounded-md border-gray-200 bg-blue-700 px-3 py-2 dark:border-gray-600 dark:bg-gray-700">
+          <div className=" rounded-md border-gray-200 bg-blue-700 px-3 py-1 dark:border-gray-600 dark:bg-gray-700">
             <h3
               id="location-info-popover"
               className="font-medium text-white dark:text-white text-base"
@@ -32,16 +32,16 @@ const LocationInfo: React.FC<LocationInfoProps> = ({
               {locationName}
             </h3>
           </div>
-          <div className="px-3 py-2">
+          <div className="px-3 py-1">
             {address ? (
               <>
                 <p>
                   Address: {address.house_number || ""} {address.road || ""}
                 </p>
                 <p>City: {city}</p>
-                <p>County: {address?.county || "Unknown County"}</p>
-                <p>State: {address?.state || "Unknown State"}</p>
-                <p>Postcode: {address?.postcode || "Unknown Postcode"}</p>
+                <p>County: {address?.county || "Unknown"}</p>
+                <p>State: {address?.state || "Unknown"}</p>
+                <p>Postcode: {address?.postcode || "Unknown"}</p>
               </>
             ) : (
               <p>No detailed address information available.</p>

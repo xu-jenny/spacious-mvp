@@ -1,8 +1,8 @@
 "use client";
 
-import { Badge, Card } from "flowbite-react";
+import { PFASNodeResult, PFASSearchResult } from "@/app/search";
 import { logTableInteraction } from "@/utils/supabaseLogger";
-import { PFASNodeResult, PFASSearchResult, SearchResult } from "@/app/search";
+import { Card } from "flowbite-react";
 
 type Props = {
   dataset: PFASSearchResult;
@@ -15,7 +15,7 @@ function PFASSearchResultCard({ dataset, index, setSelectedDataset }: Props) {
     logTableInteraction("LinkClick", index, data.title.toString());
     setSelectedDataset(data);
   };
-
+  console.log(dataset)
   const longStringShortener = (str: string) =>
     str != null && str.length > 300 ? `${str.substring(0, 300)}...` : str;
 
@@ -24,7 +24,7 @@ function PFASSearchResultCard({ dataset, index, setSelectedDataset }: Props) {
   };
 
   return (
-    <Card className="mt-3" onClick={() => logLinkClick(dataset, index)}>
+    <Card className="p-3 mt-3" onClick={() => logLinkClick(dataset, index)}>
       <h6
         style={{ cursor: "pointer" }}
         className="text-xl font-bold tracking-tight text-gray-900 dark:text-white"
