@@ -247,19 +247,20 @@ export async function laserficheSearch(
   if (response == null) {
     return [];
   }
-  const data = JSON.parse(response)
-  // const node_results = JSON.parse(response)["node_results"];
+  const data = JSON.parse(response);
+  const docResults = data["doc_results"];
+  const nodeResults = data["node_results"];
   let results: LaserficheSearchResult[] = [];
-  data.forEach((d: any) => {
-  // for (const [key, value] of Object.entries(data)) {
+
+  for (const [key, score] of Object.entries(docResults)) {
     results.push({
-      title: d['ref_doc_id'],
-      id: d['ref_doc_id'],
-      score: d['score'] as number,
-      containsTable: d['contains_table'],
-      nodes: d['pages'],
+      title: key,
+      id: key,
+      score: score as number,
+      containsTable: false,
+      nodes: nodeResults[key] ? nodeResults[key].map(Number) : [],
     });
-  })
+  }
   console.log(results);
   return results.sort((a, b) => b.score - a.score);
 }
