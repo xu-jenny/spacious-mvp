@@ -247,20 +247,18 @@ export async function laserficheSearch(
   if (response == null) {
     return [];
   }
-  const data = JSON.parse(response)
-  // const node_results = JSON.parse(response)["node_results"];
+  const doc_results = JSON.parse(response)["doc_results"];
+  const node_results = JSON.parse(response)["node_results"];
   let results: LaserficheSearchResult[] = [];
-  data.forEach((d: any) => {
-  // for (const [key, value] of Object.entries(data)) {
+  for (const [key, value] of Object.entries(doc_results)) {
     results.push({
-      title: d['ref_doc_id'],
-      id: d['ref_doc_id'],
-      score: d['score'] as number,
-      containsTable: d['contains_table'],
-      nodes: d['pages'],
+      title: key,
+      id: key,
+      score: value as number,
+      nodes: node_results[key],
+      containsTable: false
     });
-  })
-  console.log(results);
+  }
   return results.sort((a, b) => b.score - a.score);
 }
 
@@ -359,12 +357,11 @@ export async function usgsWaterSearch(
       siteId: "",
       matchingParamCode: [],
     };
-    result["summary"] = `This is a ${
-      row["datatype"]
-    } Station, it's located at ${row["locationname"]} (${round(
-      row["lat"],
-      4
-    )}, ${round(row["long"], 4)}).`;
+    result["summary"] = `This is a ${row["datatype"]
+      } Station, it's located at ${row["locationname"]} (${round(
+        row["lat"],
+        4
+      )}, ${round(row["long"], 4)}).`;
     result["siteId"] = result["id"].slice(5);
     const cleanedString = row["paramcodes"].slice(1, -1);
     const tupleStrings = cleanedString.split("), ("); // Split by "), ("
