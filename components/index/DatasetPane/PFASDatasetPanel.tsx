@@ -12,13 +12,12 @@ interface PdfViewerProps {
   pagesToJump: number[];
 }
 
-export const PDFPanelViewer: React.FC<PdfViewerProps> = ({
-  fileUrl,
-  pagesToJump,
-}) => {
+export const PDFPanelViewer: React.FC<PdfViewerProps> = ({ fileUrl, pagesToJump }) => {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [fileData, setFileData] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
@@ -30,7 +29,7 @@ export const PDFPanelViewer: React.FC<PdfViewerProps> = ({
       if (pageElement && containerRef.current) {
         containerRef.current.scrollTo({
           top: pageElement.offsetTop - 200,
-          behavior: "smooth",
+          behavior: 'smooth',
         });
       }
     }
@@ -44,17 +43,47 @@ export const PDFPanelViewer: React.FC<PdfViewerProps> = ({
         const objectURL = URL.createObjectURL(blob);
         setFileData(objectURL);
       } catch (error) {
-        console.error("Error fetching the PDF:", error);
+        console.error('Error fetching the PDF:', error);
       }
     };
 
     fetchPDF();
   }, [fileUrl]);
 
+  // IntersectionObserver to detect current page in view
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Sort entries by visibility so the most visible page is handled first
+        const visiblePages = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+
+        if (visiblePages.length > 0) {
+          const mostVisiblePage = visiblePages[0];
+          const pageNumber = Number(mostVisiblePage.target.getAttribute('data-page-number'));
+          setCurrentPage(pageNumber);
+        }
+      },
+      {
+        root: containerRef.current,
+        threshold: [0.25, 0.5, 0.75], // Trigger when at least 25%, 50%, or 75% of a page is visible
+      }
+    );
+
+    pageRefs.current.forEach((pageRef) => {
+      if (pageRef) observer.observe(pageRef);
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [numPages]);
+
   return (
     <div>
       <div className="p-2">
-        Potential Matches:{" "}
+        Potential Matches:{' '}
         {pagesToJump.map((page) => (
           <span
             key={page}
@@ -65,22 +94,29 @@ export const PDFPanelViewer: React.FC<PdfViewerProps> = ({
           </span>
         ))}
       </div>
+      <header style={{ padding: '10px', textAlign: 'center' }}>
+        <h4>
+          Page {currentPage} of {numPages || 'Loading...'}
+        </h4>
+      </header>
       <div
         ref={containerRef}
         className="m-2 w-fit flex ml-auto mr-auto"
         style={{
-          height: "80vh",
-          overflowY: "scroll",
-          border: "1px solid #ccc",
+          height: '80vh',
+          overflowY: 'scroll',
+          border: '1px solid #ccc',
         }}
       >
         {fileData && (
-          <Document file={fileUrl} onLoadSuccess={onDocumentLoadSuccess}>
+          <Document file={fileData} onLoadSuccess={onDocumentLoadSuccess}>
             {numPages &&
               Array.from(new Array(numPages), (el, index) => (
                 <div
                   id={`page_${index + 1}`}
                   key={`page_${index + 1}`}
+                  ref={(el) => (pageRefs.current[index] = el)}
+                  data-page-number={index + 1}
                   className="flex justify-center mb-2"
                 >
                   <Page
@@ -96,6 +132,7 @@ export const PDFPanelViewer: React.FC<PdfViewerProps> = ({
     </div>
   );
 };
+
 
 type Props = {
   dataset: LaserficheSearchResult;
