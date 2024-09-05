@@ -5,9 +5,9 @@ import { jsonParse } from "@/utils/json";
 import { InfoDropdown } from "../../dataset/InfoDropdown";
 import Link from "next/link";
 import { logTableInteraction } from "@/utils/supabaseLogger";
-import { SearchResult } from "@/app/search";
 import { Dataset, getDataset } from "@/clients/supabase";
-import { SearchResults } from "@/app/page";
+import { SearchResult } from "@/app/search/search";
+import { SearchResults } from "@/app/app/page";
 
 type Props = {
   dsMetadata: SearchResults;

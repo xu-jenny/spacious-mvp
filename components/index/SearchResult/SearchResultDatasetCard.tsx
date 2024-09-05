@@ -2,7 +2,7 @@
 
 import { Badge, Card } from "flowbite-react";
 import { logTableInteraction } from "@/utils/supabaseLogger";
-import { SearchResult } from "@/app/search";
+import { SearchResult } from "@/app/search/search";
 
 type Props = {
   dataset: SearchResult;

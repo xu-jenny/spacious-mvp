@@ -29,8 +29,8 @@ const DatasourceSelect = ({ dataSource, setDataSource }: Props) => {
 
   const handleSelect = (value: string) => {
     setDataSource(value as USDatasetSource);
-    dispatch({ type: "resetState" });
-    router.push("/");
+    dispatch({ type: "resetState" }); // Reset state when switching data sources
+    router.push("/app"); // Reset URL
   };
 
   return (
