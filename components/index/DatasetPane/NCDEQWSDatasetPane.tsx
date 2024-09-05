@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { NCDEQWSSearchResult } from "@/app/NCDEQWSSearch";
+import { NCDEQWSSearchResult } from "@/app/search/NCDEQWSSearch";
 import { useStateContext } from "@/app/StateContext";
 import { MdOutlineFileDownload, MdContentCopy } from "react-icons/md";
 import { CiShare1 } from "react-icons/ci";

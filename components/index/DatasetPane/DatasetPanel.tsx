@@ -7,7 +7,7 @@ import {
 import { USDatasetSource } from "../SearchButton";
 import SearchResultDatasetPanel from "./SearchResultDatasetPane";
 import { SearchResults } from "@/app/page";
-import { NCDEQWSSearchResult } from "@/app/NCDEQWSSearch";
+import { NCDEQWSSearchResult } from "@/app/search/NCDEQWSSearch";
 import NCDEQWSDatasetPanel from "./NCDEQWSDatasetPane";
 
 import dynamic from "next/dynamic";

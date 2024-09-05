@@ -1,9 +1,8 @@
-import { createEmbedding } from "@/app/indexUtils";
-import { SearchResult } from "@/app/search";
 import { createClient } from "@supabase/supabase-js";
-import { DataSource } from "../app/indexUtils";
 import { USDatasetSource } from "@/components/index/SearchButton";
 import { cap } from "@/utils/util";
+import { SearchResult } from "@/app/search/search";
+import { createEmbedding } from "@/app/search/indexUtils";
 
 // Create a single supabase client for interacting with your database
 export const supabaseClient = createClient(
