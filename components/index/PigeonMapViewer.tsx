@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Map, Marker, Overlay } from "pigeon-maps";
-import { USGSWaterSearchResult } from "@/app/search";
 import { Button } from "flowbite-react";
 import { MdOutlineFileDownload } from "react-icons/md";
+import { USGSWaterSearchResult } from "@/app/search/search";
 
 interface Props {
   data: USGSWaterSearchResult[];

@@ -20,6 +20,9 @@ import { LaserficheSearchResult, PFASSearchResult, SearchResult, USGSWaterSearch
 import { NCDEQWSSearchResult } from '../search/NCDEQWSSearch';
 import { useStateContext } from '../StateContext';
 
+import { pdfjs } from 'react-pdf';
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+
 export type SearchResults =
   | SearchResult
   | PFASSearchResult

@@ -1,4 +1,4 @@
-import { SearchResults } from "@/app/page";
+
 import { USDatasetSource } from "../SearchButton";
 
 import { FaMapMarkedAlt } from "react-icons/fa";
@@ -7,8 +7,9 @@ import { useRef, useState } from "react";
 import { FaList } from "react-icons/fa";
 import ListSearchResultViewer from "@/components/index/ListSearchResultViewer";
 import PigeonMapViewer from "../PigeonMapViewer";
-import { USGSWaterSearchResult } from "@/app/search";
 import { useStateContext } from "@/app/StateContext";
+import { USGSWaterSearchResult } from "@/app/search/search";
+import { SearchResults } from "@/app/app/page";
 
 interface Props {
   primaryData: SearchResults[];

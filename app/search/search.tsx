@@ -240,19 +240,24 @@ export async function laserficheSearch(
   if (response == null) {
     return [];
   }
-  const doc_results = JSON.parse(response)["doc_results"];
-  const node_results = JSON.parse(response)["node_results"];
-  let results: LaserficheSearchResult[] = [];
-  for (const [key, value] of Object.entries(doc_results)) {
-    results.push({
-      title: key,
-      id: key,
-      score: value as number,
-      nodes: node_results[key],
-      containsTable: false
+  const data = JSON.parse(response);
+  console.log(data)
+  if (data != null && data.length > 0){
+    let results: LaserficheSearchResult[] = [];
+    data.forEach((d: { [x: string]: any; }) => {
+      d['pages'].sort((a: number[], b: number[]) => a[1] - b[1]);
+      let item = {
+        title: d['ref_doc_id'],
+        id: d['ref_doc_id'],
+        score: d['score'],
+        containsTable: d['contains_table'],
+        nodes: d['pages'].map((tuple: any[]) => tuple[0])
+      }
+      results.push(item)
     });
+    return results.sort((a, b) => b.score - a.score);
   }
-  return results.sort((a, b) => b.score - a.score);
+  return [];
 }
 
 export async function pfasSearch(

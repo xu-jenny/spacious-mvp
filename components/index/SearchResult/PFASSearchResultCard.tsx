@@ -1,6 +1,6 @@
 "use client";
 
-import { PFASNodeResult, PFASSearchResult } from "@/app/search";
+import { PFASNodeResult, PFASSearchResult } from "@/app/search/search";
 import { logTableInteraction } from "@/utils/supabaseLogger";
 import { Card } from "flowbite-react";
 
@@ -15,7 +15,6 @@ function PFASSearchResultCard({ dataset, index, setSelectedDataset }: Props) {
     logTableInteraction("LinkClick", index, data.title.toString());
     setSelectedDataset(data);
   };
-  console.log(dataset)
   const longStringShortener = (str: string) =>
     str != null && str.length > 300 ? `${str.substring(0, 300)}...` : str;
 

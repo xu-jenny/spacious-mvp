@@ -1,6 +1,6 @@
 "use client";
 
-import { USGSWaterSearchResult } from "@/app/search";
+import { USGSWaterSearchResult } from "@/app/search/search";
 import { Badge, Card } from "flowbite-react";
 import { get } from "@/utils/http";
 import moment from "moment";
@@ -98,9 +98,9 @@ function USGSWaterDatasetCard({
 
   const toggleSample = async () => {
     if (expanded === false && chart.length === 0) {
-      const response = await get(
+      const response = await get<any>(
         `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/usgs_water_detail/?siteId=${dataset.siteId}&paramCode=${dataset.matchingParamCode[1]}&startTime=${startTime}&endTime=${endTime}`
-      ).then((response) => response.json());
+      );
       setChart(response.data);
     }
     setExpanded(!expanded);

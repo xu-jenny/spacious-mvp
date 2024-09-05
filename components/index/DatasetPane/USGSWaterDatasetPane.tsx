@@ -1,6 +1,6 @@
 "use client";
 
-import { USGSWaterSearchResult } from "@/app/search";
+import { USGSWaterSearchResult } from "@/app/search/search";
 import { post } from "@/utils/http";
 import Link from "next/link";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { LaserficheSearchResult } from "@/app/search";
+import { LaserficheSearchResult } from "@/app/search/search";
 import { logTableInteraction } from "@/utils/supabaseLogger";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
