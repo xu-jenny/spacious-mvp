@@ -1,13 +1,9 @@
 import { logTableInteraction } from "@/utils/supabaseLogger";
-import {
-  laserficheSearch,
-  searchbarSearch,
-  usgsWaterSearch,
-} from "@/app/search";
-import { NCDEQWSSearch } from "@/app/NCDEQWSSearch";
+import { NCDEQWSSearch } from "@/app/search/NCDEQWSSearch";
 import Input from "../common/Input";
 import { LocationType, useStateContext } from "@/app/StateContext";
 import { useEffect, useRef, useState } from "react";
+import { laserficheSearch, searchbarSearch, usgsWaterSearch } from "@/app/search/search";
 
 export type USDatasetSource =
   | "PFAS"

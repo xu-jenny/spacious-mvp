@@ -10,16 +10,6 @@ export default function Page() {
   const [result, setResult] = useState<boolean | null>(null);
   const [ready, setReady] = useState<boolean | null>(null);
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     let response = await fetch("/api/test")
-  //     const data = await response.json();
-  //     setDownloadState(true)
-  //     console.log(data, downloadState)
-  //   };
-  //   fetchData()
-  // }, []);
-
   const worker = useRef<WorkerInstance>(null);
 
   // We use the `useEffect` hook to set up the worker as soon as the `App` component is mounted.

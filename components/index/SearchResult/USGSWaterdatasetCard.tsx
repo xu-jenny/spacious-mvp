@@ -2,6 +2,7 @@
 
 import { USGSWaterSearchResult } from "@/app/search";
 import { Badge, Card } from "flowbite-react";
+import { get } from "@/utils/http";
 import moment from "moment";
 import Link from "next/link";
 import { useState } from "react";
@@ -10,14 +11,14 @@ import { FcCollapse, FcExpand } from "react-icons/fc";
 import { MdOutlineFileDownload } from "react-icons/md";
 
 import {
-	CartesianGrid,
-	Legend,
-	Line,
-	LineChart,
-	ResponsiveContainer,
-	Tooltip,
-	XAxis,
-	YAxis,
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
 
 const DataChart = ({
@@ -79,7 +80,10 @@ function USGSWaterDatasetCard({
   const handleDownload = async (isDailySum = false) => {
     const endpoint = isDailySum ? "usgs_water_dailysum_csv" : "usgs_water_csv";
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/${endpoint}/?siteId=${dataset.siteId}&paramCode=${dataset.matchingParamCode[1]}&startTime=${startTime}&endTime=${endTime}`
+      `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/${endpoint}/?siteId=${dataset.siteId}&paramCode=${dataset.matchingParamCode[1]}&startTime=${startTime}&endTime=${endTime}`,
+      {
+        headers: { "x-api-key": process.env.NEXT_PUBLIC_BACKEND_API_KEY ?? "" },
+      }
     );
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
@@ -94,9 +98,9 @@ function USGSWaterDatasetCard({
 
   const toggleSample = async () => {
     if (expanded === false && chart.length === 0) {
-      const response = await fetch(
+      const response = await get(
         `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/usgs_water_detail/?siteId=${dataset.siteId}&paramCode=${dataset.matchingParamCode[1]}&startTime=${startTime}&endTime=${endTime}`
-      ).then((resp) => resp.json());
+      ).then((response) => response.json());
       setChart(response.data);
     }
     setExpanded(!expanded);

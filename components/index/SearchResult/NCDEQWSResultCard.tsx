@@ -2,7 +2,7 @@
 
 import { Card } from "flowbite-react";
 import { logTableInteraction } from "@/utils/supabaseLogger";
-import { NCDEQWSSearchResult } from "@/app/NCDEQWSSearch";
+import { NCDEQWSSearchResult } from "@/app/search/NCDEQWSSearch";
 
 type Props = {
   dataset: NCDEQWSSearchResult;

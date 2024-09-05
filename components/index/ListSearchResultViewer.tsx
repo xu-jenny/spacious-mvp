@@ -11,7 +11,7 @@ import {
 import PFASSearchResultCard from "./SearchResult/PFASSearchResultCard";
 import SearchResultDatasetCard from "./SearchResult/SearchResultDatasetCard";
 import NCDEQWSResultCard from "./SearchResult/NCDEQWSResultCard";
-import { NCDEQWSSearchResult } from "@/app/NCDEQWSSearch";
+import { NCDEQWSSearchResult } from "@/app/search/NCDEQWSSearch";
 
 interface Props {
   primaryData: SearchResults[];

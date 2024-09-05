@@ -199,20 +199,13 @@ async function queryPFASNodes(
   // ref_doc_ids: ref_doc_ids,
   // }
   // );
-  let response = await fetch(
+  let response = await post(
     `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/query_nodes`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        // "Access-Control-Allow-Origin": "*",
-      },
-      body: JSON.stringify({
-        query_str: query,
-        query_embedding: queryEmbed,
-        ref_doc_ids: ref_doc_ids,
-      }),
-    }
+    JSON.stringify({
+      query_str: query,
+      query_embedding: queryEmbed,
+      ref_doc_ids: ref_doc_ids,
+    }),
   )
     .then((response) => response.json())
     .catch((error) => {
@@ -331,6 +324,7 @@ export async function usgsWaterSearch(
       keyword,
     }
   );
+  console.log(response)
   if (!response || !response.rows) {
     console.error("Unexpected response structure:", response);
     return [];
