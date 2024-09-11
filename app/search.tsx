@@ -247,6 +247,7 @@ export async function laserficheSearch(
   if (response == null) {
     return [];
   }
+
   const data = JSON.parse(response);
   const docResults = data["doc_results"];
   const nodeResults = data["node_results"];
@@ -262,6 +263,7 @@ export async function laserficheSearch(
     });
   }
   console.log(results);
+
   return results.sort((a, b) => b.score - a.score);
 }
 
@@ -361,12 +363,12 @@ export async function usgsWaterSearch(
       matchingParamCode: [],
     };
 
-    result["summary"] = `This is a ${
-      row["datatype"]
-    } Station, it's located at ${row["locationname"]} (${round(
-      row["lat"],
-      4
-    )}, ${round(row["long"], 4)}).`;
+    result["summary"] = `This is a ${row["datatype"]
+      } Station, it's located at ${row["locationname"]} (${round(
+        row["lat"],
+        4
+      )}, ${round(row["long"], 4)}).`;
+
     result["siteId"] = result["id"].slice(5);
     const cleanedString = row["paramcodes"].slice(1, -1);
     const tupleStrings = cleanedString.split("), ("); // Split by "), ("
