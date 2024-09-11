@@ -360,6 +360,7 @@ export async function usgsWaterSearch(
       siteId: "",
       matchingParamCode: [],
     };
+
     result["summary"] = `This is a ${
       row["datatype"]
     } Station, it's located at ${row["locationname"]} (${round(
