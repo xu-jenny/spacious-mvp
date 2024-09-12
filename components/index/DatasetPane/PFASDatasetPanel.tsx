@@ -3,7 +3,8 @@
 import { LaserficheSearchResult } from "@/app/search";
 import { logTableInteraction } from "@/utils/supabaseLogger";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 
 import { Document, Page } from "react-pdf";
 
@@ -18,10 +19,14 @@ export const PDFPanelViewer: React.FC<PdfViewerProps> = ({
 }) => {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [fileData, setFileData] = useState<string | null>(null);
+  const [renderAllPages, setRenderAllPages] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [startTime, setStartTime] = useState<number>(Date.now());
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
+    const loadTime = Date.now() - startTime;
+    console.log(`First page rendered in ${loadTime} ms.`);
   };
 
   const handleJumpToPage = (page: number) => {
@@ -37,18 +42,38 @@ export const PDFPanelViewer: React.FC<PdfViewerProps> = ({
   };
 
   useEffect(() => {
+    const controller = new AbortController();
+    const { signal } = controller;
+
     const fetchPDF = async () => {
       try {
-        const response = await fetch(fileUrl);
+        console.log("pdf loading");
+        const response = await fetch(fileUrl, {
+          headers: {
+            Range: "bytes=0-10000000",
+          },
+          signal,
+        });
         const blob = await response.blob();
         const objectURL = URL.createObjectURL(blob);
         setFileData(objectURL);
+
+        setStartTime(Date.now());
+
+        setTimeout(() => {
+          setRenderAllPages(true);
+          console.log(
+            `Rendering rest of the pages after ${Date.now() - startTime} ms.`
+          );
+        }, 500);
       } catch (error) {
         console.error("Error fetching the PDF:", error);
       }
     };
-
     fetchPDF();
+    return () => {
+      controller.abort();
+    };
   }, [fileUrl]);
 
   return (
@@ -75,16 +100,42 @@ export const PDFPanelViewer: React.FC<PdfViewerProps> = ({
         }}
       >
         {fileData && (
-          <Document file={fileUrl} onLoadSuccess={onDocumentLoadSuccess}>
-            {numPages &&
+          <Document
+            // options={{
+            //   httpHeaders: {
+            //     "Content-Type": "application/pdf",
+            //     "Accept-Ranges": "bytes",
+            //     "Access-Control-Expose-Headers":
+            //       "Accept-Ranges , Content-Length, Content-Range",
+            //     "Accept-Encoding": "Identity",
+            //   },
+            // }}
+            file={fileUrl}
+            onLoadSuccess={onDocumentLoadSuccess}
+            onLoadProgress={({ loaded, total }) => {
+              //   console.log(`Loaded ${loaded} of ${total} bytes`);
+            }}
+          >
+            <Page
+              pageNumber={1}
+              renderTextLayer={false}
+              className="ml-auto mr-auto"
+            />
+            <Page
+              pageNumber={2}
+              renderTextLayer={false}
+              className="ml-auto mr-auto"
+            />
+            {renderAllPages &&
+              numPages &&
               Array.from(new Array(numPages), (el, index) => (
                 <div
-                  id={`page_${index + 1}`}
-                  key={`page_${index + 1}`}
+                  id={`page_${index + 2}`}
+                  key={`page_${index + 2}`}
                   className="flex justify-center mb-2"
                 >
                   <Page
-                    pageNumber={index + 1}
+                    pageNumber={index + 2}
                     renderTextLayer={false}
                     className="ml-auto mr-auto"
                   />
@@ -139,22 +190,22 @@ const PFASDatasetPanel = ({ dataset, pages = [] }: Props) => {
           )}
           {dataset.containsTable && (
             <Link
-            href={`${process.env.NEXT_PUBLIC_S3_LASERFICHE_BUCKET}/${dataset.id}.xlsx`}
-            target="_blank"
-            download={`${dataset?.title}_tables`}
-            className="mx-3 no-underline text-green-500"
-            onClick={() => {
-              if (process.env.NODE_ENV === "production") {
-                logTableInteraction(
-                  "OriginalUrlClick",
-                  dataset.id,
-                  dataset?.title
-                );
-              }
-            }}
-          >
-            Download All Tables
-          </Link>
+              href={`${process.env.NEXT_PUBLIC_S3_LASERFICHE_BUCKET}/${dataset.id}.xlsx`}
+              target="_blank"
+              download={`${dataset?.title}_tables`}
+              className="mx-3 no-underline text-green-500"
+              onClick={() => {
+                if (process.env.NODE_ENV === "production") {
+                  logTableInteraction(
+                    "OriginalUrlClick",
+                    dataset.id,
+                    dataset?.title
+                  );
+                }
+              }}
+            >
+              Download All Tables
+            </Link>
           )}
           {/* {dataset?.summary != null && <p>Summary: {displaySummary(dataset?.summary)}</p>}
           {dataset?.lastUpdated != null && (

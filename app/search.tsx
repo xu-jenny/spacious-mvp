@@ -247,18 +247,23 @@ export async function laserficheSearch(
   if (response == null) {
     return [];
   }
-  const doc_results = JSON.parse(response)["doc_results"];
-  const node_results = JSON.parse(response)["node_results"];
+
+  const data = JSON.parse(response);
+  const docResults = data["doc_results"];
+  const nodeResults = data["node_results"];
   let results: LaserficheSearchResult[] = [];
-  for (const [key, value] of Object.entries(doc_results)) {
+
+  for (const [key, score] of Object.entries(docResults)) {
     results.push({
       title: key,
       id: key,
-      score: value as number,
-      nodes: node_results[key],
-      containsTable: false
+      score: score as number,
+      containsTable: false,
+      nodes: nodeResults[key] ? nodeResults[key].map(Number) : [],
     });
   }
+  console.log(results);
+
   return results.sort((a, b) => b.score - a.score);
 }
 
@@ -357,11 +362,13 @@ export async function usgsWaterSearch(
       siteId: "",
       matchingParamCode: [],
     };
+
     result["summary"] = `This is a ${row["datatype"]
       } Station, it's located at ${row["locationname"]} (${round(
         row["lat"],
         4
       )}, ${round(row["long"], 4)}).`;
+
     result["siteId"] = result["id"].slice(5);
     const cleanedString = row["paramcodes"].slice(1, -1);
     const tupleStrings = cleanedString.split("), ("); // Split by "), ("
