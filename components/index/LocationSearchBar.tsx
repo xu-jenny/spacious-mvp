@@ -23,6 +23,7 @@ export const LocationSearchBar = () => {
     state.location?.name ?? urlLocation ?? ""
   );
   const [isSelecting, setIsSelecting] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false); // Add isLoading state
   const dropdownRef = useRef<HTMLDivElement>(null);
   const isControlledChange = useRef(false);
 
@@ -37,7 +38,10 @@ export const LocationSearchBar = () => {
     if (!isSelecting) {
       const timeoutId = setTimeout(() => {
         if (inputValue.length > 2 && !isLatLong(inputValue)) {
-          fetchLocationSuggestions(inputValue);
+          setIsLoading(true); // Set loading to true before fetching
+          fetchLocationSuggestions(inputValue).finally(() =>
+            setIsLoading(false)
+          ); // Set loading to false after fetching
         } else {
           setShowDropdown(false);
         }
@@ -156,6 +160,7 @@ export const LocationSearchBar = () => {
                 },
               }
             }
+            isLoading={isLoading} // Pass isLoading state
           />
         </div>
         {showDropdown && locationList.length > 0 && (

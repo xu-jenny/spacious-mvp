@@ -15,12 +15,12 @@ function PFASSearchResultCard({ dataset, index, setSelectedDataset }: Props) {
     logTableInteraction("LinkClick", index, data.title.toString());
     setSelectedDataset(data);
   };
-  console.log(dataset)
+  console.log(dataset);
   const longStringShortener = (str: string) =>
     str != null && str.length > 300 ? `${str.substring(0, 300)}...` : str;
 
   const showNodes = (nodes: PFASNodeResult[]) => {
-    return <p>We found {nodes.length} matches in this document</p>;
+    return <p>We found {nodes.length} potential matches in this document</p>;
   };
 
   return (
