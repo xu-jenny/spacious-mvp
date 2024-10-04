@@ -158,17 +158,14 @@ export default function Home() {
       <div className="col-span-5 flex h-[100vh] relative">
         <div className="w-full bg-sky-50 overflow-auto p-2">
           <SearchButton
+            loading={loading}
             setPrimaryData={setPrimary}
             dsSource={dsSource}
             setLoading={setLoading}
             startTime={startDate}
             endTime={endDate}
           />
-          {loading ? (
-            <div className="ml-20 mt-20">
-              <Spinner />
-            </div>
-          ) : primaryData != null && primaryData.length > 0 ? (
+          {primaryData != null && primaryData.length > 0 ? (
             <SearchResultViewer
               primaryData={primaryData}
               dsSource={dsSource}

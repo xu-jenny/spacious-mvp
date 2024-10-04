@@ -25,6 +25,7 @@ type Props = {
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   startTime?: string;
   endTime?: string;
+  loading: boolean;
 };
 
 export async function search(
@@ -64,6 +65,7 @@ const SearchButton = ({
   setLoading,
   startTime,
   endTime,
+  loading, // Use loading prop
 }: Props) => {
   const { state, dispatch } = useStateContext();
   const [searchValue, setSearchValue] = useState<string>(state.searchValue);
@@ -104,17 +106,21 @@ const SearchButton = ({
     <div className="w-30 flex flex-row p-2">
       <div className="relative w-full">
         <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-          <svg
-            className="w-4 h-4 text-gray-500 dark:text-gray-400"
-            aria-hidden="true"
-            fill="none"
-            viewBox="0 0 20 20"
-          >
-            <path
-              stroke="currentColor"
-              d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
-            />
-          </svg>
+          {loading ? (
+            <div className="spinner" aria-label="Loading"></div>
+          ) : (
+            <svg
+              className="w-4 h-4 text-gray-500 dark:text-gray-400"
+              aria-hidden="true"
+              fill="none"
+              viewBox="0 0 20 20"
+            >
+              <path
+                stroke="currentColor"
+                d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+              />
+            </svg>
+          )}
         </div>
         <Input
           ref={inputRef}

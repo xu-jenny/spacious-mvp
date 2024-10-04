@@ -13,7 +13,7 @@ type Props = {
 
 const dataSourceLabels: { [key in USDatasetSource]: string } = {
   ANY: "ALL",
-  PFAS: "PFAS",
+  PFAS: "NC DEQ Laserfiche",
   USGS: "USGS",
   LASERFICHE: "NC DEQ",
   USGOV: "US Gov",

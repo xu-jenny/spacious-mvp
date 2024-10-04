@@ -6,11 +6,13 @@ import { LocationType } from "@/app/StateContext";
 type LocationInfoProps = {
   locationName: string;
   locationDetails: LocationType;
+  isLoading: boolean;
 };
 
 const LocationInfo: React.FC<LocationInfoProps> = ({
   locationName,
   locationDetails,
+  isLoading,
 }) => {
   const { address } = locationDetails;
   const city =
@@ -24,7 +26,7 @@ const LocationInfo: React.FC<LocationInfoProps> = ({
       arrow={false}
       content={
         <div className="w-64 text-sm text-black dark:text-gray-400">
-          <div className=" rounded-md border-gray-200 bg-blue-700 px-3 py-1 dark:border-gray-600 dark:bg-gray-700">
+          <div className="rounded-md border-gray-200 bg-blue-700 px-3 py-1 dark:border-gray-600 dark:bg-gray-700">
             <h3
               id="location-info-popover"
               className="font-medium text-white dark:text-white text-base"
@@ -51,7 +53,11 @@ const LocationInfo: React.FC<LocationInfoProps> = ({
       }
     >
       <button>
-        <FiInfo className="text-gray-500 dark:text-gray-400 ml-2" size={18} />
+        {isLoading ? (
+          <div className="spinner" aria-label="Loading"></div>
+        ) : (
+          <FiInfo className="text-gray-500 dark:text-gray-400 ml-2" size={18} />
+        )}
       </button>
     </Popover>
   );
