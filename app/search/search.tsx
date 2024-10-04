@@ -223,6 +223,13 @@ export type LaserficheSearchResult = {
   nodes: number[];
   score: number;
   containsTable: boolean;
+  originalUrl: string;
+  firstPublished?: string | null;
+  lastUpdated?: string | null;
+  docDate?: string | null;
+  facilityName?: string;
+  owner?: string;
+  metadata?: string;
 };
 
 export async function laserficheSearch(
@@ -242,19 +249,27 @@ export async function laserficheSearch(
   }
   const data = JSON.parse(response);
   console.log(data)
-  if (data != null && data.length > 0){
+  if (data != null && 'documents' in data && 'pages' in data){
     let results: LaserficheSearchResult[] = [];
-    data.forEach((d: { [x: string]: any; }) => {
-      d['pages'].sort((a: number[], b: number[]) => a[1] - b[1]);
+    data['documents'].forEach((d: { [x: string]: any; }) => {
+      let pageMatch = data['pages'].filter((page_doc: { [x: string]: any; }) => page_doc['docid'] == d['id'])[0]
       let item = {
-        title: d['ref_doc_id'],
-        id: d['ref_doc_id'],
+        title: d['title'],
+        id: d['id'],
         score: d['score'],
-        containsTable: d['contains_table'],
-        nodes: d['pages'].map((tuple: any[]) => tuple[0])
+        containsTable: d['containsTable'],
+        originalUrl: d['originalUrl'],
+        "firstPublished": d["firstPublished"],
+        "lastUpdated": d["lastUpdated"],
+        "docDate": d["docDate"],
+        "facilityName": d["facilityName"],
+        "owner": d["owner"],
+        "metadata": d["metadata"],
+        nodes: pageMatch['pages'].map((tuple: any[]) => tuple[0])
       }
       results.push(item)
     });
+    console.log(results)
     return results.sort((a, b) => b.score - a.score);
   }
   return [];

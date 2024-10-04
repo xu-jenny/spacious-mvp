@@ -8,7 +8,8 @@ export type TableEventType =
   | "EditTag"
   | "OriginalUrlClick"
   | "DownloadUrlClick"
-  | "CloseDatasetPanel";
+  | "CloseDatasetPanel"
+  | "TableDownload";
 export async function logTableInteraction(
   eventType: TableEventType,
   position: number | string, // page number or row position
