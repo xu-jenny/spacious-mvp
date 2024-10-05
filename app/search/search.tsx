@@ -121,51 +121,6 @@ function semanticRank(
   return [...dataWithLoc, ...dataNoLoc];
 }
 
-export type PFASDocsResult = {
-  ref_doc_id: string;
-  title: string;
-  document_summary: string;
-  context_summary: string;
-  publisher: string;
-  originalUrl: string;
-  firstPublished?: string | null;
-  lastUpdated?: string | null;
-};
-export type PFASNodeResult = {
-  node_id: string;
-  node_type: string;
-  content: string;
-  ref_doc_id: string;
-  similarity: number;
-};
-
-async function queryPFASDocs(
-  query: string,
-  queryEmbed: number[]
-): Promise<PFASDocsResult[] | null> {
-  let response = await post(
-    `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/query_docs`,
-    {
-      query_str: query,
-      query_embedding: queryEmbed,
-    }
-  );
-  console.log(JSON.parse(response));
-  return JSON.parse(response);
-}
-
-export type PFASSearchResult = {
-  title: string;
-  id: string;
-  nodes?: PFASNodeResult[];
-  firstPublished?: string | null;
-  summary?: string;
-  publisher?: string;
-  context_summary?: string;
-  originalUrl: string;
-  lastUpdated?: string | null;
-};
-
 export type USGSWaterSearchResult = {
   title: string;
   id: string;
@@ -186,37 +141,6 @@ export type USGSWaterSearchResult = {
   }[];
 };
 
-async function queryPFASNodes(
-  query: string,
-  queryEmbed: number[],
-  ref_doc_ids: string[]
-): Promise<PFASNodeResult[] | null> {
-  // let response = await post(
-  // `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/query_nodes`,
-  // {
-  // query_str: query,
-  // query_embedding: queryEmbed,
-  // ref_doc_ids: ref_doc_ids,
-  // }
-  // );
-  let response = await post(
-    `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/query_nodes`,
-    JSON.stringify({
-      query_str: query,
-      query_embedding: queryEmbed,
-      ref_doc_ids: ref_doc_ids,
-    }),
-  )
-    .then((response) => response.json())
-    .catch((error) => {
-      console.error(error);
-    });
-  if (response != null) {
-    return JSON.parse(response);
-  }
-  return response;
-}
-
 export type LaserficheSearchResult = {
   title: string;
   id: string;
@@ -231,12 +155,75 @@ export type LaserficheSearchResult = {
   owner?: string;
   metadata?: string;
 };
+type LaserficheHardcodeResult = {
+  bestDocMatch: string;
+  bestPageMatch: number;
+  similarity: number;
+  [key: string]: any; // Add this to allow dynamic indexing
+}
+
+async function laserficheHardcode(query: string, queryEmbed: Float32Array, location: string): Promise<LaserficheHardcodeResult[]> {
+  console.log(query, location.toUpperCase(), queryEmbed.length)
+  const vector = `[${queryEmbed.join(", ")}]`;
+  const { data, error } = await supabaseClient.rpc("match_laserfiche_hardcode", {
+    input_query: query,
+    input_location: location.toUpperCase(),
+    input_query_embedding: vector
+  });
+  if (error != null) {
+    console.error(
+      "error invoking match_laserfiche_hardcode",
+      typeof vector,
+      vector.length,
+      error
+    );
+    return [];
+  }
+  // parse response to only include one LaserficheHardcodeResult per document
+  const filteredData: LaserficheHardcodeResult[] = Object.values(data.reduce((acc: LaserficheHardcodeResult, current: LaserficheHardcodeResult) => {
+    const key = `${current.bestDocMatch}-${current.bestPageMatch}`;
+
+    // If the key doesn't exist or the current similarity is higher, update the object
+    if (!acc[key] || current.similarity > acc[key].similarity) {
+      acc[key] = current;
+    }
+
+    return acc;
+  }, {})
+  );
+  return filteredData;
+}
+
+const modifyPages = (doc: DocumentMatch, newPage: number): DocumentMatch => {
+  // Insert newPage at the start
+  doc.pages.unshift(newPage);
+
+  // Create a Set to store unique pages while maintaining the order
+  const seen = new Set<number>();
+  
+  // Filter out duplicates and keep only the first occurrence
+  doc.pages = doc.pages.filter(page => {
+    if (!seen.has(page)) {
+      seen.add(page);
+      return true;
+    }
+    return false;
+  });
+
+  return doc;
+};
 
 export async function laserficheSearch(
   query: string,
   location: string
 ): Promise<LaserficheSearchResult[]> {
   console.log("laserficheSearch", query, location);
+  let embedding = await createGTEEmbedding(query)
+  let hardcodeResults: LaserficheHardcodeResult[] = []
+  if (embedding != null) {
+    hardcodeResults = await laserficheHardcode(query, embedding, location)
+    console.log("output of match_laserfiche_hardcode", hardcodeResults);
+  }
   let response = await post(
     `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/laserfiche`,
     {
@@ -248,8 +235,8 @@ export async function laserficheSearch(
     return [];
   }
   const data = JSON.parse(response);
-  console.log(data)
-  if (data != null && 'documents' in data && 'pages' in data){
+  console.log(data);
+  if (data != null && 'documents' in data && 'pages' in data) {
     let results: LaserficheSearchResult[] = [];
     data['documents'].forEach((d: { [x: string]: any; }) => {
       let pageMatch = data['pages'].filter((page_doc: { [x: string]: any; }) => page_doc['docid'] == d['id'])[0]
@@ -267,58 +254,25 @@ export async function laserficheSearch(
         "metadata": d["metadata"],
         nodes: pageMatch['pages'].map((tuple: any[]) => tuple[0])
       }
+      if (hardcodeResults.length == 1 && hardcodeResults[0].bestDocMatch == d['id']){
+        item['nodes'].unshift(hardcodeResults[0].bestPageMatch)
+        item['score'] = 10
+      }
+      // remove duplicate pages
+      if (item['nodes'] != null && item['nodes'].length > 1){
+        const seen = new Set<number>();
+        item['nodes'] = item['nodes'].filter((page: number) => {
+          if (!seen.has(page)) {
+            seen.add(page);
+            return true;
+          }
+          return false;
+        });
+      }
       results.push(item)
     });
     console.log(results)
     return results.sort((a, b) => b.score - a.score);
-  }
-  return [];
-}
-
-export async function pfasSearch(
-  query: string,
-  location: string
-): Promise<PFASSearchResult[]> {
-  // create embedding
-  let embedding = await createGTEEmbedding(query.toLowerCase());
-  if (embedding == null) return [];
-  let embeddingArr = Array.from(embedding);
-  let docs = await queryPFASDocs(query, embeddingArr);
-  let ref_doc_ids = docs?.map((doc) => doc["ref_doc_id"]);
-  console.log("fetched ref_doc_ids from queryPFASDocs", ref_doc_ids);
-  let nodes = await queryPFASNodes(query, embeddingArr, ref_doc_ids ?? []);
-  console.log("fetched nodes from queryPFASNodes", nodes);
-  // each doc should have a nodes array
-  let doc_to_nodes = new Map();
-  nodes?.forEach((n: PFASNodeResult) => {
-    if (doc_to_nodes.has(n.ref_doc_id)) {
-      let new_nodes = doc_to_nodes.get(n.ref_doc_id);
-      new_nodes.push(n);
-      doc_to_nodes.set(n.ref_doc_id, new_nodes);
-    } else {
-      doc_to_nodes.set(n.ref_doc_id, [n]);
-    }
-  });
-  console.log("PFAS nodes result: ", doc_to_nodes);
-  // map docs to PFAS Search Result
-  let results: PFASSearchResult[] = [];
-  docs?.forEach((doc) => {
-    let result: PFASSearchResult = {
-      title: doc["title"] ?? doc["ref_doc_id"],
-      id: doc["ref_doc_id"],
-      publisher: doc["publisher"],
-      summary: doc["document_summary"],
-      context_summary: doc["context_summary"],
-      originalUrl: doc["originalUrl"],
-      nodes: doc_to_nodes.get(doc.ref_doc_id) ?? [],
-    };
-    results.push(result);
-  });
-  if (results != null && results.length > 0) {
-    // sort by nodes length
-    // @ts-ignore
-    results.sort((a, b) => b.nodes.length - a.nodes.length);
-    return results;
   }
   return [];
 }

@@ -33,7 +33,7 @@ export const PDFPanelViewer: React.FC<PdfViewerProps> = ({ fileUrl, pagesToJump 
       const pageElement = document.getElementById(`page_${page}`);
       if (pageElement && containerRef.current) {
         containerRef.current.scrollTo({
-          top: pageElement.offsetTop - 200,
+          top: pageElement.offsetTop - pageElement.getBoundingClientRect().height,
           behavior: 'smooth',
         });
       }
@@ -142,7 +142,7 @@ export const PDFPanelViewer: React.FC<PdfViewerProps> = ({ fileUrl, pagesToJump 
                   key={`page_${index + 1}`}
                   ref={(el) => (pageRefs.current[index] = el)}
                   data-page-number={index + 1}
-                  className="flex justify-center mb-2"
+                  className={`flex justify-center h-full`}
                 >
                   <Page
                     pageNumber={index + 2}
