@@ -16,7 +16,6 @@ interface PdfViewerProps {
 export const PDFPanelViewer: React.FC<PdfViewerProps> = ({ fileUrl, pagesToJump }) => {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [fileData, setFileData] = useState<string | null>(null);
-  const [renderAllPages, setRenderAllPages] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const [startTime, setStartTime] = useState<number>(Date.now());
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -46,7 +45,6 @@ export const PDFPanelViewer: React.FC<PdfViewerProps> = ({ fileUrl, pagesToJump 
 
     const fetchPDF = async () => {
       try {
-        console.log("pdf loading");
         const response = await fetch(fileUrl, {
           headers: {
             Range: "bytes=0-10000000",
@@ -56,23 +54,11 @@ export const PDFPanelViewer: React.FC<PdfViewerProps> = ({ fileUrl, pagesToJump 
         const blob = await response.blob();
         const objectURL = URL.createObjectURL(blob);
         setFileData(objectURL);
-
-        setStartTime(Date.now());
-
-        setTimeout(() => {
-          setRenderAllPages(true);
-          console.log(
-            `Rendering rest of the pages after ${Date.now() - startTime} ms.`
-          );
-        }, 500);
       } catch (error) {
         console.error('Error fetching the PDF:', error);
       }
     };
     fetchPDF();
-    return () => {
-      controller.abort();
-    };
   }, [fileUrl]);
 
   // IntersectionObserver to detect current page in view
@@ -134,7 +120,7 @@ export const PDFPanelViewer: React.FC<PdfViewerProps> = ({ fileUrl, pagesToJump 
         }}
       >
         {fileData && (
-          <Document file={fileData} onLoadSuccess={onDocumentLoadSuccess}>
+          <Document file={fileUrl} onLoadSuccess={onDocumentLoadSuccess}>
             {numPages &&
               Array.from(new Array(numPages), (el, index) => (
                 <div

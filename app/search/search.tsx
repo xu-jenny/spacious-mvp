@@ -194,25 +194,6 @@ async function laserficheHardcode(query: string, queryEmbed: Float32Array, locat
   return filteredData;
 }
 
-const modifyPages = (doc: DocumentMatch, newPage: number): DocumentMatch => {
-  // Insert newPage at the start
-  doc.pages.unshift(newPage);
-
-  // Create a Set to store unique pages while maintaining the order
-  const seen = new Set<number>();
-  
-  // Filter out duplicates and keep only the first occurrence
-  doc.pages = doc.pages.filter(page => {
-    if (!seen.has(page)) {
-      seen.add(page);
-      return true;
-    }
-    return false;
-  });
-
-  return doc;
-};
-
 export async function laserficheSearch(
   query: string,
   location: string

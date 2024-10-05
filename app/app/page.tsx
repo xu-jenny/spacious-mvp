@@ -16,7 +16,7 @@ import { useSearchParams } from 'next/navigation';
 import SlidingPane from 'react-sliding-pane';
 
 import logo from '../../public/logo.jpeg';
-import { LaserficheSearchResult, PFASSearchResult, SearchResult, USGSWaterSearchResult } from '../search/search';
+import { LaserficheSearchResult, SearchResult, USGSWaterSearchResult } from '../search/search';
 import { NCDEQWSSearchResult } from '../search/NCDEQWSSearch';
 import { useStateContext } from '../StateContext';
 
@@ -25,7 +25,6 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/b
 
 export type SearchResults =
   | SearchResult
-  | PFASSearchResult
   | USGSWaterSearchResult
   | NCDEQWSSearchResult
   | LaserficheSearchResult;
@@ -155,6 +154,7 @@ export default function Home() {
             setLoading={setLoading}
             startTime={startDate}
             endTime={endDate}
+            loading={loading}
           />
           {loading ? (
             <div className="ml-20 mt-20">
