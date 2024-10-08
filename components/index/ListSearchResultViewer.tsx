@@ -1,17 +1,13 @@
 import { PaginatedList } from "react-paginated-list";
 import { USDatasetSource } from "./SearchButton";
 import { logTableInteraction } from "@/utils/supabaseLogger";
-import { SearchResults } from "@/app/page";
 import USGSWaterDatasetCard from "./SearchResult/USGSWaterdatasetCard";
-import {
-  PFASSearchResult,
-  SearchResult,
-  USGSWaterSearchResult,
-} from "@/app/search";
-import PFASSearchResultCard from "./SearchResult/PFASSearchResultCard";
+import LaserficheSearchResultCard from "./SearchResult/LaserficheSearchResultCard";
 import SearchResultDatasetCard from "./SearchResult/SearchResultDatasetCard";
 import NCDEQWSResultCard from "./SearchResult/NCDEQWSResultCard";
-import { NCDEQWSSearchResult } from "@/app/NCDEQWSSearch";
+import { NCDEQWSSearchResult } from "@/app/search/NCDEQWSSearch";
+import { SearchResults } from "@/app/app/page";
+import { LaserficheSearchResult, SearchResult, USGSWaterSearchResult } from "@/app/search/search";
 
 interface Props {
   primaryData: SearchResults[];
@@ -42,9 +38,9 @@ const ListSearchResultViewer = ({
         );
       case "PFAS":
         return (
-          <PFASSearchResultCard
+          <LaserficheSearchResultCard
             key={index}
-            dataset={dataset as PFASSearchResult}
+            dataset={dataset as LaserficheSearchResult}
             index={index}
             setSelectedDataset={setDatasetSelected}
           />

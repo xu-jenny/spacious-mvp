@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Map, Marker, Overlay } from "pigeon-maps";
-import { USGSWaterSearchResult } from "@/app/search";
-import { GoDownload } from "react-icons/go";
 import { Button } from "flowbite-react";
-import { useStateContext } from "@/app/StateContext";
 import { MdOutlineFileDownload } from "react-icons/md";
+import { USGSWaterSearchResult } from "@/app/search/search";
 
 interface Props {
   data: USGSWaterSearchResult[];
@@ -55,7 +53,10 @@ const PigeonMapViewer = ({ data, location, startTime, endTime }: Props) => {
 
   const handleDownload = async () => {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/usgs_water_csv/?siteId=${overlayItem?.siteId}&paramCode=${overlayItem?.matchingParamCode[1]}&startTime=${startTime}&endTime=${endTime}`
+      `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/usgs_water_csv/?siteId=${overlayItem?.siteId}&paramCode=${overlayItem?.matchingParamCode[1]}&startTime=${startTime}&endTime=${endTime}`,
+      {
+        headers: { "x-api-key": process.env.NEXT_PUBLIC_BACKEND_API_KEY ?? "" },
+      }
     );
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
