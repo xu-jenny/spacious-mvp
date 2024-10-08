@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { StateProvider } from "./StateContext";
+import Head from "next/head";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,6 +18,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <Head>
+        <script
+          async
+          defer
+          src="https://cloud.umami.is/script.js"
+          data-website-id="f4aa2798-a10d-4984-abd8-d7677dfd2b02"
+        ></script>
+      </Head>
       <body className={inter.className}>
         <StateProvider>{children}</StateProvider>
       </body>
