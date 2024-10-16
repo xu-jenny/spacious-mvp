@@ -21,6 +21,7 @@ import { NCDEQWSSearchResult } from '../search/NCDEQWSSearch';
 import { useStateContext } from '../StateContext';
 
 import { pdfjs } from 'react-pdf';
+import PDFPanelViewer from '@/components/index/DatasetPane/PDFPanelViewer';
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 export type SearchResults =
@@ -156,6 +157,7 @@ export default function Home() {
             endTime={endDate}
             loading={loading}
           />
+          <PDFPanelViewer fileUrl={"/NCS000050_Fact sheet binder_20230524.pdf"} pagesToJump={[3]} />
           {loading ? (
             <div className="ml-20 mt-20">
               <Spinner />
