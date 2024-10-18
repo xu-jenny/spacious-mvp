@@ -157,7 +157,7 @@ export default function Home() {
             endTime={endDate}
             loading={loading}
           />
-          <PDFPanelViewer fileUrl={"/NCS000050_Fact sheet binder_20230524.pdf"} pagesToJump={[3]} />
+          <PDFPanelViewer fileUrl={"/NCS000050_Fact sheet binder_20230524.pdf"} pagesToJump={[1, 2, 3, 4]} />
           {loading ? (
             <div className="ml-20 mt-20">
               <Spinner />

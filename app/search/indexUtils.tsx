@@ -60,7 +60,7 @@ export async function semanticSearch(
 export async function createEmbedding(text: string): Promise<Float32Array> {
   return new Promise((resolve, reject) => {
     const worker = new Worker(
-      new URL("./embeddingWorker.tsx", import.meta.url),
+      new URL("./embeddingGteWorker.tsx", import.meta.url),
       { type: "module" }
     );
     worker.onmessage = (event: MessageEvent) => {
