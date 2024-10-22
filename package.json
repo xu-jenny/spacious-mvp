@@ -48,9 +48,11 @@
     "react-leaflet": "^4.2.1",
     "react-paginated-list": "^1.1.6",
     "react-pdf": "^9.1.0",
+    "react-pdf-highlighter": "^8.0.0-rc.0",
     "react-sliding-pane": "^7.3.0",
     "recharts": "^2.12.7",
     "styled-components": "^6.1.8",
+    "tesseract.js": "^5.1.1",
     "zod-to-json-schema": "^3.21.4"
   },
   "devDependencies": {
