@@ -48,7 +48,9 @@ const DatasourceSelect = ({ dataSource, setDataSource }: Props) => {
       }}
     >
       <Dropdown.Item onClick={() => handleSelect("ANY")}>ALL</Dropdown.Item>
-      <Dropdown.Item onClick={() => handleSelect("PFAS")}>PFAS</Dropdown.Item>
+      <Dropdown.Item onClick={() => handleSelect("PFAS")}>
+        NC DEQ Laserfiche
+      </Dropdown.Item>
       <Dropdown.Item onClick={() => handleSelect("USGS_WATER")}>
         USGS Water
       </Dropdown.Item>

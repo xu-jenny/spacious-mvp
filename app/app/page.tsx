@@ -1,27 +1,36 @@
-"use client"
-import React, { useEffect, useState } from 'react';
-import 'react-sliding-pane/dist/react-sliding-pane.css';
+"use client";
+import React, { useEffect, useState } from "react";
+import "react-sliding-pane/dist/react-sliding-pane.css";
 
-import DatasetPanel from '@/components/index/DatasetPane/DatasetPanel';
-import DatasourceSelect from '@/components/index/DatasourceSelect';
-import DateRangeSelector from '@/components/index/DateRangeSelector';
-import LocationSearchBar, { LaserficheLocationBar } from '@/components/index/LocationSearchBar';
-import OpenLinkButton from '@/components/index/RequestDataButton';
-import SearchButton, { search, USDatasetSource } from '@/components/index/SearchButton';
-import SearchResultViewer from '@/components/index/SearchResult/SearchResultViewer';
-import { logTableInteraction } from '@/utils/supabaseLogger';
-import { Spinner } from 'flowbite-react';
-import Image from 'next/image';
-import { useSearchParams } from 'next/navigation';
-import SlidingPane from 'react-sliding-pane';
+import DatasetPanel from "@/components/index/DatasetPane/DatasetPanel";
+import DatasourceSelect from "@/components/index/DatasourceSelect";
+import DateRangeSelector from "@/components/index/DateRangeSelector";
+import LocationSearchBar, {
+  LaserficheLocationBar,
+} from "@/components/index/LocationSearchBar";
+import OpenLinkButton from "@/components/index/RequestDataButton";
+import SearchButton, {
+  search,
+  USDatasetSource,
+} from "@/components/index/SearchButton";
+import SearchResultViewer from "@/components/index/SearchResult/SearchResultViewer";
+import { logTableInteraction } from "@/utils/supabaseLogger";
+import { Spinner } from "flowbite-react";
+import Image from "next/image";
+import { useSearchParams } from "next/navigation";
+import SlidingPane from "react-sliding-pane";
 
-import logo from '../../public/logo.jpeg';
-import { LaserficheSearchResult, SearchResult, USGSWaterSearchResult } from '../search/search';
-import { NCDEQWSSearchResult } from '../search/NCDEQWSSearch';
-import { useStateContext } from '../StateContext';
+import logo from "../../public/logo.jpeg";
+import {
+  LaserficheSearchResult,
+  SearchResult,
+  USGSWaterSearchResult,
+} from "../search/search";
+import { NCDEQWSSearchResult } from "../search/NCDEQWSSearch";
+import { useStateContext } from "../StateContext";
 
-import { pdfjs } from 'react-pdf';
-import PDFPanelViewer from '@/components/index/DatasetPane/PDFPanelViewer';
+import { pdfjs } from "react-pdf";
+import PDFPanelViewer from "@/components/index/DatasetPane/PDFPanelViewer";
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 export type SearchResults =
@@ -94,7 +103,9 @@ export default function Home() {
         let result = await performSearch();
         setPrimary(result);
         if (searchParams.get("id") != null) {
-          let ds = result?.filter((r: { id: string | null; }) => r.id == searchParams.get("id"));
+          let ds = result?.filter(
+            (r: { id: string | null }) => r.id == searchParams.get("id")
+          );
           if (ds != undefined && ds.length > 0) {
             setCurrentds(ds[0]);
             setOpenPanel(true);
@@ -157,10 +168,11 @@ export default function Home() {
             endTime={endDate}
             loading={loading}
           />
-          <PDFPanelViewer fileUrl={"/NCS000050_Fact sheet binder_20230524.pdf"} pagesToJump={[1, 2, 3, 4]} />
+          {/* <PDFPanelViewer fileUrl={"/NCS000050_Fact sheet binder_20230524.pdf"} pagesToJump={[1, 2, 3, 4]} /> */}
           {loading ? (
             <div className="ml-20 mt-20">
-              <Spinner />
+              {/* <Spinner />
+			  save for future loading screen if needed */}
             </div>
           ) : primaryData != null && primaryData.length > 0 ? (
             <SearchResultViewer
