@@ -7,10 +7,9 @@ import PDFPanelViewer from "./PDFPanelViewer";
 
 type Props = {
   dataset: LaserficheSearchResult;
-  pages: number[];
 };
 
-const PFASDatasetPanel = ({ dataset, pages = [] }: Props) => {
+const PFASDatasetPanel = ({ dataset }: Props) => {
   const displaySummary = (summary: string) => {
     const sentences = summary.match(/[^\.!\?]+[\.!\?]+/g);
     if (!sentences || sentences.length <= 4) {
@@ -121,8 +120,8 @@ const PFASDatasetPanel = ({ dataset, pages = [] }: Props) => {
               <span><strong>First Published:</strong> {dataset?.firstPublished}</span>
             </div>
           )}
-          {dataset?.metadata != null && displayMetadata(dataset.metadata)}
-          <PDFPanelViewer fileUrl={pdfUrl} pagesToJump={pages} />
+          {/* {dataset?.metadata != null && displayMetadata(dataset.metadata)} */}
+          <PDFPanelViewer fileUrl={pdfUrl} pagesToJump={dataset.nodes} docBbox={dataset.page_bbox ?? [0, 0, 612, 792]} />
         </article>
       </div>
     </div>

@@ -157,7 +157,13 @@ export default function Home() {
             endTime={endDate}
             loading={loading}
           />
-          <PDFPanelViewer fileUrl={"/NCS000050_Fact sheet binder_20230524.pdf"} pagesToJump={[1, 2, 3, 4]} />
+          {/* <PDFPanelViewer fileUrl={"/WI0500447_Staff Report_20200911.pdf"} pagesToJump={[{
+            page: 1,
+            score: 10,
+            bbox: [182.0, 697.3308020882772, 710.0, 873.4143331751305],
+          }]}
+          docBbox={[0, 0, 1054, 807]}
+          /> */}
           {loading ? (
             <div className="ml-20 mt-20">
               <Spinner />

@@ -141,13 +141,20 @@ export type USGSWaterSearchResult = {
   }[];
 };
 
+export type LaserfichePageResult = {
+  page: number;
+  score: number;
+  bbox: number[] | null;
+}
+
 export type LaserficheSearchResult = {
   title: string;
   id: string;
-  nodes: number[];
+  nodes: LaserfichePageResult[];
   score: number;
   containsTable: boolean;
   originalUrl: string;
+  page_bbox: number[] | null;
   firstPublished?: string | null;
   lastUpdated?: string | null;
   docDate?: string | null;
@@ -221,36 +228,60 @@ export async function laserficheSearch(
     let results: LaserficheSearchResult[] = [];
     data['documents'].forEach((d: { [x: string]: any; }) => {
       let pageMatch = data['pages'].filter((page_doc: { [x: string]: any; }) => page_doc['docid'] == d['id'])[0]
-      let item = {
-        title: d['title'],
-        id: d['id'],
-        score: d['score'],
-        containsTable: d['containsTable'],
-        originalUrl: d['originalUrl'],
-        "firstPublished": d["firstPublished"],
-        "lastUpdated": d["lastUpdated"],
-        "docDate": d["docDate"],
-        "facilityName": d["facilityName"],
-        "owner": d["owner"],
-        "metadata": d["metadata"],
-        nodes: pageMatch['pages'].map((tuple: any[]) => tuple[0])
-      }
-      if (hardcodeResults.length == 1 && hardcodeResults[0].bestDocMatch == d['id']){
-        item['nodes'].unshift(hardcodeResults[0].bestPageMatch)
-        item['score'] = 10
-      }
-      // remove duplicate pages
-      if (item['nodes'] != null && item['nodes'].length > 1){
-        const seen = new Set<number>();
-        item['nodes'] = item['nodes'].filter((page: number) => {
-          if (!seen.has(page)) {
-            seen.add(page);
-            return true;
+      if (pageMatch != null){
+        const nodes = pageMatch['pages'].map((tuple: any[]) => {
+          let pageBbox = null;
+          try {
+            pageBbox = JSON.parse(tuple[2])
+            return {
+              'page': tuple[0],
+              'score': tuple[1],
+              'bbox': pageBbox
+            }
+          } catch (e) {
+            console.error("Error parsing tuple", tuple, e);
           }
-          return false;
-        });
+        })
+        let page_box = null;
+        try {
+          page_box = JSON.parse(d['page_bbox'])
+        } catch (e){
+          console.error("Error parsing page_bbox", d['page_bbox'], e);
+        }
+        let item = {
+          title: d['title'],
+          id: d['id'],
+          score: d['score'],
+          page_bbox: page_box,
+          containsTable: d['containsTable'],
+          originalUrl: d['originalUrl'],
+          "firstPublished": d["firstPublished"],
+          "lastUpdated": d["lastUpdated"],
+          "docDate": d["docDate"],
+          "facilityName": d["facilityName"],
+          "owner": d["owner"],
+          "metadata": d["metadata"],
+          nodes: nodes
+        }
+        if (hardcodeResults.length == 1 && hardcodeResults[0].bestDocMatch == d['id']){
+          // find the corresponding node
+          const correspondingNode = nodes.filter((node: LaserfichePageResult) => node.page == hardcodeResults[0].bestPageMatch)[0]
+          item['nodes'].unshift(correspondingNode)
+          item['score'] = 10
+        }
+        // remove duplicate pages
+        if (item['nodes'] != null && item['nodes'].length > 1){
+          const seen = new Set<number>();
+          item['nodes'] = item['nodes'].filter((node: LaserfichePageResult) => {
+            if (!seen.has(node.page)) {
+              seen.add(node.page);
+              return true;
+            }
+            return false;
+          });
+        }
+        results.push(item)
       }
-      results.push(item)
     });
     console.log(results)
     return results.sort((a, b) => b.score - a.score);

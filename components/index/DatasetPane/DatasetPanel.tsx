@@ -26,7 +26,6 @@ function DatasetPanel({ dataset, dsSource }: Props) {
         return (
           <PFASDatasetPanel
             dataset={dataset as LaserficheSearchResult}
-            pages={(dataset as LaserficheSearchResult).nodes}
           />
         );
       case "NC_DEQ_WATERSUPPLY":
