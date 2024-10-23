@@ -1,6 +1,6 @@
 "use client";
 
-import { LaserficheSearchResult } from "@/app/search/search";
+import { LaserfichePageResult, LaserficheSearchResult } from "@/app/search/search";
 import { logTableInteraction } from "@/utils/supabaseLogger";
 import { Card } from "flowbite-react";
 
@@ -18,7 +18,7 @@ function LaserficheSearchResultCard({ dataset, index, setSelectedDataset }: Prop
   const longStringShortener = (str: string) =>
     str != null && str.length > 300 ? `${str.substring(0, 300)}...` : str;
 
-  const showNodes = (nodes: number[]) => {
+  const showNodes = (nodes: LaserfichePageResult[]) => {
     return <p>We found {nodes.length} potential matches in this document</p>;
   };
 
@@ -33,7 +33,7 @@ function LaserficheSearchResultCard({ dataset, index, setSelectedDataset }: Prop
       {dataset.nodes != null &&
         "nodes" in dataset &&
         dataset["nodes"].length > 0 &&
-        showNodes(dataset.nodes)}
+        showNodes(dataset?.nodes)}
     </Card>
   );
 }
