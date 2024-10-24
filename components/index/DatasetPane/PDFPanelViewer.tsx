@@ -1,6 +1,6 @@
 "use client";
 import "react-pdf/dist/esm/Page/AnnotationLayer.css";
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "react-pdf-highlighter/dist/style.css";
 import {
     Highlight,
@@ -66,7 +66,12 @@ const getBbox = (arr: number[], page: number, docBbox: number[]) => ({
     "id": getNextId(),
 })
 
+
 const PDFPanelViewer: React.FC<PdfViewerProps> = ({ fileUrl, pagesToJump, docBbox }) => {
+    const [currentPage, setCurrentPage] = useState<number>(1); // Track current page
+    const [totalPages, setTotalPages] = useState<number>(0); // Total number of pages
+    const containerRef = useRef<HTMLDivElement>(null);
+
     const initalHighlights = pagesToJump
         .map((pageResult: LaserfichePageResult) => {
             if (pageResult.bbox != null) {
@@ -75,7 +80,6 @@ const PDFPanelViewer: React.FC<PdfViewerProps> = ({ fileUrl, pagesToJump, docBbo
             return undefined; 
         })
         .filter((highlight) => highlight !== undefined);
-    const containerRef = useRef<HTMLDivElement>(null);
 
     const includedPages = pagesToJump.map((pg) => pg.page);
 
@@ -83,10 +87,12 @@ const PDFPanelViewer: React.FC<PdfViewerProps> = ({ fileUrl, pagesToJump, docBbo
         const pageElement = document.querySelector(`[data-page-number="${page}"]`);
         if (pageElement) {
             pageElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            setCurrentPage(page); // Update current page on jump
         } else {
             console.log('Page element not found');
         }
     };
+
     return (
         <div style={{ height: "80vh", width: "75vw", position: "relative" }}>
             <div className="p-2">
@@ -101,17 +107,24 @@ const PDFPanelViewer: React.FC<PdfViewerProps> = ({ fileUrl, pagesToJump, docBbo
                     </span>
                 ))}
             </div>
+            
+            {/* Page Indicator */}
+            {/* <div style={{ position: 'absolute', top: '0', right: '1rem', zIndex: 1, width: '75%' }}>
+                Page {currentPage} out of {totalPages}
+            </div> */}
+
             <div
                 ref={containerRef}
-                style={{ position: "absolute", top: '7rem', left: 0, right: 0, bottom: 0 }}
+                style={{ position: "absolute", top: '7rem', left: 0, right: 0, bottom: 0, overflowY: 'scroll' }}
             >
                 <PdfLoader url={fileUrl} beforeLoad={<Spinner />} >
                     {(pdfDocument) => {
+                        // setTotalPages(pdfDocument.numPages); // Set total number of pages
                         return (
                             <PdfHighlighter
                                 pdfDocument={pdfDocument}
                                 enableAreaSelection={(event) => event.altKey}
-                                onScrollChange={resetHash}
+                                onScrollChange={() => console.log("scroll changed")}
                                 scrollRef={(scrollTo) => {
                                     console.log(scrollTo)
                                 }}
@@ -163,11 +176,12 @@ const PDFPanelViewer: React.FC<PdfViewerProps> = ({ fileUrl, pagesToJump, docBbo
                         );
                     }}
                 </PdfLoader>
-
             </div>
         </div>
     );
 };
+
+
 
 
 

@@ -29,6 +29,7 @@ import {
 import { NCDEQWSSearchResult } from "../search/NCDEQWSSearch";
 import { useStateContext } from "../StateContext";
 import { pdfjs } from 'react-pdf';
+import PDFPanelViewer from "@/components/index/DatasetPane/PDFPanelViewer";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 

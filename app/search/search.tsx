@@ -163,6 +163,7 @@ export type LaserficheSearchResult = {
   metadata?: string;
 };
 type LaserficheHardcodeResult = {
+  query: string;
   bestDocMatch: string;
   bestPageMatch: number;
   similarity: number;
@@ -201,6 +202,52 @@ async function laserficheHardcode(query: string, queryEmbed: Float32Array, locat
   return filteredData;
 }
 
+function transformLaserfichePageResults(pages: any, location: string): LaserfichePageResult[] {
+  const nodes = pages.map((tuple: any[]) => {
+    let pageBbox = null;
+    try {
+      if (location != '01005-97-032') {
+        if (typeof tuple[2] == 'string') {
+          pageBbox = JSON.parse(tuple[2])
+        } else {
+          pageBbox = tuple[2]
+        }
+      }
+      return {
+        'page': tuple[0],
+        'score': tuple[1],
+        'bbox': pageBbox
+      }
+    } catch (e) {
+      console.error("Error parsing tuple", tuple, e);
+    }
+  })
+  return nodes
+}
+function transformLaserficheSearchResult(d: { [x: string]: any; }, nodes: LaserfichePageResult[]): LaserficheSearchResult {
+  let page_box = null;
+  try {
+    page_box = JSON.parse(d['page_bbox'])
+  } catch (e) {
+    console.error("Error parsing page_bbox", d['page_bbox'], e);
+  }
+  return {
+    title: d['title'],
+    id: d['id'],
+    score: d['score'],
+    page_bbox: page_box,
+    containsTable: d['containsTable'],
+    originalUrl: d['originalUrl'],
+    "firstPublished": d["firstPublished"],
+    "lastUpdated": d["lastUpdated"],
+    "docDate": d["docDate"],
+    "facilityName": d["facilityName"],
+    "owner": d["owner"],
+    "metadata": d["metadata"],
+    nodes: nodes
+  }
+}
+
 export async function laserficheSearch(
   query: string,
   location: string
@@ -212,6 +259,12 @@ export async function laserficheSearch(
     hardcodeResults = await laserficheHardcode(query, embedding, location)
     console.log("output of match_laserfiche_hardcode", hardcodeResults);
   }
+  // let hardcodeResults = [{
+  //   "query": "what are the historic uses on site? ",
+  //   "bestDocMatch": "01005_Eakes_Drycleaners_BF_Site_Assmt",
+  //   "bestPageMatch": 1,
+  //   "similarity": 0.844034195128979
+  // }]
   let response = await post(
     `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/laserfiche`,
     {
@@ -223,54 +276,22 @@ export async function laserficheSearch(
     return [];
   }
   const data = JSON.parse(response);
-  console.log(data);
   if (data != null && 'documents' in data && 'pages' in data) {
     let results: LaserficheSearchResult[] = [];
     data['documents'].forEach((d: { [x: string]: any; }) => {
       let pageMatch = data['pages'].filter((page_doc: { [x: string]: any; }) => page_doc['docid'] == d['id'])[0]
-      if (pageMatch != null){
-        const nodes = pageMatch['pages'].map((tuple: any[]) => {
-          let pageBbox = null;
-          try {
-            pageBbox = JSON.parse(tuple[2])
-            return {
-              'page': tuple[0],
-              'score': tuple[1],
-              'bbox': pageBbox
-            }
-          } catch (e) {
-            console.error("Error parsing tuple", tuple, e);
-          }
-        })
-        let page_box = null;
-        try {
-          page_box = JSON.parse(d['page_bbox'])
-        } catch (e){
-          console.error("Error parsing page_bbox", d['page_bbox'], e);
-        }
-        let item = {
-          title: d['title'],
-          id: d['id'],
-          score: d['score'],
-          page_bbox: page_box,
-          containsTable: d['containsTable'],
-          originalUrl: d['originalUrl'],
-          "firstPublished": d["firstPublished"],
-          "lastUpdated": d["lastUpdated"],
-          "docDate": d["docDate"],
-          "facilityName": d["facilityName"],
-          "owner": d["owner"],
-          "metadata": d["metadata"],
-          nodes: nodes
-        }
-        if (hardcodeResults.length == 1 && hardcodeResults[0].bestDocMatch == d['id']){
+      if (pageMatch != null) {
+        let nodes = transformLaserfichePageResults(pageMatch['pages'], location)
+        let item = transformLaserficheSearchResult(d, nodes)
+        if (hardcodeResults.length >= 1 && hardcodeResults[0].bestDocMatch == d['id']) {
           // find the corresponding node
           const correspondingNode = nodes.filter((node: LaserfichePageResult) => node.page == hardcodeResults[0].bestPageMatch)[0]
           item['nodes'].unshift(correspondingNode)
           item['score'] = 10
+          hardcodeResults = []
         }
         // remove duplicate pages
-        if (item['nodes'] != null && item['nodes'].length > 1){
+        if (item['nodes'] != null && item['nodes'].length > 1) {
           const seen = new Set<number>();
           item['nodes'] = item['nodes'].filter((node: LaserfichePageResult) => {
             if (!seen.has(node.page)) {
@@ -283,6 +304,36 @@ export async function laserficheSearch(
         results.push(item)
       }
     });
+    // add hardcode result to results
+    if (hardcodeResults.length > 0) {
+      // we know this already doesn't exist inresults, a hack above sets it to []
+      // this could be because there was no pageMatch returned
+      const foundDoc = data['documents'].find((d: { [x: string]: any; }) => d['id'] === hardcodeResults[0].bestDocMatch)
+      let nodes = [{ 'page': hardcodeResults[0].bestPageMatch, 'score': 10, 'bbox': null }]
+      if (hardcodeResults[0]['query'].includes("assumed groundwater impacts")) {
+        nodes = [{ 'page': 2, 'score': 10, 'bbox': null }, { 'page': 3, 'score': 9, 'bbox': null }, { 'page': 4, 'score': 8, 'bbox': null }, { 'page': 10, 'score': 7, 'bbox': null }]
+      } else if (hardcodeResults[0]['query'].includes("underground storage tank")) {
+        nodes = [{ 'page': 2, 'score': 10, 'bbox': null }, { 'page': 3, 'score': 9, 'bbox': null }]
+      } else if (hardcodeResults[0]['query'].includes("historic use")) {
+        nodes = [{ 'page': 1, 'score': 10, 'bbox': null }, { 'page': 14, 'score': 9, 'bbox': null }]
+      }
+      results.push({
+        title: foundDoc['title'],
+        id: foundDoc['id'],
+        score: 10,
+        page_bbox: null,
+        containsTable: foundDoc['containsTable'],
+        originalUrl: foundDoc['originalUrl'],
+        "firstPublished": foundDoc["firstPublished"],
+        "lastUpdated": foundDoc["lastUpdated"],
+        "docDate": foundDoc["docDate"],
+        "facilityName": foundDoc["facilityName"],
+        "owner": foundDoc["owner"],
+        "metadata": foundDoc["metadata"],
+        nodes: nodes
+      })
+
+    }
     console.log(results)
     return results.sort((a, b) => b.score - a.score);
   }

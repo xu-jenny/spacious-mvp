@@ -189,6 +189,7 @@ export const LaserficheLocationBar = () => {
     "NCG240012",
     "WI0500447",
     "NCG060230",
+    "01005-97-032"
   ];
   const [value, setValue] = React.useState<string | null>(options[0]);
   const [inputValue, setInputValue] = React.useState("");
