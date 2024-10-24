@@ -316,6 +316,8 @@ export async function laserficheSearch(
         nodes = [{ 'page': 2, 'score': 10, 'bbox': null }, { 'page': 3, 'score': 9, 'bbox': null }]
       } else if (hardcodeResults[0]['query'].includes("historic use")) {
         nodes = [{ 'page': 1, 'score': 10, 'bbox': null }, { 'page': 14, 'score': 9, 'bbox': null }]
+      } else if (hardcodeResults[0]['query'].includes("depth to water")) {
+        nodes = [{ 'page': 11, 'score': 10, 'bbox': null }, { 'page': 12, 'score': 9, 'bbox': null }, { 'page': 9, 'score': 43, 'bbox': null }, { 'page': 43, 'score': 6, 'bbox': null }, { 'page': 44, 'score': 5, 'bbox': null }, { 'page': 45, 'score': 4, 'bbox': null }]
       }
       results.push({
         title: foundDoc['title'],
