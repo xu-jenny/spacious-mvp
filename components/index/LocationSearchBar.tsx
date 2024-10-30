@@ -6,6 +6,9 @@ import LocationInfo from "./LocationInfo";
 
 import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
+import { Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel } from "@mui/material";
+import { laserficheFilter } from "@/app/search/search";
+import { SearchResults } from "@/app/app/page";
 
 const isLatLong = (str: string) => {
   const latLongRegex =
@@ -181,18 +184,42 @@ export const LocationSearchBar = () => {
   );
 };
 
-export const LaserficheLocationBar = () => {
-  const { dispatch } = useStateContext();
+export type LaserficheSearchType = 'query' | 'all' | 'filter-image';
+
+export const LaserficheLocationBar = ({ setData }: { setData: React.Dispatch<React.SetStateAction<SearchResults[] | null>> }) => {
+  const [searchType, setSearchType] = useState<LaserficheSearchType>('query');
+  const { state, dispatch } = useStateContext();
   const options = [
     "NCS000050",
     "NCG080886",
     "NCG240012",
-    "WI0500447",
+    // "WI0500447",
     "NCG060230",
-    "01005-97-032"
+    // "01005-97-032"
   ];
   const [value, setValue] = React.useState<string | null>(options[0]);
   const [inputValue, setInputValue] = React.useState("");
+
+  const handleSearchtypeChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log(event.target.name, event.target.checked, state.location)
+    if (event.target.checked == true) {
+      setSearchType(event.target.name as LaserficheSearchType)
+      const loc = state.location?.name ?? "ncs000050";
+      if (event.target.name == 'all') {
+        let results = await laserficheFilter(loc, false);
+        setData(results)
+      } else if (event.target.name == 'filter-image'){
+        let results = await laserficheFilter(loc, true);
+        setData(results)
+      }
+    } else {
+      if (event.target.name === 'filter-image') {
+        setSearchType('all')
+      } else {
+        setSearchType('query')
+      }
+    }
+  };
 
   return (
     <div>
@@ -221,6 +248,24 @@ export const LaserficheLocationBar = () => {
         options={options}
         renderInput={(params) => <TextField {...params} />}
       />
+      <div className="ml-2">
+        <FormControl sx={{ m: 3 }} component="fieldset" variant="standard">
+          <FormGroup>
+            <FormControlLabel
+              control={
+                <Checkbox checked={searchType != 'query'} onChange={handleSearchtypeChange} name="all" />
+              }
+              label="Show All"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox checked={searchType == 'filter-image'} onChange={handleSearchtypeChange} name="filter-image" />
+              }
+              label="Filter Image"
+            />
+          </FormGroup>
+        </FormControl>
+      </div>
     </div>
   );
 };

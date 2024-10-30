@@ -164,7 +164,7 @@ const PFASDatasetPanel = ({ dataset }: Props) => {
             </div>
           )}
           {dataset?.metadata != null && displayMetadata(dataset.metadata)}
-          <PDFPanelViewer fileUrl={pdfUrl} pagesToJump={dataset.nodes} docBbox={dataset.page_bbox ?? [0, 0, 612, 792]} />
+          <PDFPanelViewer fileUrl={pdfUrl} pagesToJump={dataset.nodes ?? []} docBbox={dataset.page_bbox ?? [0, 0, 612, 792]} />
         </article>
       </div>
     </div>

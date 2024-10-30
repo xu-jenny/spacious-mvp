@@ -155,6 +155,7 @@ export type LaserficheSearchResult = {
   containsTable: boolean;
   originalUrl: string;
   page_bbox: number[] | null;
+  images?: string[] | null;
   firstPublished?: string | null;
   lastUpdated?: string | null;
   docDate?: string | null;
@@ -248,220 +249,270 @@ function transformLaserficheSearchResult(d: { [x: string]: any; }, nodes: Laserf
   }
 }
 
-export async function laserficheSearch(
-  query: string,
-  location: string
-): Promise<LaserficheSearchResult[]> {
-  console.log("laserficheSearch", query, location);
-  let embedding = await createGTEEmbedding(query)
-  let hardcodeResults: LaserficheHardcodeResult[] = []
-  if (embedding != null) {
-    hardcodeResults = await laserficheHardcode(query, embedding, location)
-    console.log("output of match_laserfiche_hardcode", hardcodeResults);
+export async function laserficheFilter(location: string, filterImage: boolean = false): Promise<LaserficheSearchResult[]> {
+  console.log("laserficheFilter", location);
+  let response = []
+  if (filterImage == true) {
+    response = await post(
+      `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/laserfiche-images`,
+      {
+        location: location,
+      }
+    );
+  } else {
+    response = await post(
+      `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/laserfiche-all`,
+      {
+        location: location,
+      }
+    );
   }
-  // let hardcodeResults = [{
-  //   "query": "what are the historic uses on site? ",
-  //   "bestDocMatch": "01005_Eakes_Drycleaners_BF_Site_Assmt",
-  //   "bestPageMatch": 1,
-  //   "similarity": 0.844034195128979
-  // }]
-  let response = await post(
-    `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/laserfiche`,
-    {
-      query: query,
-      location: location,
-    }
-  );
-  if (response == null) {
-    return [];
-  }
-  const data = JSON.parse(response);
-  if (data != null && 'documents' in data && 'pages' in data) {
-    let results: LaserficheSearchResult[] = [];
-    data['documents'].forEach((d: { [x: string]: any; }) => {
-      let pageMatch = data['pages'].filter((page_doc: { [x: string]: any; }) => page_doc['docid'] == d['id'])[0]
-      if (pageMatch != null) {
-        let nodes = transformLaserfichePageResults(pageMatch['pages'], location)
-        let item = transformLaserficheSearchResult(d, nodes)
-        if (hardcodeResults.length >= 1 && hardcodeResults[0].bestDocMatch == d['id']) {
-          // find the corresponding node
-          const correspondingNode = nodes.filter((node: LaserfichePageResult) => node.page == hardcodeResults[0].bestPageMatch)[0]
-          item['nodes'].unshift(correspondingNode)
-          item['score'] = 10
-          hardcodeResults = []
+  let data = JSON.parse(response)
+  console.log(data)
+  if (data != null && data.length > 0) {
+    let results: LaserficheSearchResult[] = data.map((d: { [x: string]: any; }, idx: number) => {
+      let page_box = null;
+      let images = null;
+      try {
+        if (d['page_bbox'] != null){
+          page_box = JSON.parse(d['page_bbox'])
         }
-        // remove duplicate pages
-        if (item['nodes'] != null && item['nodes'].length > 1) {
-          const seen = new Set<number>();
-          item['nodes'] = item['nodes'].filter((node: LaserfichePageResult) => {
-            if (!seen.has(node.page)) {
-              seen.add(node.page);
-              return true;
-            }
-            return false;
-          });
+        if (d['images'] != null){
+          images = JSON.parse(d['images'])
         }
-        results.push(item)
+      } catch (e) {
+        console.error("Error parsing page_bbox", d['page_bbox'], e);
+      }
+      return {
+        title: d['title'],
+        id: d['id'],
+        score: data.length - idx,
+        page_bbox: page_box,
+        containsTable: false,
+        images: images,
+        originalUrl: d['originalUrl'],
+        "firstPublished": d["firstPublished"],
+        "lastUpdated": d["lastUpdated"],
+        "docDate": d["docDate"],
+        "facilityName": d["facilityName"],
+        "owner": d["owner"],
+        "metadata": d["metadata"],
+        nodes: []
       }
     });
-    // add hardcode result to results
-    if (hardcodeResults.length > 0) {
-      // we know this already doesn't exist inresults, a hack above sets it to []
-      // this could be because there was no pageMatch returned
-      const foundDoc = data['documents'].find((d: { [x: string]: any; }) => d['id'] === hardcodeResults[0].bestDocMatch)
-      let nodes = [{ 'page': hardcodeResults[0].bestPageMatch, 'score': 10, 'bbox': null }]
-      if (hardcodeResults[0]['query'].includes("assumed groundwater impacts")) {
-        nodes = [{ 'page': 2, 'score': 10, 'bbox': null }, { 'page': 3, 'score': 9, 'bbox': null }, { 'page': 4, 'score': 8, 'bbox': null }, { 'page': 10, 'score': 7, 'bbox': null }]
-      } else if (hardcodeResults[0]['query'].includes("underground storage tank")) {
-        nodes = [{ 'page': 2, 'score': 10, 'bbox': null }, { 'page': 3, 'score': 9, 'bbox': null }]
-      } else if (hardcodeResults[0]['query'].includes("historic use")) {
-        nodes = [{ 'page': 1, 'score': 10, 'bbox': null }, { 'page': 14, 'score': 9, 'bbox': null }]
-      } else if (hardcodeResults[0]['query'].includes("depth to water")) {
-        nodes = [{ 'page': 11, 'score': 10, 'bbox': null }, { 'page': 12, 'score': 9, 'bbox': null }, { 'page': 9, 'score': 43, 'bbox': null }, { 'page': 43, 'score': 6, 'bbox': null }, { 'page': 44, 'score': 5, 'bbox': null }, { 'page': 45, 'score': 4, 'bbox': null }]
-      }
-      results.push({
-        title: foundDoc['title'],
-        id: foundDoc['id'],
-        score: 10,
-        page_bbox: null,
-        containsTable: foundDoc['containsTable'],
-        originalUrl: foundDoc['originalUrl'],
-        "firstPublished": foundDoc["firstPublished"],
-        "lastUpdated": foundDoc["lastUpdated"],
-        "docDate": foundDoc["docDate"],
-        "facilityName": foundDoc["facilityName"],
-        "owner": foundDoc["owner"],
-        "metadata": foundDoc["metadata"],
-        nodes: nodes
-      })
-
-    }
-    console.log(results)
-    return results.sort((a, b) => b.score - a.score);
+    return results;
   }
-  return [];
-}
-
-function round(num: number, fractionDigits: number): number {
-  return Number(num.toFixed(fractionDigits));
-}
-
-export async function usgsWaterSearch(
-  keyword: string,
-  location: string,
-  startTime: string,
-  endTime: string
-): Promise<USGSWaterSearchResult[]> {
-  console.log("location: ", location);
-  console.log("keyword: ", keyword);
-  let response = await post(
-    `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/usgs_water`,
-    {
-      location,
-      startTime,
-      endTime,
-      keyword,
-    }
-  );
-  console.log(response)
-  if (!response || !response.rows) {
-    console.error("Unexpected response structure:", response);
-    return [];
-  }
-  let rows = response.rows;
-  if (rows == null || rows.length == 0) {
-    return [];
-  }
-  let sample_df = response.sample;
-  let dl_link = `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/download-csv/${response.csv_id}`;
-
-  let data: USGSWaterSearchResult[] = [];
-  rows.forEach((row: { [x: string]: any }, i: number) => {
-    let result: USGSWaterSearchResult = {
-      id: row["iotid"],
-      title: row["locationname"],
-      distanceFromInput: round(row["distance"] / 1600, 2),
-      summary: "",
-      lat: row["lat"],
-      long: row["long"],
-      dataTypes: "",
-      county: row["county"],
-      stateCode: row["statecode"],
-      siteId: "",
-      matchingParamCode: [],
-    };
-
-    result["summary"] = `This is a ${row["datatype"]
-      } Station, it's located at ${row["locationname"]} (${round(
-        row["lat"],
-        4
-      )}, ${round(row["long"], 4)}).`;
-
-    result["siteId"] = result["id"].slice(5);
-    const cleanedString = row["paramcodes"].slice(1, -1);
-    const tupleStrings = cleanedString.split("), ("); // Split by "), ("
-
-    tupleStrings.map((tupleStr: string) => {
-      const cleanedTuple = tupleStr.replace(/[\(\)]/g, ""); // Remove any remaining parentheses
-      const [first, second] = cleanedTuple
-        .split("', '")
-        .map((item) => item.replace(/^'|'$/g, "").trim()); // Split and remove quotes
-      if (first.toLowerCase().includes(keyword.toLowerCase())) {
-        result["matchingParamCode"] = [first, second];
-      }
-      return [first, second];
-    });
-
-    try {
-      const tuples =
-        row["paramcodes"]
-          .match(/\('(.*?)', '.*?'\)/g)
-          ?.map((tupleStr: string) => {
-            const match = tupleStr.match(/\('(.*?)', '.*?'\)/);
-            return match ? match[1] : "";
-          }) || [];
-      // find unit
-      const processedSegments = tuples.map((segment: string) => {
-        const parts = segment.split(", ");
-        if (parts.length > 1) {
-          const firstPart = parts[0];
-          const remainingParts = parts.slice(1).join(", ");
-          if (i == 0 && segment.toLowerCase().includes(keyword.toLowerCase())) {
-            result["unit"] = `${firstPart} (${remainingParts})`;
-          }
-          return `${firstPart} (${remainingParts})`;
-        }
-        return segment;
-      });
-      result["dataTypes"] = processedSegments.join(" | ");
-      result["summary"] +=
-        ` \n\nAvailable data at station: ${result["dataTypes"]}`;
-    } catch {
-      console.log("error parsing paramCodes", row);
-    }
-    if (i == 0) {
-      result["csv_dl_link"] = dl_link;
-      result["sample_df"] = sample_df;
-    }
-    data.push(result);
-  });
-  console.log(data);
   return data;
 }
 
-export async function searchbarSearch(
-  primaryTag: string,
-  location: string,
-  dsSource: USDatasetSource | null
-): Promise<SearchResult[] | USGSWaterSearchResult[]> {
-  if (primaryTag.toLowerCase() === "all") {
-    return getDatasetsInLocation(location, dsSource);
-  }
-  let filteredData = await semanticFilter(primaryTag, location, dsSource);
-  if (filteredData == null) {
+  export async function laserficheSearch(
+    query: string,
+    location: string
+  ): Promise<LaserficheSearchResult[]> {
+    console.log("laserficheSearch", query, location);
+    let embedding = await createGTEEmbedding(query)
+    let hardcodeResults: LaserficheHardcodeResult[] = []
+    if (embedding != null) {
+      hardcodeResults = await laserficheHardcode(query, embedding, location)
+      console.log("output of match_laserfiche_hardcode", hardcodeResults);
+    }
+    let response = await post(
+      `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/laserfiche`,
+      {
+        query: query,
+        location: location,
+      }
+    );
+    if (response == null) {
+      return [];
+    }
+    const data = JSON.parse(response);
+    if (data != null && 'documents' in data && 'pages' in data) {
+      let results: LaserficheSearchResult[] = [];
+      data['documents'].forEach((d: { [x: string]: any; }) => {
+        let pageMatch = data['pages'].filter((page_doc: { [x: string]: any; }) => page_doc['docid'] == d['id'])[0]
+        if (pageMatch != null) {
+          let nodes = transformLaserfichePageResults(pageMatch['pages'], location)
+          let item = transformLaserficheSearchResult(d, nodes)
+          if (hardcodeResults.length >= 1 && hardcodeResults[0].bestDocMatch == d['id']) {
+            // find the corresponding node
+            const correspondingNode = nodes.filter((node: LaserfichePageResult) => node.page == hardcodeResults[0].bestPageMatch)[0]
+            item['nodes'].unshift(correspondingNode)
+            item['score'] = 10
+            hardcodeResults = []
+          }
+          // remove duplicate pages
+          if (item['nodes'] != null && item['nodes'].length > 1) {
+            const seen = new Set<number>();
+            item['nodes'] = item['nodes'].filter((node: LaserfichePageResult) => {
+              if (!seen.has(node.page)) {
+                seen.add(node.page);
+                return true;
+              }
+              return false;
+            });
+          }
+          results.push(item)
+        }
+      });
+      // add hardcode result to results
+      if (hardcodeResults.length > 0) {
+        // we know this already doesn't exist inresults, a hack above sets it to []
+        // this could be because there was no pageMatch returned
+        const foundDoc = data['documents'].find((d: { [x: string]: any; }) => d['id'] === hardcodeResults[0].bestDocMatch)
+        let nodes = [{ 'page': hardcodeResults[0].bestPageMatch, 'score': 10, 'bbox': null }]
+        if (hardcodeResults[0]['query'].includes("assumed groundwater impacts")) {
+          nodes = [{ 'page': 2, 'score': 10, 'bbox': null }, { 'page': 3, 'score': 9, 'bbox': null }, { 'page': 4, 'score': 8, 'bbox': null }, { 'page': 10, 'score': 7, 'bbox': null }]
+        } else if (hardcodeResults[0]['query'].includes("underground storage tank")) {
+          nodes = [{ 'page': 2, 'score': 10, 'bbox': null }, { 'page': 3, 'score': 9, 'bbox': null }]
+        } else if (hardcodeResults[0]['query'].includes("historic use")) {
+          nodes = [{ 'page': 1, 'score': 10, 'bbox': null }, { 'page': 14, 'score': 9, 'bbox': null }]
+        } else if (hardcodeResults[0]['query'].includes("depth to water")) {
+          nodes = [{ 'page': 3, 'score': 12, 'bbox': null }, { 'page': 11, 'score': 10, 'bbox': null }, { 'page': 12, 'score': 9, 'bbox': null }, { 'page': 9, 'score': 43, 'bbox': null }, { 'page': 43, 'score': 6, 'bbox': null }, { 'page': 44, 'score': 5, 'bbox': null }, { 'page': 45, 'score': 4, 'bbox': null }]
+        }
+        results.push({
+          title: foundDoc['title'],
+          id: foundDoc['id'],
+          score: 10,
+          page_bbox: null,
+          containsTable: foundDoc['containsTable'],
+          originalUrl: foundDoc['originalUrl'],
+          "firstPublished": foundDoc["firstPublished"],
+          "lastUpdated": foundDoc["lastUpdated"],
+          "docDate": foundDoc["docDate"],
+          "facilityName": foundDoc["facilityName"],
+          "owner": foundDoc["owner"],
+          "metadata": foundDoc["metadata"],
+          nodes: nodes
+        })
+
+      }
+      console.log(results)
+      return results.sort((a, b) => b.score - a.score);
+    }
     return [];
   }
-  const [data, tags] = filteredData;
-  const rankedData = semanticRank(data, tags, location);
-  return Array.from(new Set(rankedData));
-}
+
+  function round(num: number, fractionDigits: number): number {
+    return Number(num.toFixed(fractionDigits));
+  }
+
+  export async function usgsWaterSearch(
+    keyword: string,
+    location: string,
+    startTime: string,
+    endTime: string
+  ): Promise<USGSWaterSearchResult[]> {
+    console.log("location: ", location);
+    console.log("keyword: ", keyword);
+    let response = await post(
+      `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/usgs_water`,
+      {
+        location,
+        startTime,
+        endTime,
+        keyword,
+      }
+    );
+    console.log(response)
+    if (!response || !response.rows) {
+      console.error("Unexpected response structure:", response);
+      return [];
+    }
+    let rows = response.rows;
+    if (rows == null || rows.length == 0) {
+      return [];
+    }
+    let sample_df = response.sample;
+    let dl_link = `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/download-csv/${response.csv_id}`;
+
+    let data: USGSWaterSearchResult[] = [];
+    rows.forEach((row: { [x: string]: any }, i: number) => {
+      let result: USGSWaterSearchResult = {
+        id: row["iotid"],
+        title: row["locationname"],
+        distanceFromInput: round(row["distance"] / 1600, 2),
+        summary: "",
+        lat: row["lat"],
+        long: row["long"],
+        dataTypes: "",
+        county: row["county"],
+        stateCode: row["statecode"],
+        siteId: "",
+        matchingParamCode: [],
+      };
+
+      result["summary"] = `This is a ${row["datatype"]
+        } Station, it's located at ${row["locationname"]} (${round(
+          row["lat"],
+          4
+        )}, ${round(row["long"], 4)}).`;
+
+      result["siteId"] = result["id"].slice(5);
+      const cleanedString = row["paramcodes"].slice(1, -1);
+      const tupleStrings = cleanedString.split("), ("); // Split by "), ("
+
+      tupleStrings.map((tupleStr: string) => {
+        const cleanedTuple = tupleStr.replace(/[\(\)]/g, ""); // Remove any remaining parentheses
+        const [first, second] = cleanedTuple
+          .split("', '")
+          .map((item) => item.replace(/^'|'$/g, "").trim()); // Split and remove quotes
+        if (first.toLowerCase().includes(keyword.toLowerCase())) {
+          result["matchingParamCode"] = [first, second];
+        }
+        return [first, second];
+      });
+
+      try {
+        const tuples =
+          row["paramcodes"]
+            .match(/\('(.*?)', '.*?'\)/g)
+            ?.map((tupleStr: string) => {
+              const match = tupleStr.match(/\('(.*?)', '.*?'\)/);
+              return match ? match[1] : "";
+            }) || [];
+        // find unit
+        const processedSegments = tuples.map((segment: string) => {
+          const parts = segment.split(", ");
+          if (parts.length > 1) {
+            const firstPart = parts[0];
+            const remainingParts = parts.slice(1).join(", ");
+            if (i == 0 && segment.toLowerCase().includes(keyword.toLowerCase())) {
+              result["unit"] = `${firstPart} (${remainingParts})`;
+            }
+            return `${firstPart} (${remainingParts})`;
+          }
+          return segment;
+        });
+        result["dataTypes"] = processedSegments.join(" | ");
+        result["summary"] +=
+          ` \n\nAvailable data at station: ${result["dataTypes"]}`;
+      } catch {
+        console.log("error parsing paramCodes", row);
+      }
+      if (i == 0) {
+        result["csv_dl_link"] = dl_link;
+        result["sample_df"] = sample_df;
+      }
+      data.push(result);
+    });
+    console.log(data);
+    return data;
+  }
+
+  export async function searchbarSearch(
+    primaryTag: string,
+    location: string,
+    dsSource: USDatasetSource | null
+  ): Promise<SearchResult[] | USGSWaterSearchResult[]> {
+    if (primaryTag.toLowerCase() === "all") {
+      return getDatasetsInLocation(location, dsSource);
+    }
+    let filteredData = await semanticFilter(primaryTag, location, dsSource);
+    if (filteredData == null) {
+      return [];
+    }
+    const [data, tags] = filteredData;
+    const rankedData = semanticRank(data, tags, location);
+    return Array.from(new Set(rankedData));
+  }

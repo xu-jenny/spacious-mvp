@@ -6,7 +6,7 @@ import DatasetPanel from "@/components/index/DatasetPane/DatasetPanel";
 import DatasourceSelect from "@/components/index/DatasourceSelect";
 import DateRangeSelector from "@/components/index/DateRangeSelector";
 import LocationSearchBar, {
-  LaserficheLocationBar,
+  LaserficheLocationBar
 } from "@/components/index/LocationSearchBar";
 import OpenLinkButton from "@/components/index/RequestDataButton";
 import SearchButton, {
@@ -139,7 +139,7 @@ export default function Home() {
           <h4 className="mt-1">Set Location</h4>
 
           {dsSource == "PFAS" ? (
-            <LaserficheLocationBar />
+            <LaserficheLocationBar setData={setPrimary}/>
           ) : (
             <LocationSearchBar />
           )}
