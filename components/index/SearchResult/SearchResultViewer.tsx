@@ -1,4 +1,3 @@
-
 import { USDatasetSource } from "../SearchButton";
 
 import { FaMapMarkedAlt } from "react-icons/fa";
@@ -17,6 +16,7 @@ interface Props {
   setDatasetSelected: (ds: SearchResults) => void;
   startTime: string;
   endTime: string;
+  panelIsOpen: boolean; // hacky way to hide badges when panel is open
 }
 
 const SearchResultViewer = ({
@@ -25,6 +25,7 @@ const SearchResultViewer = ({
   setDatasetSelected,
   startTime,
   endTime,
+  panelIsOpen,
 }: Props) => {
   const tabsRef = useRef<TabsRef>(null);
   const { state } = useStateContext();
@@ -40,6 +41,7 @@ const SearchResultViewer = ({
               dsSource={dsSource}
               startTime={startTime}
               endTime={endTime}
+              panelIsOpen={panelIsOpen}
             />
           </Tabs.Item>
           <Tabs.Item title="Map" icon={FaMapMarkedAlt}>
@@ -67,6 +69,7 @@ const SearchResultViewer = ({
           dsSource={dsSource}
           startTime={startTime}
           endTime={endTime}
+          panelIsOpen={panelIsOpen}
         />
       )}
     </>

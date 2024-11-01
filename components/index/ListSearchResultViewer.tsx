@@ -7,7 +7,11 @@ import SearchResultDatasetCard from "./SearchResult/SearchResultDatasetCard";
 import NCDEQWSResultCard from "./SearchResult/NCDEQWSResultCard";
 import { NCDEQWSSearchResult } from "@/app/search/NCDEQWSSearch";
 import { SearchResults } from "@/app/app/page";
-import { LaserficheSearchResult, SearchResult, USGSWaterSearchResult } from "@/app/search/search";
+import {
+  LaserficheSearchResult,
+  SearchResult,
+  USGSWaterSearchResult,
+} from "@/app/search/search";
 
 interface Props {
   primaryData: SearchResults[];
@@ -15,6 +19,7 @@ interface Props {
   dsSource: USDatasetSource;
   startTime: string;
   endTime: string;
+  panelIsOpen: boolean;
 }
 const ListSearchResultViewer = ({
   primaryData,
@@ -22,6 +27,7 @@ const ListSearchResultViewer = ({
   dsSource,
   startTime,
   endTime,
+  panelIsOpen,
 }: Props) => {
   const searchResultCard = function (dataset: SearchResults, index: number) {
     switch (dsSource) {
@@ -43,6 +49,7 @@ const ListSearchResultViewer = ({
             dataset={dataset as LaserficheSearchResult}
             index={index}
             setSelectedDataset={setDatasetSelected}
+            panelIsOpen={panelIsOpen}
           />
         );
       case "NC_DEQ_WATERSUPPLY":

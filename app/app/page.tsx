@@ -6,7 +6,7 @@ import DatasetPanel from "@/components/index/DatasetPane/DatasetPanel";
 import DatasourceSelect from "@/components/index/DatasourceSelect";
 import DateRangeSelector from "@/components/index/DateRangeSelector";
 import LocationSearchBar, {
-  LaserficheLocationBar
+  LaserficheLocationBar,
 } from "@/components/index/LocationSearchBar";
 import OpenLinkButton from "@/components/index/RequestDataButton";
 import SearchButton, {
@@ -15,7 +15,6 @@ import SearchButton, {
 } from "@/components/index/SearchButton";
 import SearchResultViewer from "@/components/index/SearchResult/SearchResultViewer";
 import { logTableInteraction } from "@/utils/supabaseLogger";
-import { Spinner } from "flowbite-react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import SlidingPane from "react-sliding-pane";
@@ -28,8 +27,8 @@ import {
 } from "../search/search";
 import { NCDEQWSSearchResult } from "../search/NCDEQWSSearch";
 import { useStateContext } from "../StateContext";
-import { pdfjs } from 'react-pdf';
-import PDFPanelViewer from "@/components/index/DatasetPane/PDFPanelViewer";
+import { pdfjs } from "react-pdf";
+// import PDFPanelViewer from "@/components/index/DatasetPane/PDFPanelViewer";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
@@ -139,7 +138,7 @@ export default function Home() {
           <h4 className="mt-1">Set Location</h4>
 
           {dsSource == "PFAS" ? (
-            <LaserficheLocationBar setData={setPrimary}/>
+            <LaserficheLocationBar setData={setPrimary} />
           ) : (
             <LocationSearchBar />
           )}
@@ -187,6 +186,7 @@ export default function Home() {
               setDatasetSelected={setDatasetSelected}
               startTime={startDate}
               endTime={endDate}
+              panelIsOpen={openPanel}
             />
           ) : (
             primaryData != null && (
@@ -211,9 +211,7 @@ export default function Home() {
             }
           }}
         >
-          <div>
-            <DatasetPanel dataset={currentds} dsSource={dsSource} />
-          </div>
+          <DatasetPanel dataset={currentds} dsSource={dsSource} />
         </SlidingPane>
       )}
     </div>

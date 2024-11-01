@@ -92,10 +92,40 @@ const PFASDatasetPanel = ({ dataset }: Props) => {
     }
   };
 
-  const pdfUrl = `${process.env.NEXT_PUBLIC_S3_LASERFICHE_BUCKET}/${dataset.id}.pdf`;
+  const downloadImages = async (imageNames: string[]) => {
+    console.log("downloadImages", imageNames);
+    let response = await fetch(
+      `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/download-images`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": process.env.NEXT_PUBLIC_BACKEND_API_KEY ?? "",
+          "Access-Control-Allow-Origin": "*",
+        },
+        body: JSON.stringify({ imageNames }),
+      }
+    )
+      .then((response) => response.blob())
+      .catch((error) => {
+        console.error(error);
+      });
 
+    if (response) {
+      const url = window.URL.createObjectURL(response);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "images.zip");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+  };
+
+  const pdfUrl = `${process.env.NEXT_PUBLIC_S3_LASERFICHE_BUCKET}/${dataset.id}.pdf`;
+  console.log(dataset);
   return (
-    <div className="flex h-[100vh]">
+    <div className="flex h-[100vh] z-[1000] top-0 left-0 w-full">
       <div className="w-full flex flex-col h-full">
         <article className="prose p-4 max-w-none">
           <h3>{dataset?.title}</h3>
@@ -156,6 +186,27 @@ const PFASDatasetPanel = ({ dataset }: Props) => {
                 Original Url
               </Link>
             )}
+            {dataset.images != null && dataset.images.length > 0 && (
+              <Link
+                href={
+                  dataset.images.length === 1
+                    ? new URL(
+                        `${process.env.NEXT_PUBLIC_S3_LASERFICHE_BUCKET}/images/${dataset.images[0]}`
+                      )
+                    : "#"
+                }
+                target="_blank"
+                className="no-underline text-gray-600"
+                onClick={(e) => {
+                  if (dataset.images && dataset.images.length > 1) {
+                    e.preventDefault();
+                    downloadImages(dataset.images);
+                  }
+                }}
+              >
+                Export Images
+              </Link>
+            )}
           </div>
 
           {dataset?.facilityName != null && (
@@ -164,7 +215,11 @@ const PFASDatasetPanel = ({ dataset }: Props) => {
             </div>
           )}
           {dataset?.metadata != null && displayMetadata(dataset.metadata)}
-          <PDFPanelViewer fileUrl={pdfUrl} pagesToJump={dataset.nodes ?? []} docBbox={dataset.page_bbox ?? [0, 0, 612, 792]} />
+          <PDFPanelViewer
+            fileUrl={pdfUrl}
+            pagesToJump={dataset.nodes ?? []}
+            docBbox={dataset.page_bbox ?? [0, 0, 612, 792]}
+          />
         </article>
       </div>
     </div>
