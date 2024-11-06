@@ -1,9 +1,14 @@
+import React, { useEffect, useRef, useState } from "react";
 import { logTableInteraction } from "@/utils/supabaseLogger";
 import { NCDEQWSSearch } from "@/app/search/NCDEQWSSearch";
 import Input from "../common/Input";
 import { LocationType, useStateContext } from "@/app/StateContext";
-import { useEffect, useRef, useState } from "react";
-import { laserficheSearch, searchbarSearch, usgsWaterSearch } from "@/app/search/search";
+import { useAuthStateContext } from "@/components/AuthStateContext";
+import {
+  laserficheSearch,
+  searchbarSearch,
+  usgsWaterSearch,
+} from "@/app/search/search";
 
 export type USDatasetSource =
   | "PFAS"
@@ -33,7 +38,6 @@ export async function search(
 ) {
   switch (dsSource) {
     case "USGS_WATER":
-      // TODO: we should handle these input cases being null in front end
       if (startTime != null && endTime != null && location != null) {
         return await usgsWaterSearch(
           value,
@@ -61,17 +65,33 @@ const SearchButton = ({
   setLoading,
   startTime,
   endTime,
-  loading, // Use loading prop
+  loading,
 }: Props) => {
   const { state, dispatch } = useStateContext();
+  const { session } = useAuthStateContext();
   const [searchValue, setSearchValue] = useState<string>(state.searchValue);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Log dsSource whenever it changes
+  useEffect(() => {
+    console.log("Current dsSource:", dsSource);
+  }, [dsSource]);
+
+  // Determine if the search input and button should be disabled
+  const isDisabled = dsSource === "PFAS" && !session;
+  const placeholderText = isDisabled
+    ? "Sign up or log in to access this data source"
+    : "Enter a search term";
 
   useEffect(() => {
     setSearchValue("");
   }, [dsSource]);
 
   const onSubmit = async (value: string) => {
+    if (isDisabled) {
+      return; // Prevent search if disabled
+    }
+
     if (value && value.length > 2) {
       setLoading(true);
       let primaryData = await search(
@@ -122,18 +142,24 @@ const SearchButton = ({
           ref={inputRef}
           type="search"
           className="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          placeholder={"Enter a search term"}
+          placeholder={placeholderText}
           value={searchValue ?? ""}
           onkeydown={handleKeyDown}
           onChange={(v: string) => setSearchValue(v)}
+          disabled={isDisabled} // Disable the input if necessary
         />
         <button
           type="submit"
-          className="text-white absolute end-2.5 bottom-2.5 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+          className={`text-white absolute end-2.5 bottom-2.5 ${
+            isDisabled
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-blue-700 hover:bg-blue-800"
+          } focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800`}
           onClick={(e) => {
             e.preventDefault();
             onSubmit(searchValue);
           }}
+          disabled={isDisabled} // Disable the button if necessary
         >
           Search
         </button>

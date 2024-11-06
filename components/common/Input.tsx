@@ -7,11 +7,20 @@ type Props = {
   onChange: (value: string) => void;
   value?: string;
   onkeydown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  disabled?: boolean; // Add disabled prop
 };
 
 const Input = React.forwardRef<HTMLInputElement, Props>(
   (
-    { placeholder, value, onChange, className, onkeydown, type = "text" },
+    {
+      placeholder,
+      value,
+      onChange,
+      className,
+      onkeydown,
+      type = "text",
+      disabled = false,
+    }, // Default disabled to false
     ref
   ) => {
     return (
@@ -28,10 +37,12 @@ const Input = React.forwardRef<HTMLInputElement, Props>(
           placeholder={placeholder}
           onKeyDown={onkeydown}
           onChange={(e) => onChange(e.target.value)}
+          disabled={disabled} // Use the disabled prop
         />
       </div>
     );
   }
 );
+
 Input.displayName = "InputComponent";
 export default Input;

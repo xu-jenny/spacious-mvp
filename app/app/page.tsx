@@ -29,6 +29,7 @@ import { NCDEQWSSearchResult } from "../search/NCDEQWSSearch";
 import { useStateContext } from "../StateContext";
 import { pdfjs } from "react-pdf";
 // import PDFPanelViewer from "@/components/index/DatasetPane/PDFPanelViewer";
+import { UserStatus } from "@/components/index/UserStatus";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
@@ -66,6 +67,8 @@ export default function Home() {
   const [dsSource, setDsSource] = useState<USDatasetSource>(
     sourceSearchParamToDatasetSource(searchParams.get("source"))
   );
+  const [role, setRole] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   function setDatasetSelected(ds: SearchResults) {
     setCurrentds(ds);
@@ -154,6 +157,9 @@ export default function Home() {
             />
           </div>
         )}
+        <div className="mt-auto p-4">
+          <UserStatus />
+        </div>
       </div>
 
       {/* content */}

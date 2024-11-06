@@ -1,9 +1,10 @@
+// app/layout.tsx
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { StateProvider } from "./StateContext";
 import Head from "next/head";
-import { Analytics } from "@vercel/analytics/react"
+import { Analytics } from "@vercel/analytics/react";
+import ClientWrapper from "@/components/ClientWrapper";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -28,7 +29,7 @@ export default function RootLayout({
         ></script>
       </Head>
       <body className={inter.className}>
-        <StateProvider>{children}</StateProvider>
+        <ClientWrapper>{children}</ClientWrapper>
         <Analytics />
       </body>
     </html>
