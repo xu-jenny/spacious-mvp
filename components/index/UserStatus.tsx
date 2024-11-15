@@ -48,7 +48,7 @@ export const UserStatus = () => {
             console.log("User email:", session.user.email);
           }
         } else {
-          setRole(null);
+          setRole(0);
           console.log("User signed out");
         }
       }
@@ -64,7 +64,7 @@ export const UserStatus = () => {
       console.error("Logout error:", error.message);
     } else {
       setSession(null);
-      setRole(null);
+      setRole(0);
       console.log("User logged out successfully");
     }
   };

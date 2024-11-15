@@ -18,48 +18,41 @@ const SignUpModal: React.FC<SignUpModalProps> = ({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const checkIfEmailExists = async (email: string) => {
-    const { data } = await supabaseClient
-      .from("public_user_exists")
-      .select("user_id")
-      .eq("email", email)
-      .single();
-
-    return !!data;
-  };
-
   const handleSignUp = async () => {
     setEmailError(null);
     setError(null);
     setSuccessMessage(null);
 
-    const emailExists = await checkIfEmailExists(email);
-    if (emailExists) {
-      setEmailError("Account already exists. Please log in.");
-      return;
-    }
-
+    console.log("Attempting to sign up:", { email, password });
     const { data, error } = await supabaseClient.auth.signUp({
       email,
       password,
     });
+    console.log("Sign up response:", { data, error });
 
     if (error) {
-      setEmailError(null); // Clear specific email error
+      setEmailError(null);
       setError(error.message);
+      console.log("Sign up error:", error);
     } else {
-      const userId = data.user?.id;
-      if (userId) {
-        await supabaseClient
-          .from("public_user_exists")
-          .insert([{ user_id: userId, email }]);
-      }
-      setSuccessMessage("Signup successful! You can now log in.");
+      setSuccessMessage(
+        "Signup successful! Please check your email to confirm your account."
+      );
+      await supabaseClient.auth.signOut(); // Forcefully sign out the user after signup
+    }
+  };
+
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      onClose();
     }
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm z-50"
+      onClick={handleOverlayClick}
+    >
       <div className="relative bg-white p-6 rounded-lg shadow-md max-w-sm w-full">
         <button
           onClick={onClose}
