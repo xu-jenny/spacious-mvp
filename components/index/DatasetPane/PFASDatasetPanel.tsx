@@ -11,6 +11,36 @@ type Props = {
   dataset: LaserficheSearchResult;
 };
 
+export const downloadImages = async (imageNames: string[]) => {
+  console.log("downloadImages", imageNames);
+  let response = await fetch(
+    `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/download-images`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": process.env.NEXT_PUBLIC_BACKEND_API_KEY ?? "",
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: JSON.stringify({ imageNames }),
+    }
+  )
+    .then((response) => response.blob())
+    .catch((error) => {
+      console.error(error);
+    });
+
+  if (response) {
+    const url = window.URL.createObjectURL(response);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "images.zip");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+};
+
 const PFASDatasetPanel = ({ dataset }: Props) => {
   const [isMetadataOpen, setIsMetadataOpen] = useState(false);
 
@@ -89,36 +119,6 @@ const PFASDatasetPanel = ({ dataset }: Props) => {
           )}
         </div>
       );
-    }
-  };
-
-  const downloadImages = async (imageNames: string[]) => {
-    console.log("downloadImages", imageNames);
-    let response = await fetch(
-      `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/download-images`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": process.env.NEXT_PUBLIC_BACKEND_API_KEY ?? "",
-          "Access-Control-Allow-Origin": "*",
-        },
-        body: JSON.stringify({ imageNames }),
-      }
-    )
-      .then((response) => response.blob())
-      .catch((error) => {
-        console.error(error);
-      });
-
-    if (response) {
-      const url = window.URL.createObjectURL(response);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "images.zip");
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
     }
   };
 

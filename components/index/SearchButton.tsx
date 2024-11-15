@@ -78,7 +78,7 @@ const SearchButton = ({
   }, [dsSource]);
 
   // Determine if the search input and button should be disabled
-  const isDisabled = dsSource === "PFAS" && !session;
+  const isDisabled = false; // TODO: revert when outside dev dsSource === "PFAS" && !session;
   const placeholderText = isDisabled
     ? "Sign up or log in to access this data source"
     : "Enter a search term";
