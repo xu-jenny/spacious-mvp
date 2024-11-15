@@ -20,6 +20,27 @@ export type USDatasetSource =
   | "NC_DEQ_WATERSUPPLY"
   | "ANY";
 
+// Access levels for each data source
+const DATA_SOURCE_ACCESS_LEVELS: Record<USDatasetSource, number> = {
+  PFAS: 1,
+  LASERFICHE: 0,
+  USGS: 0,
+  USGOV: 0,
+  NYOPEN: 0,
+  USGS_WATER: 0,
+  NC_DEQ_WATERSUPPLY: 0,
+  ANY: 0,
+};
+
+// Helper function to check if the user has access to a data source
+const hasAccess = (
+  dsSource: USDatasetSource,
+  userRole: number | null
+): boolean => {
+  const requiredTier = DATA_SOURCE_ACCESS_LEVELS[dsSource];
+  return userRole !== null && userRole >= requiredTier;
+};
+
 type Props = {
   setPrimaryData: (data: any[]) => void;
   dsSource: USDatasetSource | null;
@@ -52,7 +73,6 @@ export async function search(
       }
     case "PFAS":
       const loc = location?.name ?? "ncs000050";
-      console.log(loc, location?.name);
       return laserficheSearch(value, loc);
     default:
       return await searchbarSearch(value, location?.name ?? "", dsSource);
@@ -68,17 +88,14 @@ const SearchButton = ({
   loading,
 }: Props) => {
   const { state, dispatch } = useStateContext();
-  const { session } = useAuthStateContext();
+  const { session, role } = useAuthStateContext();
   const [searchValue, setSearchValue] = useState<string>(state.searchValue);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Log dsSource whenever it changes
-  useEffect(() => {
-    console.log("Current dsSource:", dsSource);
-  }, [dsSource]);
+  const userRole = role;
+  const isDisabled = !hasAccess(dsSource ?? "ANY", userRole);
 
-  // Determine if the search input and button should be disabled
-  const isDisabled = false; // TODO: revert when outside dev dsSource === "PFAS" && !session;
+  // Placeholder text based on access
   const placeholderText = isDisabled
     ? "Sign up or log in to access this data source"
     : "Enter a search term";

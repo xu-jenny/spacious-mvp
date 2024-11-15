@@ -30,8 +30,16 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({ onClose }) => {
     }
   };
 
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm z-50"
+      onClick={handleOverlayClick}
+    >
       <div className="relative bg-white p-6 rounded-lg shadow-md max-w-sm w-full">
         <button
           onClick={onClose}
@@ -66,7 +74,6 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({ onClose }) => {
           />
         </div>
 
-        {/* Display error or success message in the same position */}
         {emailError && (
           <p className="text-red-500 text-sm mb-2 text-center">{emailError}</p>
         )}

@@ -1,5 +1,3 @@
-// AuthStateContext.tsx
-"use client";
 import React, {
   createContext,
   useContext,
@@ -12,9 +10,9 @@ import { Session } from "@supabase/supabase-js";
 
 type AuthStateContextProps = {
   session: Session | null;
-  role: string | null;
+  role: number; // Set role type to number with a default of 0
   setSession: (session: Session | null) => void;
-  setRole: (role: string | null) => void;
+  setRole: (role: number) => void;
 };
 
 const AuthStateContext = createContext<AuthStateContextProps | undefined>(
@@ -25,7 +23,7 @@ export const AuthStateProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [session, setSession] = useState<Session | null>(null);
-  const [role, setRole] = useState<string | null>(null);
+  const [role, setRole] = useState<number>(0); // Set initial role to 0
 
   useEffect(() => {
     const { data: authListener } = supabaseClient.auth.onAuthStateChange(
@@ -39,10 +37,10 @@ export const AuthStateProvider: React.FC<{ children: ReactNode }> = ({
             .eq("id", session.user.id)
             .single()
             .then(({ data, error }) => {
-              setRole(!error && data ? data.role : null);
+              setRole(!error && data ? parseInt(data.role, 10) : 0); // Default to 0 if no role is found
             });
         } else {
-          setRole(null);
+          setRole(0); // Set role to 0 if no session
         }
       }
     );
