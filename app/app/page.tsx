@@ -137,7 +137,7 @@ export default function Home() {
           <DatasourceSelect dataSource={dsSource} setDataSource={setDsSource} />
         </div>
 
-        <div className="p-2 border-t ">
+        <div className="p-2 border-t">
           <h4 className="mt-1">Set Location</h4>
 
           {dsSource == "PFAS" ? (

@@ -6,7 +6,14 @@ import LocationInfo from "./LocationInfo";
 
 import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
-import { Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel } from "@mui/material";
+import {
+  Button,
+  Checkbox,
+  FormControl,
+  FormControlLabel,
+  FormGroup,
+  FormLabel,
+} from "@mui/material";
 import { laserficheFilter } from "@/app/search/search";
 import { SearchResults } from "@/app/app/page";
 
@@ -184,10 +191,14 @@ export const LocationSearchBar = () => {
   );
 };
 
-export type LaserficheSearchType = 'query' | 'all' | 'filter-image';
+export type LaserficheSearchType = "all" | "filter-image";
 
-export const LaserficheLocationBar = ({ setData }: { setData: React.Dispatch<React.SetStateAction<SearchResults[] | null>> }) => {
-  const [searchType, setSearchType] = useState<LaserficheSearchType>('query');
+export const LaserficheLocationBar = ({
+  setData,
+}: {
+  setData: React.Dispatch<React.SetStateAction<SearchResults[] | null>>;
+}) => {
+  const [searchType, setSearchType] = useState<LaserficheSearchType>("all");
   const { state, dispatch } = useStateContext();
   const options = [
     "NCS000050",
@@ -197,33 +208,64 @@ export const LaserficheLocationBar = ({ setData }: { setData: React.Dispatch<Rea
     "NCG060230",
     // "01005-97-032"
   ];
-  const [value, setValue] = React.useState<string | null>(options[0]);
+  const [value, setValue] = React.useState<string | null>("");
   const [inputValue, setInputValue] = React.useState("");
 
-  const handleSearchtypeChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(event.target.name, event.target.checked, state.location)
-    if (event.target.checked == true) {
-      setSearchType(event.target.name as LaserficheSearchType)
-      const loc = state.location?.name ?? "ncs000050";
-      if (event.target.name == 'all') {
-        let results = await laserficheFilter(loc, false);
-        setData(results)
-      } else if (event.target.name == 'filter-image'){
-        let results = await laserficheFilter(loc, true);
-        setData(results)
+  const handleLocationInputChange = async (newLoc: string) => {
+    setInputValue(newLoc);
+    let results = await laserficheFilter(newLoc, false);
+    setData(results);
+  };
+
+  const handleSearchtypeChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    console.log(event.target.name, event.target.checked, state.location);
+    if (event.target.name === "filter-image" && event.target.checked) {
+      setSearchType("filter-image");
+      let results = await laserficheFilter(inputValue, true);
+      setData(results);
+    } else if (searchType != "all") {
+      setSearchType("all");
+      let results = await laserficheFilter(inputValue, false);
+      setData(results);
+    }
+  };
+
+  const handleExportSiteImages = async () => {
+    console.log("handle Export site Images for ", inputValue);
+    let response = await fetch(
+      `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/laserfiche-site-images`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": process.env.NEXT_PUBLIC_BACKEND_API_KEY ?? "",
+          "Access-Control-Allow-Origin": "*",
+        },
+        body: JSON.stringify({ location: inputValue }),
       }
-    } else {
-      if (event.target.name === 'filter-image') {
-        setSearchType('all')
-      } else {
-        setSearchType('query')
-      }
+    )
+      .then((response) => response.blob())
+      .catch((error) => {
+        console.error(error);
+      });
+
+    if (response) {
+      const url = window.URL.createObjectURL(response);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "images.zip");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
     }
   };
 
   return (
-    <div>
+    <div className="flex flex-col items-center mt-2">
       <Autocomplete
+        className="w-full"
         value={value}
         onChange={(event: any, newValue: string | null) => {
           setValue(newValue);
@@ -242,7 +284,7 @@ export const LaserficheLocationBar = ({ setData }: { setData: React.Dispatch<Rea
         }}
         inputValue={inputValue}
         onInputChange={(event, newInputValue) => {
-          setInputValue(newInputValue);
+          handleLocationInputChange(newInputValue);
         }}
         id="location-bar"
         options={options}
@@ -253,19 +295,23 @@ export const LaserficheLocationBar = ({ setData }: { setData: React.Dispatch<Rea
           <FormGroup>
             <FormControlLabel
               control={
-                <Checkbox checked={searchType != 'query'} onChange={handleSearchtypeChange} name="all" />
-              }
-              label="Show All"
-            />
-            <FormControlLabel
-              control={
-                <Checkbox checked={searchType == 'filter-image'} onChange={handleSearchtypeChange} name="filter-image" />
+                <Checkbox
+                  checked={searchType == "filter-image"}
+                  onChange={handleSearchtypeChange}
+                  name="filter-image"
+                />
               }
               label="Filter Image"
             />
           </FormGroup>
         </FormControl>
       </div>
+      <Button
+        onClick={() => handleExportSiteImages()}
+        className="ml-auto mr-auto"
+      >
+        Export Site Images
+      </Button>
     </div>
   );
 };

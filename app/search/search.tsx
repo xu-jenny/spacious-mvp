@@ -270,7 +270,7 @@ export async function laserficheFilter(
   location: string,
   filterImage: boolean = false
 ): Promise<LaserficheSearchResult[]> {
-  console.log("laserficheFilter", location);
+  console.log("laserficheFilter", location, filterImage);
   let response = [];
   if (filterImage == true) {
     response = await post(
@@ -291,7 +291,6 @@ export async function laserficheFilter(
     return [];
   }
   let data = JSON.parse(response);
-  console.log(data);
   if (data != null && data.length > 0) {
     let results: LaserficheSearchResult[] = data.map(
       (d: { [x: string]: any }, idx: number) => {
