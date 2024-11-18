@@ -35,10 +35,7 @@ const SignUpModal: React.FC<SignUpModalProps> = ({
       setError(error.message);
       console.log("Sign up error:", error);
     } else {
-      setSuccessMessage(
-        "Signup successful! Please check your email to confirm your account."
-      );
-      await supabaseClient.auth.signOut(); // Forcefully sign out the user after signup
+      setSuccessMessage("Signup successful!");
     }
   };
 

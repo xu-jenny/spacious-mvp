@@ -97,7 +97,7 @@ const SearchButton = ({
 
   // Placeholder text based on access
   const placeholderText = isDisabled
-    ? "Sign up or log in to access this data source"
+    ? "This data source requires a subscription. Please contact Spacious to get started."
     : "Enter a search term";
 
   useEffect(() => {
@@ -106,7 +106,7 @@ const SearchButton = ({
 
   const onSubmit = async (value: string) => {
     if (isDisabled) {
-      return; // Prevent search if disabled
+      return;
     }
 
     if (value && value.length > 2) {
