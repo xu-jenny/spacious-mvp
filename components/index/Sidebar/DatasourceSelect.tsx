@@ -1,15 +1,10 @@
 "use client";
 
 import { Dropdown } from "flowbite-react";
-import { Dispatch, SetStateAction } from "react";
-import { USDatasetSource } from "./SearchButton";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useStateContext } from "@/app/StateContext";
-
-type Props = {
-  dataSource: USDatasetSource | null;
-  setDataSource: Dispatch<SetStateAction<USDatasetSource>>;
-};
+import { USDatasetSource } from "../SearchButton";
 
 const dataSourceLabels: { [key in USDatasetSource]: string } = {
   ANY: "ALL",
@@ -22,14 +17,17 @@ const dataSourceLabels: { [key in USDatasetSource]: string } = {
   NC_DEQ_WATERSUPPLY: "NC DEQ Water Supply",
 };
 
-const DatasourceSelect = ({ dataSource, setDataSource }: Props) => {
+const DatasourceSelect = () => {
   const router = useRouter();
-  const { dispatch } = useStateContext();
+  const { state, dispatch } = useStateContext();
+  const [dataSource, setDataSource] = useState<USDatasetSource>(
+    state.dataSource
+  );
   const currentLabel = dataSource ? dataSourceLabels[dataSource] : "Any";
 
   const handleSelect = (value: string) => {
     setDataSource(value as USDatasetSource);
-    dispatch({ type: "resetState" }); // Reset state when switching data sources
+    dispatch({ type: "resetState", datasource: value as USDatasetSource }); // Reset state when switching data sources
     router.push("/app"); // Reset URL
   };
 
@@ -47,25 +45,14 @@ const DatasourceSelect = ({ dataSource, setDataSource }: Props) => {
         },
       }}
     >
-      <Dropdown.Item onClick={() => handleSelect("ANY")}>ALL</Dropdown.Item>
-      <Dropdown.Item onClick={() => handleSelect("PFAS")}>
-        NC DEQ Laserfiche
-      </Dropdown.Item>
       <Dropdown.Item onClick={() => handleSelect("USGS_WATER")}>
         USGS Water
       </Dropdown.Item>
+      <Dropdown.Item onClick={() => handleSelect("PFAS")}>
+        NC DEQ Laserfiche
+      </Dropdown.Item>
       <Dropdown.Item onClick={() => handleSelect("NC_DEQ_WATERSUPPLY")}>
         NC DEQ Water Supply
-      </Dropdown.Item>
-      <Dropdown.Item onClick={() => handleSelect("USGS")}>USGS</Dropdown.Item>
-      <Dropdown.Item onClick={() => handleSelect("LASERFICHE")}>
-        NC DEQ
-      </Dropdown.Item>
-      <Dropdown.Item onClick={() => handleSelect("USGOV")}>
-        US Gov
-      </Dropdown.Item>
-      <Dropdown.Item onClick={() => handleSelect("NYOPEN")}>
-        NY Open Data
       </Dropdown.Item>
     </Dropdown>
   );

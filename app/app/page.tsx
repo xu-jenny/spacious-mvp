@@ -3,11 +3,6 @@ import React, { useEffect, useState } from "react";
 import "react-sliding-pane/dist/react-sliding-pane.css";
 
 import DatasetPanel from "@/components/index/DatasetPane/DatasetPanel";
-import DatasourceSelect from "@/components/index/DatasourceSelect";
-import DateRangeSelector from "@/components/index/DateRangeSelector";
-import LocationSearchBar, {
-  LaserficheLocationBar,
-} from "@/components/index/LocationSearchBar";
 import OpenLinkButton from "@/components/index/RequestDataButton";
 import SearchButton, {
   search,
@@ -15,79 +10,40 @@ import SearchButton, {
 } from "@/components/index/SearchButton";
 import SearchResultViewer from "@/components/index/SearchResult/SearchResultViewer";
 import { logTableInteraction } from "@/utils/supabaseLogger";
-import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import SlidingPane from "react-sliding-pane";
-
-import logo from "../../public/logo.jpeg";
 import {
   LaserficheSearchResult,
-  SearchResult,
+  GenericSearchResult,
   USGSWaterSearchResult,
 } from "../search/search";
 import { NCDEQWSSearchResult } from "../search/NCDEQWSSearch";
 import { useStateContext } from "../StateContext";
 import { pdfjs } from "react-pdf";
 // import PDFPanelViewer from "@/components/index/DatasetPane/PDFPanelViewer";
-import { UserStatus } from "@/components/index/UserStatus";
+import Sidebar from "@/components/index/Sidebar/Sidebar";
+import Spinner from "@/components/common/Spinner";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 export type SearchResults =
-  | SearchResult
+  | GenericSearchResult
   | USGSWaterSearchResult
   | NCDEQWSSearchResult
   | LaserficheSearchResult;
 
-function sourceSearchParamToDatasetSource(
-  source: string | null
-): USDatasetSource {
-  if (source == null) {
-    return "USGS_WATER";
-  }
-  switch (source.toLowerCase()) {
-    case "usgs_water":
-      return "USGS_WATER";
-    case "pfas":
-      return "PFAS";
-    case "nc_deq_watersupply":
-      return "NC_DEQ_WATERSUPPLY";
-    default:
-      return "USGS_WATER";
-  }
-}
-
 export default function Home() {
   const searchParams = useSearchParams();
-  const { state, dispatch } = useStateContext();
+  const { state } = useStateContext();
   const [primaryData, setPrimary] = useState<SearchResults[] | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [openPanel, setOpenPanel] = useState(false);
   const [currentds, setCurrentds] = useState<SearchResults | null>();
-  const [dsSource, setDsSource] = useState<USDatasetSource>(
-    sourceSearchParamToDatasetSource(searchParams.get("source"))
-  );
-  const [role, setRole] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   function setDatasetSelected(ds: SearchResults) {
     setCurrentds(ds);
     setOpenPanel(true);
   }
-
-  const now = new Date().toISOString();
-  const sevenDaysAgo = new Date(
-    Date.now() - 7 * 24 * 60 * 60 * 1000
-  ).toISOString();
-
-  const [startDate, setStartDate] = useState<string>(sevenDaysAgo);
-  const [endDate, setEndDate] = useState<string>(now);
-
-  useEffect(() => {
-    setPrimary(null);
-    setCurrentds(null);
-    dispatch({ type: "resetState" });
-  }, [dsSource, dispatch]);
 
   useEffect(() => {
     async function performSearch() {
@@ -98,7 +54,13 @@ export default function Home() {
         lon: 0.0,
         addresstype: "city",
       };
-      return await search(state.searchValue, loc, dsSource, startDate, endDate);
+      return await search(
+        state.searchValue,
+        loc,
+        state.dataSource,
+        state.startDate,
+        state.endDate
+      );
     }
     async function fetchData() {
       if (state.searchValue != null && searchParams.get("loc") != null) {
@@ -121,56 +83,13 @@ export default function Home() {
 
   return (
     <div className="grid grid-cols-6 h-[100vh]">
-      {/* sider */}
-      <div className="col-span-1 white prose flex flex-col h-full border-r border-gray-300">
-        <div className="p-2">
-          <Image
-            src={logo.src}
-            alt="Spacious AI"
-            width="200"
-            height="100"
-            className="object-contain w-full mt-5"
-          />
-        </div>
-        <div className="p-2">
-          <h4>Specify Data Source</h4>
-          <DatasourceSelect dataSource={dsSource} setDataSource={setDsSource} />
-        </div>
-
-        <div className="p-2 border-t">
-          <h4 className="mt-1">Set Location</h4>
-
-          {dsSource == "PFAS" ? (
-            <LaserficheLocationBar setData={setPrimary} />
-          ) : (
-            <LocationSearchBar />
-          )}
-        </div>
-        {dsSource == "USGS_WATER" && (
-          <div className="p-2">
-            <h4>Select Date Range</h4>
-            <DateRangeSelector
-              startDate={startDate}
-              setStartDate={setStartDate}
-              endDate={endDate}
-              setEndDate={setEndDate}
-            />
-          </div>
-        )}
-        <div className="mt-auto p-4">
-          <UserStatus />
-        </div>
-      </div>
-
+      <Sidebar setPrimary={setPrimary} />
       {/* content */}
       <div className="col-span-5 flex h-[100vh] relative">
         <div className="w-full bg-sky-50 overflow-auto p-2">
           <SearchButton
             setPrimaryData={setPrimary}
-            dsSource={dsSource}
             setLoading={setLoading}
-            startTime={startDate}
-            endTime={endDate}
             loading={loading}
           />
           {/* <PDFPanelViewer fileUrl={"/WI0500447_Staff Report_20200911.pdf"} pagesToJump={[{
@@ -182,16 +101,12 @@ export default function Home() {
           /> */}
           {loading ? (
             <div className="ml-20 mt-20">
-              {/* <Spinner />
-			  save for future loading screen if needed */}
+              <Spinner />
             </div>
           ) : primaryData != null && primaryData.length > 0 ? (
             <SearchResultViewer
               primaryData={primaryData}
-              dsSource={dsSource}
               setDatasetSelected={setDatasetSelected}
-              startTime={startDate}
-              endTime={endDate}
               panelIsOpen={openPanel}
             />
           ) : (
@@ -217,7 +132,7 @@ export default function Home() {
             }
           }}
         >
-          <DatasetPanel dataset={currentds} dsSource={dsSource} />
+          <DatasetPanel dataset={currentds} />
         </SlidingPane>
       )}
     </div>

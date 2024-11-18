@@ -1,6 +1,6 @@
-// components/ResetPasswordModal.tsx
 import React, { useState } from "react";
 import { supabaseClient } from "@/clients/supabase";
+import Image from "next/image";
 
 interface ResetPasswordModalProps {
   onClose: () => void;
@@ -49,7 +49,7 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({ onClose }) => {
         </button>
 
         <div className="flex justify-center mb-4">
-          <img src="/logo.jpeg" alt="Logo" className="h-8" />
+          <Image src="/logo.jpeg" alt="Logo" className="h-8" />
         </div>
         <h2 className="text-center text-xl font-semibold mb-2">
           Reset Your Password

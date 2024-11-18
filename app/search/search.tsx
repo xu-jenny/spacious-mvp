@@ -10,7 +10,7 @@ import { post } from "@/utils/http";
 import { cap } from "@/utils/util";
 import { createGTEEmbedding } from "./indexUtils";
 
-export type SearchResult = {
+export type GenericSearchResult = {
   id: string;
   title: string;
   summary: string;
@@ -29,7 +29,7 @@ async function semanticFilter(
   tag: string,
   location: string,
   dsSource: USDatasetSource | null
-): Promise<[SearchResult[], EmbeddingResult[]] | null> {
+): Promise<[GenericSearchResult[], EmbeddingResult[]] | null> {
   let embedding = await getTagEmbedding(tag.toLowerCase());
   if (embedding == null) return null;
   // call semantic search function on supabase
@@ -76,10 +76,10 @@ async function semanticFilter(
 }
 
 function scoreSearchResult(
-  data: SearchResult[],
+  data: GenericSearchResult[],
   tags: EmbeddingResult[]
-): SearchResult[] {
-  const scoredData = data.map((d: SearchResult) => {
+): GenericSearchResult[] {
+  const scoredData = data.map((d: GenericSearchResult) => {
     let score = 0;
     const topicTag = tags.find((tag) => tag.content === d.topic);
     if (topicTag) {
@@ -100,12 +100,14 @@ function scoreSearchResult(
 }
 
 function semanticRank(
-  data: SearchResult[],
+  data: GenericSearchResult[],
   tags: EmbeddingResult[],
   location: string
 ) {
   location = location.toLowerCase();
-  let [dataWithLoc, dataNoLoc] = data.reduce<[SearchResult[], SearchResult[]]>(
+  let [dataWithLoc, dataNoLoc] = data.reduce<
+    [GenericSearchResult[], GenericSearchResult[]]
+  >(
     (acc, item) => {
       if (item.location.toLowerCase().includes(location.toLowerCase())) {
         acc[0].push(item); // Matches condition, goes into the first array
@@ -268,15 +270,17 @@ function transformLaserficheSearchResult(
 
 export async function laserficheFilter(
   location: string,
+  role: number = 0,
   filterImage: boolean = false
 ): Promise<LaserficheSearchResult[]> {
-  console.log("laserficheFilter", location, filterImage);
+  console.log("laserficheFilter", location, filterImage, role);
   let response = [];
   if (filterImage == true) {
     response = await post(
       `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/laserfiche-images`,
       {
         location: location,
+        role: role,
       }
     );
   } else {
@@ -284,6 +288,7 @@ export async function laserficheFilter(
       `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/laserfiche-all`,
       {
         location: location,
+        role: role,
       }
     );
   }

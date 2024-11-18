@@ -8,6 +8,7 @@ import React, {
   useEffect,
 } from "react";
 import { useAddressToCoordinates } from "./hooks/useAddressToCoordinates";
+import { USDatasetSource } from "@/components/index/SearchButton";
 
 export type LocationType = {
   lat: number;
@@ -31,12 +32,18 @@ export type LocationType = {
 type State = {
   searchValue: string;
   location: LocationType | null;
+  startDate: string;
+  endDate: string;
+  dataSource: USDatasetSource;
 };
 
 type Action =
   | { type: "updateSearchValue"; payload: string }
   | { type: "updateLocation"; payload: LocationType }
-  | { type: "resetState" };
+  | { type: "updateDatasource"; payload: USDatasetSource }
+  | { type: "updateStartDate"; payload: string }
+  | { type: "updateEndDate"; payload: string }
+  | { type: "resetState"; datasource: USDatasetSource };
 
 function reducer(state: State, action: Action): State {
   console.log("reducer called for ", action);
@@ -45,8 +52,24 @@ function reducer(state: State, action: Action): State {
       return { ...state, searchValue: action.payload };
     case "updateLocation":
       return { ...state, location: action.payload };
+    case "updateDatasource":
+      return { ...state, dataSource: action.payload };
+    case "updateStartDate":
+      return { ...state, startDate: action.payload };
+    case "updateEndDate":
+      return { ...state, endDate: action.payload };
     case "resetState":
-      return { searchValue: "", location: null };
+      const sevenDaysAgo = new Date(
+        Date.now() - 7 * 24 * 60 * 60 * 1000
+      ).toISOString();
+      const now = new Date().toISOString();
+      return {
+        searchValue: "",
+        location: null,
+        startDate: sevenDaysAgo,
+        endDate: now,
+        dataSource: action.datasource,
+      };
     default:
       throw new Error(`Unhandled action type: ${action}`);
   }
@@ -57,6 +80,24 @@ const StateContext = createContext<
 >(undefined);
 
 type StateProviderProps = { children: ReactNode };
+
+function sourceSearchParamToDatasetSource(
+  source: string | null
+): USDatasetSource {
+  if (source == null) {
+    return "USGS_WATER";
+  }
+  switch (source.toLowerCase()) {
+    case "usgs_water":
+      return "USGS_WATER";
+    case "pfas":
+      return "PFAS";
+    case "nc_deq_watersupply":
+      return "NC_DEQ_WATERSUPPLY";
+    default:
+      return "USGS_WATER";
+  }
+}
 
 export const StateProvider: React.FC<StateProviderProps> = ({ children }) => {
   const searchParams = useSearchParams();
@@ -69,6 +110,9 @@ export const StateProvider: React.FC<StateProviderProps> = ({ children }) => {
   const initialState: State = {
     searchValue: initialSearchValue,
     location: null,
+    startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    endDate: new Date().toISOString(),
+    dataSource: sourceSearchParamToDatasetSource(searchParams.get("source")),
   };
   const [state, dispatch] = useReducer(reducer, initialState);
 

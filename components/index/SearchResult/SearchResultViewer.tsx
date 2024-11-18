@@ -1,8 +1,8 @@
 import { USDatasetSource } from "../SearchButton";
 
 import { FaMapMarkedAlt } from "react-icons/fa";
-import { Spinner, Tabs, TabsRef } from "flowbite-react";
-import { useRef, useState } from "react";
+import { Tabs, TabsRef } from "flowbite-react";
+import { useRef } from "react";
 import { FaList } from "react-icons/fa";
 import ListSearchResultViewer from "@/components/index/ListSearchResultViewer";
 import PigeonMapViewer from "../PigeonMapViewer";
@@ -12,19 +12,13 @@ import { SearchResults } from "@/app/app/page";
 
 interface Props {
   primaryData: SearchResults[];
-  dsSource: USDatasetSource;
   setDatasetSelected: (ds: SearchResults) => void;
-  startTime: string;
-  endTime: string;
   panelIsOpen: boolean; // hacky way to hide badges when panel is open
 }
 
 const SearchResultViewer = ({
   primaryData,
-  dsSource,
   setDatasetSelected,
-  startTime,
-  endTime,
   panelIsOpen,
 }: Props) => {
   const tabsRef = useRef<TabsRef>(null);
@@ -32,28 +26,28 @@ const SearchResultViewer = ({
 
   return (
     <>
-      {dsSource == "USGS_WATER" ? (
+      {state.dataSource == "USGS_WATER" ? (
         <Tabs aria-label="Default tabs" ref={tabsRef}>
           <Tabs.Item active title="List" icon={FaList}>
             <ListSearchResultViewer
               primaryData={primaryData}
               setDatasetSelected={setDatasetSelected}
-              dsSource={dsSource}
-              startTime={startTime}
-              endTime={endTime}
+              dsSource={state.dataSource}
+              startTime={state.startDate}
+              endTime={state.endDate}
               panelIsOpen={panelIsOpen}
             />
           </Tabs.Item>
           <Tabs.Item title="Map" icon={FaMapMarkedAlt}>
-            {dsSource == "USGS_WATER" && state.location ? (
+            {state.dataSource == "USGS_WATER" && state.location ? (
               <PigeonMapViewer
                 data={primaryData as USGSWaterSearchResult[]}
                 location={[
                   Number(state.location.lat),
                   Number(state.location.lon),
                 ]}
-                startTime={startTime}
-                endTime={endTime}
+                startTime={state.startDate}
+                endTime={state.endDate}
               />
             ) : (
               <p>
@@ -66,9 +60,9 @@ const SearchResultViewer = ({
         <ListSearchResultViewer
           primaryData={primaryData}
           setDatasetSelected={setDatasetSelected}
-          dsSource={dsSource}
-          startTime={startTime}
-          endTime={endTime}
+          dsSource={state.dataSource}
+          startTime={state.startDate}
+          endTime={state.endDate}
           panelIsOpen={panelIsOpen}
         />
       )}

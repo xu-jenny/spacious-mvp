@@ -9,7 +9,7 @@ import { NCDEQWSSearchResult } from "@/app/search/NCDEQWSSearch";
 import { SearchResults } from "@/app/app/page";
 import {
   LaserficheSearchResult,
-  SearchResult,
+  GenericSearchResult,
   USGSWaterSearchResult,
 } from "@/app/search/search";
 
@@ -65,7 +65,7 @@ const ListSearchResultViewer = ({
         return (
           <SearchResultDatasetCard
             key={index}
-            dataset={dataset as SearchResult}
+            dataset={dataset as GenericSearchResult}
             index={index}
             setSelectedDataset={setDatasetSelected}
           />

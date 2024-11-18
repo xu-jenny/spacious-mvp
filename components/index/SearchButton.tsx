@@ -21,7 +21,7 @@ export type USDatasetSource =
   | "ANY";
 
 // Access levels for each data source
-const DATA_SOURCE_ACCESS_LEVELS: Record<USDatasetSource, number> = {
+export const DATA_SOURCE_ACCESS_LEVELS: Record<USDatasetSource, number> = {
   PFAS: 1,
   LASERFICHE: 0,
   USGS: 0,
@@ -43,10 +43,7 @@ const hasAccess = (
 
 type Props = {
   setPrimaryData: (data: any[]) => void;
-  dsSource: USDatasetSource | null;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  startTime?: string;
-  endTime?: string;
   loading: boolean;
 };
 
@@ -79,21 +76,13 @@ export async function search(
   }
 }
 
-const SearchButton = ({
-  dsSource,
-  setPrimaryData,
-  setLoading,
-  startTime,
-  endTime,
-  loading,
-}: Props) => {
+const SearchButton = ({ setPrimaryData, setLoading, loading }: Props) => {
   const { state, dispatch } = useStateContext();
-  const { session, role } = useAuthStateContext();
+  const { role } = useAuthStateContext();
   const [searchValue, setSearchValue] = useState<string>(state.searchValue);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const userRole = role;
-  const isDisabled = !hasAccess(dsSource ?? "ANY", userRole);
+  const isDisabled = false; //!hasAccess(state.dataSource ?? "ANY", role);
 
   // Placeholder text based on access
   const placeholderText = isDisabled
@@ -102,7 +91,7 @@ const SearchButton = ({
 
   useEffect(() => {
     setSearchValue("");
-  }, [dsSource]);
+  }, [state.dataSource]);
 
   const onSubmit = async (value: string) => {
     if (isDisabled) {
@@ -114,9 +103,9 @@ const SearchButton = ({
       let primaryData = await search(
         value,
         state.location,
-        dsSource,
-        startTime,
-        endTime
+        state.dataSource,
+        state.startDate,
+        state.endDate
       );
       setPrimaryData(primaryData ?? []);
       dispatch({ type: "updateSearchValue", payload: value });
