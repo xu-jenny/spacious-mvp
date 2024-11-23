@@ -108,7 +108,7 @@ function USGSWaterDatasetCard({
 
   return (
     <Card className="mt-3 p-4">
-      <div className="flex justify-between mb-4">
+      <div className="flex justify-between items-center mb-4">
         <div>
           <h6
             style={{ cursor: "pointer" }}
@@ -145,10 +145,16 @@ function USGSWaterDatasetCard({
             </button>
           </div>
         </div>
-        <span>
-          {index === 0 && <Badge color="info">Closest Station</Badge>}
-          {dataset.distanceFromInput} mi
-        </span>
+        <div className="flex items-center space-x-2">
+          {index === 0 && (
+            <Badge color="info" className="py-1 px-2 text-sm">
+              Closest Station
+            </Badge>
+          )}
+          <span className="font-semibold text-gray-900 dark:text-gray-300">
+            {dataset.distanceFromInput} mi
+          </span>
+        </div>
       </div>
       <p
         className="font-normal text-gray-700 dark:text-gray-400 cursor-pointer"
