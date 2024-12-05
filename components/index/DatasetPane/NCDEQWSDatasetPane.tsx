@@ -69,7 +69,7 @@ const NCDEQWSDatasetPanel = ({ dataset }: Props) => {
             </button>
           </div>
           <p>Summary: {dataset?.summary}</p>
-          <p className="p-2">CSV Sample</p>
+          <p>CSV Sample</p>
           <pre className="p-2">{dataset?.sample}</pre>
         </article>
 

@@ -4,6 +4,7 @@ import { NCDEQWSSearch } from "@/app/search/NCDEQWSSearch";
 import Input from "../common/Input";
 import { LocationType, useStateContext } from "@/app/StateContext";
 import { useAuthStateContext } from "@/components/AuthStateContext";
+import ToastNotification from "@/components/common/ToastNotification";
 import {
   laserficheSearch,
   searchbarSearch,
@@ -32,7 +33,6 @@ export const DATA_SOURCE_ACCESS_LEVELS: Record<USDatasetSource, number> = {
   ANY: 0,
 };
 
-// Helper function to check if the user has access to a data source
 const hasAccess = (
   dsSource: USDatasetSource,
   userRole: number | null
@@ -64,10 +64,12 @@ export async function search(
           endTime
         );
       }
+      break;
     case "NC_DEQ_WATERSUPPLY":
       if (location != null) {
         return await NCDEQWSSearch(value, location.name);
       }
+      break;
     case "PFAS":
       const loc = location?.name ?? "ncs000050";
       return laserficheSearch(value, loc);
@@ -84,9 +86,13 @@ const SearchButton = ({ setPrimaryData, setLoading, loading }: Props) => {
 
   const isDisabled = !hasAccess(state.dataSource ?? "ANY", role);
 
-  // Placeholder text based on access
+  const [toastConfig, setToastConfig] = useState<{
+    message: string;
+    type: "success" | "error" | "info" | "warning";
+  } | null>(null);
+
   const placeholderText = isDisabled
-    ? "Sign up or log in to access this data source"
+    ? "This data source requires a subscription. Please contact Spacious to get started."
     : "Enter a search term";
 
   useEffect(() => {
@@ -95,9 +101,16 @@ const SearchButton = ({ setPrimaryData, setLoading, loading }: Props) => {
 
   const onSubmit = async (value: string) => {
     if (isDisabled) {
-      return; // Prevent search if disabled
+      return;
     }
-
+    if (!state.location || !state.location.name) {
+      setToastConfig({
+        message: "Please enter a location before searching.",
+        type: "warning",
+      });
+      setTimeout(() => setToastConfig(null), 3000);
+      return;
+    }
     if (value && value.length > 2) {
       setLoading(true);
       let primaryData = await search(
@@ -125,7 +138,7 @@ const SearchButton = ({ setPrimaryData, setLoading, loading }: Props) => {
   };
 
   return (
-    <div className="w-30 flex flex-row p-2">
+    <div className="w-30 flex flex-row p-2 relative">
       <div className="relative w-full">
         <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
           {loading ? (
@@ -152,7 +165,7 @@ const SearchButton = ({ setPrimaryData, setLoading, loading }: Props) => {
           value={searchValue ?? ""}
           onkeydown={handleKeyDown}
           onChange={(v: string) => setSearchValue(v)}
-          disabled={isDisabled} // Disable the input if necessary
+          disabled={isDisabled}
         />
         <button
           type="submit"
@@ -165,11 +178,19 @@ const SearchButton = ({ setPrimaryData, setLoading, loading }: Props) => {
             e.preventDefault();
             onSubmit(searchValue);
           }}
-          disabled={isDisabled} // Disable the button if necessary
+          disabled={isDisabled}
         >
           Search
         </button>
       </div>
+
+      {toastConfig && (
+        <ToastNotification
+          message={toastConfig.message}
+          type={toastConfig.type}
+          duration={3000}
+        />
+      )}
     </div>
   );
 };

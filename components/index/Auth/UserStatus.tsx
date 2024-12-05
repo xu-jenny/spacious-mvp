@@ -1,4 +1,3 @@
-// components/UserStatus.tsx
 import React, { useState, useEffect } from "react";
 import { supabaseClient } from "@/clients/supabase";
 import { useRouter } from "next/navigation";
@@ -43,7 +42,7 @@ export const UserStatus = () => {
 
           if (!error && data) {
             setRole(data.role);
-            console.log("Updated role on session change:", data.role);
+            console.log("User role:", data.role);
             console.log("User email:", session.user.email);
           }
         } else {
@@ -71,12 +70,23 @@ export const UserStatus = () => {
   return (
     <div className="p-4 text-center">
       {session ? (
-        <button
-          className="text-gray-700 bg-white border border-gray-300 py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-50 hover:bg-gray-100"
-          onClick={handleLogout}
-        >
-          Log Out
-        </button>
+        <>
+          <p className="mb-1 text-sm text-gray-600">
+            Logged in as: <strong>{session.user.email}</strong>
+          </p>
+          {/* Display role only if the user is an admin */}
+          {/* {role === 10 && (
+            <p className="mb-1 text-sm text-blue-600">
+              Role: <strong>Admin</strong>
+            </p>
+          )} */}
+          <button
+            className="text-gray-700 bg-white border border-gray-300 py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-50 hover:bg-gray-100"
+            onClick={handleLogout}
+          >
+            Log Out
+          </button>
+        </>
       ) : (
         <>
           <button
