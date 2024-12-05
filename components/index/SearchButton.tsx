@@ -82,7 +82,7 @@ const SearchButton = ({ setPrimaryData, setLoading, loading }: Props) => {
   const [searchValue, setSearchValue] = useState<string>(state.searchValue);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const isDisabled = false; //!hasAccess(state.dataSource ?? "ANY", role);
+  const isDisabled = !hasAccess(state.dataSource ?? "ANY", role);
 
   // Placeholder text based on access
   const placeholderText = isDisabled

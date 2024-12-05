@@ -1,8 +1,8 @@
 import { LocationType, useStateContext } from "@/app/StateContext";
 import { useSearchParams } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
-import { cleanAddress } from "../addressUtil";
-import LocationInfo from "../LocationInfo";
+import { cleanAddress } from "./addressUtil";
+import LocationInfo from "./LocationInfo";
 
 const isLatLong = (str: string) => {
   const latLongRegex =

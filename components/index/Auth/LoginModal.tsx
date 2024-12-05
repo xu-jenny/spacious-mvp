@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useAuthStateContext } from "@/components/AuthStateContext";
 import ResetPasswordModal from "./ResetPasswordModal"; // Import ResetPasswordModal
+import Image from "next/image";
 
 interface LoginModalProps {
   onClose: () => void;
@@ -41,7 +42,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose, onLogin }) => {
       if (!roleError && data) {
         setRole(data.role);
       } else {
-        setRole(null);
+        setRole(-1);
       }
 
       onLogin();
@@ -70,7 +71,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose, onLogin }) => {
         </button>
 
         <div className="flex justify-center mb-4">
-          <img src="/logo.jpeg" alt="Logo" className="h-8" />
+          <Image src="/logo.jpeg" alt="Logo" className="h-8" />
         </div>
         <h2 className="text-center text-xl font-semibold mb-2">
           Log in to Spacious AI

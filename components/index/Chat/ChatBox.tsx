@@ -1,5 +1,5 @@
-import Spinner from "../common/Spinner";
-import { ChatMessage } from "./ChatInput";
+import Spinner from "../../common/Spinner";
+import { ChatMessage } from "../ChatInput";
 
 // TODO: Auto scroll to bottom on new messages
 const ChatBox = ({

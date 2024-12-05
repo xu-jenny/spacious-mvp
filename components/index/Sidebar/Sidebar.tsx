@@ -1,10 +1,9 @@
 import Image from "next/image";
 import logo from "/public/logo.jpeg";
 import DatasourceSelect from "./DatasourceSelect";
-import { USDatasetSource } from "../SearchButton";
 import LaserficheLocationBar from "./LaserficheLocationSearchbar";
-import DateRangeSelector from "../DateRangeSelector";
-import { UserStatus } from "../UserStatus";
+import DateRangeSelector from "./DateRangeSelector";
+import { UserStatus } from "../Auth/UserStatus";
 import LocationSearchBar from "./LocationSearchBar";
 import { useStateContext } from "@/app/StateContext";
 import { SearchResults } from "@/app/app/page";

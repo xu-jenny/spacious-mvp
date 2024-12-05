@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import "react-sliding-pane/dist/react-sliding-pane.css";
 
 import DatasetPanel from "@/components/index/DatasetPane/DatasetPanel";
-import OpenLinkButton from "@/components/index/RequestDataButton";
+import OpenLinkButton from "@/components/index/RequestData/RequestDataButton";
 import SearchButton, {
   search,
   USDatasetSource,

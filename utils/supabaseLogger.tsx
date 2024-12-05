@@ -1,5 +1,5 @@
 import { supabaseClient } from "@/clients/supabase";
-import { ChatMessage } from "@/components/index/ChatInput";
+import { ChatMessage } from "@/components/index/Chat/ChatInput";
 
 export type TableEventType =
   | "LinkClick"

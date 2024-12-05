@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { addDataRequest } from "@/utils/supabaseLogger";
-import Button from "../common/Button";
+import Button from "../../common/Button";
 
 type Props = {
   query: string;

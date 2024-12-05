@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
 import {
@@ -31,6 +31,7 @@ const LaserficheLocationBar = ({
     // "WI0500447",
     "NCG060230",
     // "01005-97-032"
+    "NCD065300519",
   ];
   const [value, setValue] = React.useState<string | null>("");
   const [inputValue, setInputValue] = React.useState("");
