@@ -1,13 +1,13 @@
 "use client";
 
 import { Badge, Card } from "flowbite-react";
-import { logTableInteraction } from "@/utils/supabaseLogger";
-import { SearchResult } from "@/app/search/search";
+import { logInteraction } from "@/utils/supabaseLogger";
+import { SearchResults } from "@/app/search/search";
 
 type Props = {
-  dataset: SearchResult;
+  dataset: SearchResults;
   index: number;
-  setSelectedDataset: (x: SearchResult) => void;
+  setSelectedDataset: (x: SearchResults) => void;
 };
 
 function SearchResultDatasetCard({
@@ -15,8 +15,8 @@ function SearchResultDatasetCard({
   index,
   setSelectedDataset,
 }: Props) {
-  const logLinkClick = (data: SearchResult, index: number) => {
-    logTableInteraction("LinkClick", index, data.title.toString());
+  const logLinkClick = (data: SearchResults, index: number) => {
+    logInteraction("LinkClick", data.title.toString());
     setSelectedDataset(data);
   };
 
@@ -35,7 +35,7 @@ function SearchResultDatasetCard({
     }
   };
 
-  const showLocation = (dataset: SearchResult) => {
+  const showLocation = (dataset: SearchResults) => {
     if (dataset.dataset_source !== "LASERFICHE") {
       return dataset.location;
     }
@@ -58,7 +58,7 @@ function SearchResultDatasetCard({
         {dataset?.publisher != null &&
           dataset?.publisher.length > 1 &&
           `${dataset?.publisher} | `}
-        {showLocation(dataset as SearchResult)}
+        {showLocation(dataset as SearchResults)}
         <Badge className="w-fit mt-1">{dataset.topic}</Badge>
       </div>
       <div>

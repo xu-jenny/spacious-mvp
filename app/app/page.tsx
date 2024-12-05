@@ -9,7 +9,7 @@ import SearchButton, {
   USDatasetSource,
 } from "@/components/index/SearchButton";
 import SearchResultViewer from "@/components/index/SearchResult/SearchResultViewer";
-import { logTableInteraction } from "@/utils/supabaseLogger";
+import { logInteraction } from "@/utils/supabaseLogger";
 import { useSearchParams } from "next/navigation";
 import SlidingPane from "react-sliding-pane";
 import {
@@ -35,7 +35,9 @@ export type SearchResults =
 export default function Home() {
   const searchParams = useSearchParams();
   const { state } = useStateContext();
-  const [primaryData, setPrimary] = useState<SearchResults[] | null>(null);
+  const [primaryData, setPrimary] = useState<
+    SearchResults[] | null | undefined
+  >(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [openPanel, setOpenPanel] = useState(false);
   const [currentds, setCurrentds] = useState<SearchResults | null>();
@@ -43,6 +45,7 @@ export default function Home() {
   function setDatasetSelected(ds: SearchResults) {
     setCurrentds(ds);
     setOpenPanel(true);
+    logInteraction("OpenDatasetPanel", ds.id);
   }
 
   useEffect(() => {
@@ -128,7 +131,7 @@ export default function Home() {
           onRequestClose={() => {
             setOpenPanel(false);
             if (process.env.NODE_ENV === "production") {
-              logTableInteraction("CloseDatasetPanel", 0, currentds.id);
+              logInteraction("CloseDatasetPanel", 0, currentds.id);
             }
           }}
         >

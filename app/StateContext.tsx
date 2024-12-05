@@ -85,7 +85,7 @@ function sourceSearchParamToDatasetSource(
   source: string | null
 ): USDatasetSource {
   if (source == null) {
-    return "USGS_WATER";
+    return "PFAS";
   }
   switch (source.toLowerCase()) {
     case "usgs_water":

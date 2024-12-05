@@ -9,7 +9,9 @@ import { useStateContext } from "@/app/StateContext";
 import { SearchResults } from "@/app/app/page";
 
 interface Props {
-  setPrimary: React.Dispatch<React.SetStateAction<SearchResults[] | null>>;
+  setPrimary: React.Dispatch<
+    React.SetStateAction<SearchResults[] | null | undefined>
+  >;
 }
 
 const Sidebar = ({ setPrimary }: Props) => {

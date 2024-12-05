@@ -1,26 +1,31 @@
 import { supabaseClient } from "@/clients/supabase";
 import { ChatMessage } from "@/components/index/Chat/ChatInput";
 
-export type TableEventType =
+export type EventType =
   | "LinkClick"
   | "NextPage"
   | "PrevPage"
-  | "EditTag"
+  | "Search"
   | "OriginalUrlClick"
   | "DownloadUrlClick"
   | "CloseDatasetPanel"
+  | "OpenDatasetPanel"
   | "TableDownload"
   | "ImageDownload";
-export async function logTableInteraction(
-  eventType: TableEventType,
-  position: number | string, // page number or row position
-  itemId?: string
+
+export async function logInteraction(
+  eventType: EventType,
+  id: string,
+  metadata: string = ""
 ) {
+  if (process.env.NODE_ENV != "production") {
+    return;
+  }
   const { error } = await supabaseClient.from("events").insert({
     created_at: new Date(),
     event_type: eventType,
-    position,
-    item_id: itemId,
+    item_id: id,
+    metadata,
   });
   if (error) {
     console.error(error);

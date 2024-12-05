@@ -1,7 +1,7 @@
 "use client";
 
 import { Card } from "flowbite-react";
-import { logTableInteraction } from "@/utils/supabaseLogger";
+import { logInteraction } from "@/utils/supabaseLogger";
 import { NCDEQWSSearchResult } from "@/app/search/NCDEQWSSearch";
 
 type Props = {
@@ -12,7 +12,7 @@ type Props = {
 
 function NCDEQWSResultCard({ dataset, setDatasetSelected, index }: Props) {
   const logLinkClick = (data: NCDEQWSSearchResult, index: number) => {
-    logTableInteraction("LinkClick", index, data.title.toString());
+    logInteraction("LinkClick", data.title.toString(), index.toString());
     setDatasetSelected(data);
   };
 

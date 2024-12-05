@@ -1,7 +1,7 @@
 "use client";
 
 import { LaserficheSearchResult } from "@/app/search/search";
-import { logTableInteraction } from "@/utils/supabaseLogger";
+import { logInteraction } from "@/utils/supabaseLogger";
 import Link from "next/link";
 import { useState } from "react";
 import { FcCollapse, FcExpand } from "react-icons/fc";
@@ -138,11 +138,7 @@ const PFASDatasetPanel = ({ dataset }: Props) => {
                 className="no-underline text-blue-600"
                 onClick={() => {
                   if (process.env.NODE_ENV === "production") {
-                    logTableInteraction(
-                      "DownloadUrlClick",
-                      dataset.id,
-                      dataset?.title
-                    );
+                    logInteraction("DownloadUrlClick", dataset.title);
                   }
                 }}
               >
@@ -157,11 +153,7 @@ const PFASDatasetPanel = ({ dataset }: Props) => {
                 className="no-underline text-green-500"
                 onClick={() => {
                   if (process.env.NODE_ENV === "production") {
-                    logTableInteraction(
-                      "TableDownload",
-                      dataset.id,
-                      dataset?.title
-                    );
+                    logInteraction("TableDownload", dataset.title);
                   }
                 }}
               >
@@ -175,11 +167,7 @@ const PFASDatasetPanel = ({ dataset }: Props) => {
                 className="no-underline text-gray-600"
                 onClick={() => {
                   if (process.env.NODE_ENV === "production") {
-                    logTableInteraction(
-                      "OriginalUrlClick",
-                      dataset.id,
-                      dataset?.title
-                    );
+                    logInteraction("OriginalUrlClick", dataset.title);
                   }
                 }}
               >

@@ -9,6 +9,7 @@ export const UserStatus = () => {
   const { session, role, setSession, setRole } = useAuthStateContext();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignUpModal, setShowSignUpModal] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     // Fetch initial session and role
@@ -48,12 +49,13 @@ export const UserStatus = () => {
         } else {
           setRole(0);
           console.log("User signed out");
+          router.refresh();
         }
       }
     );
 
     return () => authListener.subscription.unsubscribe();
-  }, [setSession, setRole]);
+  }, [setSession, setRole, router]);
 
   const handleLogout = async () => {
     console.log("Attempting to log out...");
@@ -64,6 +66,7 @@ export const UserStatus = () => {
       setSession(null);
       setRole(0);
       console.log("User logged out successfully");
+      router.refresh();
     }
   };
 
@@ -116,7 +119,7 @@ export const UserStatus = () => {
           onClose={() => setShowSignUpModal(false)}
           onSignUpSuccess={() => {
             setShowSignUpModal(false);
-            setShowLoginModal(true); // Automatically open login modal on successful signup
+            // setShowLoginModal(true); // Automatically open login modal on successful signup
           }}
         />
       )}

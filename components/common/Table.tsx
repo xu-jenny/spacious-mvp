@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-table";
 import { format, isValid } from "date-fns";
 import moment from "moment";
-import { logTableInteraction } from "@/utils/supabaseLogger";
+import { logInteraction } from "@/utils/supabaseLogger";
 
 const dataFormatter = (value: any) => {
   // Apply specific formatting based on the value's type or other conditions
@@ -95,7 +95,7 @@ export const Table = ({
             className="border rounded p-1"
             onClick={() => {
               table.setPageIndex(0);
-              logTableInteraction("PrevPage", -1, tableName);
+              logInteraction("PrevPage", -1, tableName);
             }}
             disabled={!table.getCanPreviousPage()}
           >
@@ -105,7 +105,7 @@ export const Table = ({
             className="border rounded p-1"
             onClick={() => {
               table.previousPage();
-              logTableInteraction(
+              logInteraction(
                 "PrevPage",
                 table.getState().pagination.pageIndex - 1,
                 tableName
@@ -119,7 +119,7 @@ export const Table = ({
             className="border rounded p-1"
             onClick={() => {
               table.nextPage();
-              logTableInteraction(
+              logInteraction(
                 "NextPage",
                 table.getState().pagination.pageIndex + 1,
                 tableName
@@ -133,7 +133,7 @@ export const Table = ({
             className="border rounded p-1"
             onClick={() => {
               table.setPageIndex(table.getPageCount() - 1);
-              logTableInteraction("NextPage", table.getPageCount(), tableName);
+              logInteraction("NextPage", table.getPageCount(), tableName);
             }}
             disabled={!table.getCanNextPage()}
           >

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Table } from "./common/Table";
-import { logTableInteraction } from "@/utils/supabaseLogger";
+import { logInteraction } from "@/utils/supabaseLogger";
 import Link from "next/link";
 import { jsonParse } from "@/utils/json";
 
@@ -40,7 +40,7 @@ const MetadataTable = ({
 
   const logLinkClick = (data: DatasetMetadata, index: number) => {
     if (process.env.NODE_ENV === "production") {
-      logTableInteraction("LinkClick", index, data.title.toString());
+      logInteraction("LinkClick", index, data.title.toString());
     }
   };
 

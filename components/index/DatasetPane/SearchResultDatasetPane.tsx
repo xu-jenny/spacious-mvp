@@ -4,9 +4,8 @@ import { useEffect, useState } from "react";
 import { jsonParse } from "@/utils/json";
 import { InfoDropdown } from "../../dataset/InfoDropdown";
 import Link from "next/link";
-import { logTableInteraction } from "@/utils/supabaseLogger";
+import { logInteraction } from "@/utils/supabaseLogger";
 import { Dataset, getDataset } from "@/clients/supabase";
-import { SearchResult } from "@/app/search/search";
 import { SearchResults } from "@/app/app/page";
 
 type Props = {
@@ -24,7 +23,7 @@ const SearchResultDatasetPanel = ({ dsMetadata }: Props) => {
 
   useEffect(() => {
     async function fetchDataset() {
-      let result = await getDataset(dsMetadata as SearchResult);
+      let result = await getDataset(dsMetadata as SearchResults);
       if (result == null) {
         setError("There was no dataset corresponding to the specified ID.");
       } else {
@@ -64,13 +63,11 @@ const SearchResultDatasetPanel = ({ dsMetadata }: Props) => {
               href={datasetUrls["url"]}
               className="text-blue-600 dark:text-blue-500 hover:underline"
               onClick={() => {
-                if (process.env.NODE_ENV === "production") {
-                  logTableInteraction(
-                    "DownloadUrlClick",
-                    dsMetadata.id,
-                    datasetUrls["url"]
-                  );
-                }
+                logInteraction(
+                  "DownloadUrlClick",
+                  dsMetadata.id,
+                  datasetUrls["url"]
+                );
               }}
             >
               {datasetUrls["name"]}
@@ -102,7 +99,7 @@ const SearchResultDatasetPanel = ({ dsMetadata }: Props) => {
               className="no-underline text-blue-600"
               onClick={() => {
                 if (process.env.NODE_ENV === "production") {
-                  logTableInteraction(
+                  logInteraction(
                     "OriginalUrlClick",
                     dsMetadata.id,
                     dataset?.title

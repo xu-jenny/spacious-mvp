@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import { logTableInteraction } from "@/utils/supabaseLogger";
 import { NCDEQWSSearch } from "@/app/search/NCDEQWSSearch";
 import Input from "../common/Input";
 import { LocationType, useStateContext } from "@/app/StateContext";
@@ -38,6 +37,7 @@ const hasAccess = (
   userRole: number | null
 ): boolean => {
   const requiredTier = DATA_SOURCE_ACCESS_LEVELS[dsSource];
+  console.log(userRole);
   return userRole !== null && userRole >= requiredTier;
 };
 
@@ -122,9 +122,6 @@ const SearchButton = ({ setPrimaryData, setLoading, loading }: Props) => {
       );
       setPrimaryData(primaryData ?? []);
       dispatch({ type: "updateSearchValue", payload: value });
-      if (process.env.NODE_ENV === "production") {
-        logTableInteraction("EditTag", 0, value);
-      }
       setLoading(false);
       inputRef.current?.blur();
     }

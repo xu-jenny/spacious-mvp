@@ -1,6 +1,6 @@
 import { PaginatedList } from "react-paginated-list";
 import { USDatasetSource } from "./SearchButton";
-import { logTableInteraction } from "@/utils/supabaseLogger";
+import { logInteraction } from "@/utils/supabaseLogger";
 import USGSWaterDatasetCard from "./SearchResult/USGSWaterdatasetCard";
 import LaserficheSearchResultCard from "./SearchResult/LaserficheSearchResultCard";
 import SearchResultDatasetCard from "./SearchResult/SearchResultDatasetCard";
@@ -82,11 +82,7 @@ const ListSearchResultViewer = ({
         )}
         onPageChange={(newItems, newPage) => {
           if (process.env.NODE_ENV === "production") {
-            logTableInteraction(
-              "NextPage",
-              newPage,
-              newItems.length.toString()
-            );
+            logInteraction("NextPage", newItems.length.toString());
           }
         }}
       />
