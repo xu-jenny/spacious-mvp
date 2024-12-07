@@ -9,6 +9,7 @@ import {
   searchbarSearch,
   usgsWaterSearch,
 } from "@/app/search/search";
+import { useLogger } from "@/utils/supabaseLogger";
 
 export type USDatasetSource =
   | "PFAS"
@@ -37,7 +38,6 @@ const hasAccess = (
   userRole: number | null
 ): boolean => {
   const requiredTier = DATA_SOURCE_ACCESS_LEVELS[dsSource];
-  console.log(userRole);
   return userRole !== null && userRole >= requiredTier;
 };
 
@@ -83,6 +83,7 @@ const SearchButton = ({ setPrimaryData, setLoading, loading }: Props) => {
   const { role } = useAuthStateContext();
   const [searchValue, setSearchValue] = useState<string>(state.searchValue);
   const inputRef = useRef<HTMLInputElement>(null);
+  const logger = useLogger();
 
   const isDisabled = !hasAccess(state.dataSource ?? "ANY", role);
 
@@ -124,6 +125,15 @@ const SearchButton = ({ setPrimaryData, setLoading, loading }: Props) => {
       dispatch({ type: "updateSearchValue", payload: value });
       setLoading(false);
       inputRef.current?.blur();
+      try {
+        logger.log(
+          "Search",
+          value,
+          `${state.location.name},${state.dataSource}`
+        );
+      } catch (e) {
+        console.log(e);
+      }
     }
   };
 

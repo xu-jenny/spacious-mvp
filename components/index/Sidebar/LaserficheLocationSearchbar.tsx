@@ -19,11 +19,13 @@ export type LaserficheSearchType = "all" | "filter-image";
 const LaserficheLocationBar = ({
   setData,
 }: {
-  setData: React.Dispatch<React.SetStateAction<SearchResults[] | null>>;
+  setData: React.Dispatch<
+    React.SetStateAction<SearchResults[] | null | undefined>
+  >;
 }) => {
   const [searchType, setSearchType] = useState<LaserficheSearchType>("all");
   const { role } = useAuthStateContext();
-  const { state, dispatch } = useStateContext();
+  const { dispatch } = useStateContext();
   const options = [
     "NCS000050",
     "NCG080886",
@@ -35,11 +37,13 @@ const LaserficheLocationBar = ({
   ];
   const [value, setValue] = React.useState<string | null>("");
   const [inputValue, setInputValue] = React.useState("");
+  const [showFilters, setShowFilters] = React.useState<Boolean>(false);
 
   const handleLocationInputChange = async (newLoc: string) => {
     setInputValue(newLoc);
     let results = await laserficheFilter(newLoc, role, false);
     setData(results);
+    setShowFilters(true);
   };
 
   const handleSearchtypeChange = async (
@@ -114,28 +118,32 @@ const LaserficheLocationBar = ({
         options={options}
         renderInput={(params) => <TextField {...params} />}
       />
-      <div className="ml-2">
-        <FormControl sx={{ m: 3 }} component="fieldset" variant="standard">
-          <FormGroup>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={searchType == "filter-image"}
-                  onChange={handleSearchtypeChange}
-                  name="filter-image"
+      {showFilters && (
+        <>
+          <div className="ml-2">
+            <FormControl sx={{ m: 3 }} component="fieldset" variant="standard">
+              <FormGroup>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={searchType == "filter-image"}
+                      onChange={handleSearchtypeChange}
+                      name="filter-image"
+                    />
+                  }
+                  label="Contain Image"
                 />
-              }
-              label="Filter Image"
-            />
-          </FormGroup>
-        </FormControl>
-      </div>
-      <Button
-        onClick={() => handleExportSiteImages()}
-        className="ml-auto mr-auto"
-      >
-        Export Site Images
-      </Button>
+              </FormGroup>
+            </FormControl>
+          </div>
+          <Button
+            onClick={() => handleExportSiteImages()}
+            className="ml-auto mr-auto"
+          >
+            Export Site Images
+          </Button>
+        </>
+      )}
     </div>
   );
 };

@@ -5,7 +5,7 @@ import {
   LaserfichePageResult,
   LaserficheSearchResult,
 } from "@/app/search/search";
-import { logInteraction } from "@/utils/supabaseLogger";
+import { useLogger } from "@/utils/supabaseLogger";
 import Badge from "@mui/material/Badge";
 import ImageIcon from "@mui/icons-material/Image";
 
@@ -25,8 +25,9 @@ function LaserficheSearchResultCard({
   setSelectedDataset,
   panelIsOpen,
 }: Props) {
+  const logger = useLogger();
   const logLinkClick = (data: LaserficheSearchResult, index: number) => {
-    logInteraction("LinkClick", data.title.toString(), index.toString());
+    logger.log("LinkClick", data.title.toString(), index.toString());
     setSelectedDataset(data);
   };
   const longStringShortener = (str: string) =>

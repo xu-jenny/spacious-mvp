@@ -1,7 +1,7 @@
 "use client";
 
 import { LaserficheSearchResult } from "@/app/search/search";
-import { logInteraction } from "@/utils/supabaseLogger";
+import { useLogger } from "@/utils/supabaseLogger";
 import Link from "next/link";
 import { useState } from "react";
 import { FcCollapse, FcExpand } from "react-icons/fc";
@@ -43,6 +43,7 @@ export const downloadImages = async (imageNames: string[]) => {
 
 const PFASDatasetPanel = ({ dataset }: Props) => {
   const [isMetadataOpen, setIsMetadataOpen] = useState(false);
+  const logger = useLogger();
 
   const displayMetadata = (md: string) => {
     try {
@@ -125,76 +126,78 @@ const PFASDatasetPanel = ({ dataset }: Props) => {
   const pdfUrl = `${process.env.NEXT_PUBLIC_S3_LASERFICHE_BUCKET}/${dataset.id}.pdf`;
   console.log(dataset);
   return (
-    <div className="flex h-[100vh] z-[1000] top-0 left-0 w-full">
-      <div className="w-full flex flex-col h-full">
-        <article className="prose p-4 max-w-none">
-          <h3>{dataset?.title}</h3>
-          <div className="flex items-center space-x-3 mb-4">
-            {dataset.id != null && (
-              <Link
-                href={pdfUrl}
-                target="_blank"
-                download={dataset?.title}
-                className="no-underline text-blue-600"
-                onClick={() => {
-                  if (process.env.NODE_ENV === "production") {
-                    logInteraction("DownloadUrlClick", dataset.title);
+    <div className="flex z-[1000] top-0 left-0 w-full">
+      <div className="w-full flex flex-col">
+        <article className="prose p-0 max-w-none">
+          <div className="flex justify-between items-center">
+            <h3>{dataset?.title}</h3>
+            <div className="space-x-3">
+              {dataset.id != null && (
+                <Link
+                  href={pdfUrl}
+                  target="_blank"
+                  download={dataset?.title}
+                  className="no-underline text-blue-600"
+                  onClick={() => {
+                    if (process.env.NODE_ENV === "production") {
+                      logger.log("DownloadUrlClick", dataset.title);
+                    }
+                  }}
+                >
+                  Download PDF
+                </Link>
+              )}
+              {dataset.containsTable && (
+                <Link
+                  href={`${process.env.NEXT_PUBLIC_S3_LASERFICHE_BUCKET}/${dataset.id}.xlsx`}
+                  target="_blank"
+                  download={`${dataset?.title}_tables`}
+                  className="no-underline text-green-500"
+                  onClick={() => {
+                    if (process.env.NODE_ENV === "production") {
+                      logger.log("TableDownload", dataset.title);
+                    }
+                  }}
+                >
+                  Download All Tables
+                </Link>
+              )}
+              {dataset.originalUrl != null && (
+                <Link
+                  href={dataset.originalUrl}
+                  target="_blank"
+                  className="no-underline text-gray-600"
+                  onClick={() => {
+                    if (process.env.NODE_ENV === "production") {
+                      logger.log("OriginalUrlClick", dataset.title);
+                    }
+                  }}
+                >
+                  Original Url
+                </Link>
+              )}
+              {dataset.images != null && dataset.images.length > 0 && (
+                <Link
+                  href={
+                    dataset.images.length === 1
+                      ? new URL(
+                          `${process.env.NEXT_PUBLIC_S3_LASERFICHE_BUCKET}/images/${dataset.images[0]}`
+                        )
+                      : "#"
                   }
-                }}
-              >
-                Download PDF
-              </Link>
-            )}
-            {dataset.containsTable && (
-              <Link
-                href={`${process.env.NEXT_PUBLIC_S3_LASERFICHE_BUCKET}/${dataset.id}.xlsx`}
-                target="_blank"
-                download={`${dataset?.title}_tables`}
-                className="no-underline text-green-500"
-                onClick={() => {
-                  if (process.env.NODE_ENV === "production") {
-                    logInteraction("TableDownload", dataset.title);
-                  }
-                }}
-              >
-                Download All Tables
-              </Link>
-            )}
-            {dataset.originalUrl != null && (
-              <Link
-                href={dataset.originalUrl}
-                target="_blank"
-                className="no-underline text-gray-600"
-                onClick={() => {
-                  if (process.env.NODE_ENV === "production") {
-                    logInteraction("OriginalUrlClick", dataset.title);
-                  }
-                }}
-              >
-                Original Url
-              </Link>
-            )}
-            {dataset.images != null && dataset.images.length > 0 && (
-              <Link
-                href={
-                  dataset.images.length === 1
-                    ? new URL(
-                        `${process.env.NEXT_PUBLIC_S3_LASERFICHE_BUCKET}/images/${dataset.images[0]}`
-                      )
-                    : "#"
-                }
-                target="_blank"
-                className="no-underline text-gray-600"
-                onClick={(e) => {
-                  if (dataset.images && dataset.images.length > 1) {
-                    e.preventDefault();
-                    downloadImages(dataset.images);
-                  }
-                }}
-              >
-                Export Images
-              </Link>
-            )}
+                  target="_blank"
+                  className="no-underline text-gray-600"
+                  onClick={(e) => {
+                    if (dataset.images && dataset.images.length > 1) {
+                      e.preventDefault();
+                      downloadImages(dataset.images);
+                    }
+                  }}
+                >
+                  Export Images
+                </Link>
+              )}
+            </div>
           </div>
 
           {dataset?.facilityName != null && (
@@ -203,11 +206,13 @@ const PFASDatasetPanel = ({ dataset }: Props) => {
             </div>
           )}
           {dataset?.metadata != null && displayMetadata(dataset.metadata)}
-          <PDFPanelViewer
-            fileUrl={pdfUrl}
-            pagesToJump={dataset.nodes ?? []}
-            docBbox={dataset.page_bbox ?? [0, 0, 612, 792]}
-          />
+          <div className="h-4/5">
+            <PDFPanelViewer
+              fileUrl={pdfUrl}
+              pagesToJump={dataset.nodes ?? []}
+              docBbox={dataset.page_bbox ?? [0, 0, 612, 792]}
+            />
+          </div>
         </article>
       </div>
     </div>

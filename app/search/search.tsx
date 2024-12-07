@@ -9,6 +9,7 @@ import { USDatasetSource } from "@/components/index/SearchButton";
 import { post } from "@/utils/http";
 import { cap } from "@/utils/util";
 import { createGTEEmbedding } from "./indexUtils";
+import { SearchResults } from "../app/page";
 
 export type GenericSearchResult = {
   id: string;
@@ -147,6 +148,7 @@ export type LaserfichePageResult = {
   page: number;
   score: number;
   bbox: number[] | null;
+  text: string;
 };
 
 export type LaserficheSearchResult = {
@@ -154,6 +156,7 @@ export type LaserficheSearchResult = {
   id: string;
   nodes: LaserfichePageResult[];
   score: number;
+  text: string;
   containsTable: boolean;
   originalUrl: string;
   page_bbox: number[] | null;
@@ -221,6 +224,7 @@ function transformLaserfichePageResults(
   location: string
 ): LaserfichePageResult[] {
   const nodes = pages.map((tuple: any[]) => {
+    // page, score, bbox, text
     let pageBbox = null;
     try {
       if (location != "01005-97-032") {
@@ -234,6 +238,7 @@ function transformLaserfichePageResults(
         page: tuple[0],
         score: tuple[1],
         bbox: pageBbox,
+        text: tuple[3] ?? "",
       };
     } catch (e) {
       console.error("Error parsing tuple", tuple, e);
@@ -256,6 +261,7 @@ function transformLaserficheSearchResult(
     id: d["id"],
     score: d["score"],
     page_bbox: page_box,
+    text: d["text"] ?? "",
     containsTable: d["containsTable"],
     originalUrl: d["originalUrl"],
     firstPublished: d["firstPublished"],
@@ -356,8 +362,13 @@ export async function laserficheSearch(
     return [];
   }
   const data = JSON.parse(response);
-  if (data != null && "documents" in data && "pages" in data) {
-    let results: LaserficheSearchResult[] = [];
+  let results: LaserficheSearchResult[] = [];
+  if (
+    data != null &&
+    data != undefined &&
+    "documents" in data &&
+    "pages" in data
+  ) {
     data["documents"].forEach((d: { [x: string]: any }) => {
       let pageMatch = data["pages"].filter(
         (page_doc: { [x: string]: any }) => page_doc["docid"] == d["id"]
@@ -385,6 +396,9 @@ export async function laserficheSearch(
         if (item["nodes"] != null && item["nodes"].length > 1) {
           const seen = new Set<number>();
           item["nodes"] = item["nodes"].filter((node: LaserfichePageResult) => {
+            if (node == null || !("page" in node)) {
+              return false;
+            }
             if (!seen.has(node.page)) {
               seen.add(node.page);
               return true;
@@ -395,50 +409,28 @@ export async function laserficheSearch(
         results.push(item);
       }
     });
-    // add hardcode result to results
     if (hardcodeResults.length > 0) {
-      // we know this already doesn't exist inresults, a hack above sets it to []
-      // this could be because there was no pageMatch returned
+      console.log(
+        "Did not find hardcode doc from backend result, this should not Show up"
+      );
+      // if hardcodeResults is already added, it will be []. otherwise it was not incldued in the retunred result so adding now
       const foundDoc = data["documents"].find(
         (d: { [x: string]: any }) => d["id"] === hardcodeResults[0].bestDocMatch
       );
       let nodes = [
-        { page: hardcodeResults[0].bestPageMatch, score: 10, bbox: null },
+        {
+          page: hardcodeResults[0].bestPageMatch,
+          score: 10,
+          bbox: null,
+          text: "",
+        },
       ];
-      if (hardcodeResults[0]["query"].includes("assumed groundwater impacts")) {
-        nodes = [
-          { page: 2, score: 10, bbox: null },
-          { page: 3, score: 9, bbox: null },
-          { page: 4, score: 8, bbox: null },
-          { page: 10, score: 7, bbox: null },
-        ];
-      } else if (
-        hardcodeResults[0]["query"].includes("underground storage tank")
-      ) {
-        nodes = [
-          { page: 2, score: 10, bbox: null },
-          { page: 3, score: 9, bbox: null },
-        ];
-      } else if (hardcodeResults[0]["query"].includes("historic use")) {
-        nodes = [
-          { page: 1, score: 10, bbox: null },
-          { page: 14, score: 9, bbox: null },
-        ];
-      } else if (hardcodeResults[0]["query"].includes("depth to water")) {
-        nodes = [
-          { page: 3, score: 12, bbox: null },
-          { page: 11, score: 10, bbox: null },
-          { page: 12, score: 9, bbox: null },
-          { page: 9, score: 43, bbox: null },
-          { page: 43, score: 6, bbox: null },
-          { page: 44, score: 5, bbox: null },
-          { page: 45, score: 4, bbox: null },
-        ];
-      }
+
       results.push({
         title: foundDoc["title"],
         id: foundDoc["id"],
         score: 10,
+        text: foundDoc["text"] ?? "",
         page_bbox: null,
         containsTable: foundDoc["containsTable"],
         originalUrl: foundDoc["originalUrl"],
@@ -569,7 +561,7 @@ export async function searchbarSearch(
   primaryTag: string,
   location: string,
   dsSource: USDatasetSource | null
-): Promise<SearchResult[] | USGSWaterSearchResult[]> {
+): Promise<SearchResults[] | USGSWaterSearchResult[]> {
   if (primaryTag.toLowerCase() === "all") {
     return getDatasetsInLocation(location, dsSource);
   }

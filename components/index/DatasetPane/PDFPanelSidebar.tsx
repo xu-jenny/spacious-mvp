@@ -1,39 +1,31 @@
-import type { IHighlight } from "react-pdf-highlighter";
-
+interface ISidebarText {
+  id: string;
+  text: string;
+  page: number;
+}
 interface Props {
-  highlights: Array<IHighlight>;
+  texts: Array<ISidebarText>;
+  handleJumpToPage: (page: number) => void;
 }
 
-const updateHash = (highlight: IHighlight) => {
-  document.location.hash = `highlight-${highlight.id}`;
-};
+export function PDFPanelSidebar({ texts, handleJumpToPage }: Props) {
+  const longStringShortener = (str: string) =>
+    str != null && str.length > 135 ? `${str.substring(0, 135)}...` : str;
 
-
-export function PDFPanelSidebar({
-  highlights,
-}: Props) {
   return (
-    <div className="sidebar" style={{ width: "25vw" }}>
-      <ul className="sidebar__highlights">
-        {highlights.map((highlight, index) => (
+    <div className="sidebar" style={{ overflow: "auto", height: "80vh" }}>
+      <ul className="p-0">
+        {texts.map((text, index) => (
           <li
             key={index}
-            className="sidebar__highlight"
+            className="list-none p-0 mr-1 cursor-pointer"
             onClick={() => {
-              updateHash(highlight);
+              handleJumpToPage(text.page);
             }}
           >
-            <div>
-              <strong>{highlight.comment.text}</strong>
-              {highlight.content.text ? (
-                <blockquote style={{ marginTop: "0.5rem" }}>
-                  {`${highlight.content.text.slice(0, 90).trim()}…`}
-                </blockquote>
-              ) : null}
-            </div>
-            <div className="highlight__location">
-              Page {highlight.position.pageNumber}
-            </div>
+            <p>{longStringShortener(text.text)}</p>
+            <div className="text-right text-xs">Page {text.page}</div>
+            <hr className="p-0" />
           </li>
         ))}
       </ul>

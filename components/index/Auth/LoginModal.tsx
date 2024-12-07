@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useAuthStateContext } from "@/components/AuthStateContext";
 import ResetPasswordModal from "./ResetPasswordModal"; // Import ResetPasswordModal
+import CircularProgress from "@mui/material/CircularProgress";
 
 interface LoginModalProps {
   onClose: () => void;
@@ -18,6 +19,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose, onLogin }) => {
   const [showResetPassword, setShowResetPassword] = useState(false); // Track reset password modal visibility
   const router = useRouter();
   const { setSession, setRole } = useAuthStateContext();
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleLogin = async () => {
     const {
@@ -27,7 +29,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose, onLogin }) => {
       email,
       password,
     });
-
+    setLoading(true);
     if (error) {
       setError(error.message);
     } else if (session) {
@@ -45,6 +47,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose, onLogin }) => {
       }
 
       onLogin();
+      setLoading(false);
       router.push("/app");
     }
   };
@@ -104,12 +107,16 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose, onLogin }) => {
 
         {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
 
-        <button
-          onClick={handleLogin}
-          className="text-white w-full bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 mb-4"
-        >
-          Log in
-        </button>
+        {loading ? (
+          <CircularProgress />
+        ) : (
+          <button
+            onClick={handleLogin}
+            className="text-white w-full bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 mb-4"
+          >
+            Log in
+          </button>
+        )}
 
         <div className="text-center text-sm text-gray-500">
           <button

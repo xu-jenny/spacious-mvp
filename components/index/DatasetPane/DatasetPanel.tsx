@@ -1,7 +1,6 @@
 "use client";
 
 import { USDatasetSource } from "../SearchButton";
-import SearchResultDatasetPanel from "./SearchResultDatasetPane";
 import { NCDEQWSSearchResult } from "@/app/search/NCDEQWSSearch";
 import NCDEQWSDatasetPanel from "./NCDEQWSDatasetPane";
 
@@ -34,12 +33,6 @@ function DatasetPanel({ dataset }: Props) {
       case "USGS_WATER":
         return (
           <USGSWaterDatasetPane dataset={dataset as USGSWaterSearchResult} />
-        );
-      default:
-        return (
-          <SearchResultDatasetPanel
-            dsMetadata={dataset as GenericSearchResult}
-          />
         );
     }
   };

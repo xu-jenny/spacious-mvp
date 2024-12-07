@@ -1,5 +1,6 @@
 import { supabaseClient } from "@/clients/supabase";
-import { ChatMessage } from "@/components/index/Chat/ChatInput";
+import { useAuthStateContext } from "@/components/AuthStateContext";
+import { useEffect } from "react";
 
 export type EventType =
   | "LinkClick"
@@ -9,72 +10,72 @@ export type EventType =
   | "OriginalUrlClick"
   | "DownloadUrlClick"
   | "CloseDatasetPanel"
-  | "OpenDatasetPanel"
   | "TableDownload"
-  | "ImageDownload";
+  | "ImageDownload"
+  | "ERROR";
 
-export async function logInteraction(
-  eventType: EventType,
-  id: string,
-  metadata: string = ""
-) {
-  if (process.env.NODE_ENV != "production") {
-    return;
-  }
-  const { error } = await supabaseClient.from("events").insert({
-    created_at: new Date(),
-    event_type: eventType,
-    item_id: id,
-    metadata,
-  });
-  if (error) {
-    console.error(error);
-  }
-}
+// Logger class
+class Logger {
+  private userEmail: string | undefined;
 
-export async function addQueries(
-  chatHistory: ChatMessage[],
-  locations: string | null,
-  sessionId: number
-) {
-  const { data: rowData, error } = await supabaseClient
-    .from("queries")
-    .select()
-    .eq("sessionId", sessionId)
-    .single();
-
-  if (error && error.code != "PGRST116") {
-    console.error("Failed to fetch queries row.", error);
-    return;
+  setUserEmail(userEmail: string | undefined) {
+    this.userEmail = userEmail;
   }
 
-  if (rowData == null) {
-    await supabaseClient.from("queries").insert({
-      query: JSON.stringify(chatHistory),
-      locations: locations?.toString(),
+  async log(eventType: EventType, id: string, metadata: string = "") {
+    if (process.env.NODE_ENV !== "production") {
+      return;
+    }
+
+    const { error, data } = await supabaseClient
+      .from("events")
+      .insert({
+        created_at: new Date(),
+        userEmail: this.userEmail ?? "N/A",
+        event_type: eventType,
+        item_id: id,
+        metadata,
+      })
+      .select();
+    console.log(data);
+    if (error) {
+      console.error("Logger Error:", error);
+    }
+  }
+
+  async error(id: string, metadata: string = "") {
+    if (process.env.NODE_ENV !== "production") {
+      return;
+    }
+
+    const { error } = await supabaseClient.from("events").insert({
       created_at: new Date(),
-      sessionId: sessionId,
+      userEmail: this.userEmail ?? "N/A",
+      event_type: "ERROR",
+      item_id: id,
+      metadata,
     });
-    return;
-  }
-
-  await supabaseClient
-    .from("queries")
-    .update({ query: chatHistory, locations: locations?.toString() }) // TODO: locations can change, convert to an object w/ changed timestamp
-    .eq("id", sessionId)
-    .single();
-}
-
-export async function logError(errorType: string, message?: string) {
-  const { error } = await supabaseClient.from("errors").insert({
-    error: errorType,
-    message,
-    created_at: new Date(),
-  });
-  if (error) {
-    console.error(error);
+    if (error) {
+      console.error("Logger Error:", error);
+    }
   }
 }
+
+// Singleton Logger instance
+const loggerInstance = new Logger();
+
+export const useLogger = () => {
+  const { session } = useAuthStateContext();
+
+  // Set session-level info dynamically (only once per session)
+  useEffect(() => {
+    if (session?.user.email) {
+      loggerInstance.setUserEmail(session.user.email);
+    }
+  }, [session]);
+
+  return loggerInstance;
+};
 
 export async function addDataRequest(
   query: string,

@@ -6,7 +6,7 @@ import LoginModal from "./LoginModal";
 import SignUpModal from "./SignupModal";
 
 export const UserStatus = () => {
-  const { session, role, setSession, setRole } = useAuthStateContext();
+  const { session, setSession, setRole } = useAuthStateContext();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignUpModal, setShowSignUpModal] = useState(false);
   const router = useRouter();

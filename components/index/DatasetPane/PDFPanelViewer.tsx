@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import "react-pdf-highlighter/dist/style.css";
 import {
   Highlight,
+  IHighlight,
   PdfHighlighter,
   PdfLoader,
   Popup,
@@ -11,15 +12,9 @@ import {
 } from "react-pdf-highlighter";
 import { Spinner } from "flowbite-react/components/Spinner";
 import { LaserfichePageResult } from "@/app/search/search";
+import { PDFPanelSidebar } from "./PDFPanelSidebar";
 
 const getNextId = () => String(Math.random()).slice(2);
-
-const parseIdFromHash = () =>
-  document.location.hash.slice("#highlight-".length);
-
-const resetHash = () => {
-  document.location.hash = "";
-};
 
 const HighlightPopup = ({
   comment,
@@ -38,8 +33,15 @@ interface PdfViewerProps {
   docBbox: number[];
 }
 
-const getBbox = (arr: number[], page: number, docBbox: number[]) => ({
-  content: { text: "text" },
+const getBbox = (
+  arr: number[],
+  page: number,
+  docBbox: number[],
+  text: string,
+  id: string
+) => ({
+  id,
+  content: { text },
   position: {
     boundingRect: {
       x1: arr[0],
@@ -64,7 +66,6 @@ const getBbox = (arr: number[], page: number, docBbox: number[]) => ({
     pageNumber: page,
   },
   comment: { text: "", emoji: "" },
-  id: getNextId(),
 });
 
 const PDFPanelViewer: React.FC<PdfViewerProps> = ({
@@ -72,20 +73,31 @@ const PDFPanelViewer: React.FC<PdfViewerProps> = ({
   pagesToJump,
   docBbox,
 }) => {
-  const [currentPage, setCurrentPage] = useState<number>(1); // Track current page
-  const [totalPages, setTotalPages] = useState<number>(0); // Total number of pages
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const initalHighlights = pagesToJump
+  let highlights: Array<IHighlight> = [];
+  const texts = pagesToJump
     .map((pageResult: LaserfichePageResult) => {
+      const id = getNextId();
       if (pageResult.bbox != null) {
-        return getBbox(pageResult.bbox, pageResult.page, docBbox);
+        highlights.push(
+          getBbox(
+            pageResult.bbox,
+            pageResult.page,
+            docBbox,
+            pageResult.text,
+            id
+          )
+        );
       }
-      return undefined;
+      return {
+        id,
+        text: pageResult.text,
+        page: pageResult.page,
+      };
     })
-    .filter((highlight) => highlight !== undefined);
-
-  const includedPages = pagesToJump.map((pg) => pg.page);
+    .filter((highlight) => highlight !== undefined || highlight != null);
 
   const handleJumpToPage = (page: number) => {
     const pageElement = document.querySelector(`[data-page-number="${page}"]`);
@@ -98,96 +110,83 @@ const PDFPanelViewer: React.FC<PdfViewerProps> = ({
   };
 
   return (
-    <div style={{ height: "80vh", width: "75vw", position: "relative" }}>
-      Potential Matches:
-      <div className="p-2">
-        {includedPages.map((page) => (
-          <span
-            key={page}
-            onClick={() => handleJumpToPage(page)}
-            className="text-cyan-500 cursor-pointer underline underline-offset-4 mx-2"
+    <>
+      <div className="flex flex-row top-0 left-0 w-full relative overflow-hidden">
+        <div className="flex flex-row w-full">
+          <div className="w-1/4">
+            <PDFPanelSidebar
+              texts={texts}
+              handleJumpToPage={handleJumpToPage}
+            />
+          </div>
+          <div
+            ref={containerRef}
+            className="overflow-y-scroll w-3/4 absolute left-1/4 top-0 h-full"
           >
-            Page {page}
-          </span>
-        ))}
-      </div>
-      {/* Page Indicator */}
-      {/* <div style={{ position: 'absolute', top: '0', right: '1rem', zIndex: 1, width: '75%' }}>
-                Page {currentPage} out of {totalPages}
-            </div> */}
-      <div
-        ref={containerRef}
-        style={{
-          position: "absolute",
-          top: "7rem",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          overflowY: "scroll",
-        }}
-      >
-        <PdfLoader url={fileUrl} beforeLoad={<Spinner />}>
-          {(pdfDocument) => {
-            // setTotalPages(pdfDocument.numPages); // Set total number of pages
-            return (
-              <PdfHighlighter
-                pdfDocument={pdfDocument}
-                enableAreaSelection={(event) => event.altKey}
-                onScrollChange={() => console.log("scroll changed")}
-                scrollRef={(scrollTo) => {
-                  console.log(scrollTo);
-                }}
-                highlightTransform={(
-                  highlight,
-                  index,
-                  setTip,
-                  hideTip,
-                  viewportToScaled,
-                  screenshot,
-                  isScrolledTo
-                ) => {
-                  const component = (
-                    <Highlight
-                      isScrolledTo={isScrolledTo}
-                      position={highlight.position}
-                      comment={highlight.comment}
-                    />
-                  );
-
-                  return (
-                    <Popup
-                      popupContent={<HighlightPopup {...highlight} />}
-                      onMouseOver={(popupContent) =>
-                        setTip(highlight, (highlight) => popupContent)
-                      }
-                      onMouseOut={hideTip}
-                      key={index}
-                    >
-                      {component}
-                    </Popup>
-                  );
-                }}
-                highlights={initalHighlights}
-                onSelectionFinished={(
-                  position,
-                  content,
-                  hideTipAndSelection,
-                  transformSelection
-                ) => (
-                  <Tip
-                    onOpen={transformSelection}
-                    onConfirm={(comment) => {
-                      console.log({ content, position, comment });
-                      hideTipAndSelection();
+            <PdfLoader url={fileUrl} beforeLoad={<Spinner />}>
+              {(pdfDocument) => {
+                // setTotalPages(pdfDocument.numPages); // Set total number of pages
+                return (
+                  <PdfHighlighter
+                    pdfDocument={pdfDocument}
+                    enableAreaSelection={(event) => event.altKey}
+                    onScrollChange={() => console.log()}
+                    scrollRef={(scrollTo) => {
+                      console.log(scrollTo);
                     }}
+                    highlightTransform={(
+                      highlight,
+                      index,
+                      setTip,
+                      hideTip,
+                      viewportToScaled,
+                      screenshot,
+                      isScrolledTo
+                    ) => {
+                      const component = (
+                        <Highlight
+                          isScrolledTo={isScrolledTo}
+                          position={highlight.position}
+                          comment={highlight.comment}
+                        />
+                      );
+
+                      return (
+                        <Popup
+                          popupContent={<HighlightPopup {...highlight} />}
+                          onMouseOver={(popupContent) =>
+                            setTip(highlight, (highlight) => popupContent)
+                          }
+                          onMouseOut={hideTip}
+                          key={index}
+                        >
+                          {component}
+                        </Popup>
+                      );
+                    }}
+                    highlights={highlights}
+                    onSelectionFinished={(
+                      position,
+                      content,
+                      hideTipAndSelection,
+                      transformSelection
+                    ) => (
+                      <Tip
+                        onOpen={transformSelection}
+                        onConfirm={(comment) => {
+                          console.log({ content, position, comment });
+                          hideTipAndSelection();
+                        }}
+                      />
+                    )}
                   />
-                )}
-              />
-            );
-          }}
-        </PdfLoader>
+                );
+              }}
+            </PdfLoader>
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

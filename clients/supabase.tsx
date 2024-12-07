@@ -1,7 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { USDatasetSource } from "@/components/index/SearchButton";
 import { cap } from "@/utils/util";
-import { SearchResult } from "@/app/search/search";
 import { createEmbedding } from "@/app/search/indexUtils";
 
 // Create a single supabase client for interacting with your database
@@ -146,38 +145,6 @@ export type Dataset = {
   csv_url?: string | null;
   length?: number | null;
 };
-export async function getDataset(
-  dsMetadata: SearchResult
-): Promise<Dataset | null> {
-  // if (dsMetadata.dataset_source === "LASERFICHE"){
-  //   return dsMetadata as Dataset
-  // }
-  let tablename = "US_USGS";
-  switch (dsMetadata.dataset_source) {
-    case "USGOV":
-      tablename = "US_USGOV";
-      break;
-    case "NYOPEN":
-      tablename = "US_nyopen";
-      break;
-    case "LASERFICHE":
-      tablename = "US_laserfiche";
-      break;
-  }
-  const { data, error } = await supabaseClient
-    .from(tablename)
-    .select("*")
-    // .eq("id", dsMetadata.id);
-    .eq("originalUrl", dsMetadata.originalUrl);
-  if (error != null) {
-    console.error("error fetching dataset id", dsMetadata.id, error);
-    return null;
-  }
-  if (data == null) {
-    return null;
-  }
-  return data[0];
-}
 
 export async function getDatasetsInLocation(
   location: string,

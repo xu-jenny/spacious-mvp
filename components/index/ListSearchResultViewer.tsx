@@ -1,9 +1,8 @@
 import { PaginatedList } from "react-paginated-list";
 import { USDatasetSource } from "./SearchButton";
-import { logInteraction } from "@/utils/supabaseLogger";
+import { useLogger } from "@/utils/supabaseLogger";
 import USGSWaterDatasetCard from "./SearchResult/USGSWaterdatasetCard";
 import LaserficheSearchResultCard from "./SearchResult/LaserficheSearchResultCard";
-import SearchResultDatasetCard from "./SearchResult/SearchResultDatasetCard";
 import NCDEQWSResultCard from "./SearchResult/NCDEQWSResultCard";
 import { NCDEQWSSearchResult } from "@/app/search/NCDEQWSSearch";
 import { SearchResults } from "@/app/app/page";
@@ -29,6 +28,8 @@ const ListSearchResultViewer = ({
   endTime,
   panelIsOpen,
 }: Props) => {
+  const logger = useLogger();
+
   const searchResultCard = function (dataset: SearchResults, index: number) {
     switch (dsSource) {
       case "USGS_WATER":
@@ -61,15 +62,6 @@ const ListSearchResultViewer = ({
             setDatasetSelected={setDatasetSelected}
           />
         );
-      default:
-        return (
-          <SearchResultDatasetCard
-            key={index}
-            dataset={dataset as GenericSearchResult}
-            index={index}
-            setSelectedDataset={setDatasetSelected}
-          />
-        );
     }
   };
   return (
@@ -82,7 +74,7 @@ const ListSearchResultViewer = ({
         )}
         onPageChange={(newItems, newPage) => {
           if (process.env.NODE_ENV === "production") {
-            logInteraction("NextPage", newItems.length.toString());
+            logger.log("NextPage", newItems.length.toString());
           }
         }}
       />
