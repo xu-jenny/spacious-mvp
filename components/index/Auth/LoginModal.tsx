@@ -67,13 +67,13 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose, onLogin }) => {
       <div className="relative bg-white p-6 rounded-lg shadow-md max-w-sm w-full z-10">
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-lg"
+          className="absolute top-2 right-3 text-gray-500 hover:text-gray-700 text-2xl"
         >
           &times;
         </button>
 
         <div className="flex justify-center mb-4">
-          <img src="/logo.jpeg" alt="Logo" className="h-8" />
+          <img src="/logo.jpeg" alt="Logo" className="h-12" />
         </div>
         <h2 className="text-center text-xl font-semibold mb-2">
           Log in to Spacious AI

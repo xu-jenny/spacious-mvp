@@ -165,9 +165,7 @@ export default function Home() {
             </div>
           </div> */}
           {loading ? (
-            <div className="ml-20 mt-20">
-              <Spinner />
-            </div>
+            <div className="ml-20 mt-20"> </div>
           ) : primaryData != null && primaryData.length > 0 ? (
             <SearchResultViewer
               primaryData={primaryData}

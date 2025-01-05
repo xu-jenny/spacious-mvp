@@ -61,12 +61,12 @@ const SignUpModal: React.FC<SignUpModalProps> = ({
         <div className="flex justify-center mb-4">
           <img src="/logo.jpeg" alt="Logo" className="h-8" />
         </div>
-        <h2 className="text-center text-xl font-semibold mb-2">
+        {/* <h2 className="text-center text-xl font-semibold mb-2">
           Create Your Account
         </h2>
         <p className="text-center text-gray-600 mb-4">
           Set your password to continue
-        </p>
+        </p> */}
 
         <div className="mb-2">
           <input

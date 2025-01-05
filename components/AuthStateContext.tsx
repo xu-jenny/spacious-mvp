@@ -28,19 +28,27 @@ export const AuthStateProvider: React.FC<{ children: ReactNode }> = ({
   useEffect(() => {
     const { data: authListener } = supabaseClient.auth.onAuthStateChange(
       (event, session) => {
+        console.time("Set session");
         setSession(session);
+        console.timeEnd("Set session");
 
         if (session) {
+          console.time("Fetch user role");
           supabaseClient
             .from("user_roles")
             .select("role")
             .eq("id", session.user.id)
             .single()
             .then(({ data, error }) => {
+              console.timeEnd("Fetch user role");
+              console.time("Set role");
               setRole(!error && data ? parseInt(data.role, 10) : 0); // Default to 0 if no role is found
+              console.timeEnd("Set role");
             });
         } else {
+          console.time("Set role to 0");
           setRole(0); // Set role to 0 if no session
+          console.timeEnd("Set role to 0");
         }
       }
     );
