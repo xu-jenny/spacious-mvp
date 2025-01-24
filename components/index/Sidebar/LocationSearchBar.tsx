@@ -12,7 +12,7 @@ const isLatLong = (str: string) => {
 
 export const LocationSearchBar = () => {
   const searchParams = useSearchParams();
-  const urlLocation = searchParams.get("location") || searchParams.get("loc");
+  const urlLocation = searchParams?.get("location") || searchParams?.get("loc");
   const { state, dispatch } = useStateContext();
   const [locationList, setLocationList] = useState<LocationType[]>([]);
   const [showDropdown, setShowDropdown] = useState<boolean>(false);

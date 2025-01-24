@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { supabaseClient } from "@/clients/supabase";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-
+import Image from "next/image";
 interface SignUpModalProps {
   onClose: () => void;
   onSignUpSuccess: () => void;
@@ -53,13 +53,19 @@ const SignUpModal: React.FC<SignUpModalProps> = ({
       <div className="relative bg-white p-6 rounded-lg shadow-md max-w-sm w-full">
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+          className="absolute top-2 right-3 text-gray-500 hover:text-gray-700 text-2xl"
         >
           &times;
         </button>
 
         <div className="flex justify-center mb-4">
-          <img src="/logo.jpeg" alt="Logo" className="h-8" />
+          <Image
+            src="/logo.jpeg"
+            alt="Logo"
+            width={300}
+            height={150}
+            className="h-12"
+          />
         </div>
         {/* <h2 className="text-center text-xl font-semibold mb-2">
           Create Your Account

@@ -102,9 +102,9 @@ function sourceSearchParamToDatasetSource(
 export const StateProvider: React.FC<StateProviderProps> = ({ children }) => {
   const searchParams = useSearchParams();
   const initialSearchValue =
-    searchParams.get("q") || searchParams.get("query") || "";
+    searchParams?.get("q") || searchParams?.get("query") || "";
   const initialLocation =
-    searchParams.get("location") || searchParams.get("loc") || null;
+    searchParams?.get("location") || searchParams?.get("loc") || null;
   const { fetchCoordinates } = useAddressToCoordinates();
 
   const initialState: State = {
@@ -112,7 +112,9 @@ export const StateProvider: React.FC<StateProviderProps> = ({ children }) => {
     location: null,
     startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
     endDate: new Date().toISOString(),
-    dataSource: sourceSearchParamToDatasetSource(searchParams.get("source")),
+    dataSource: sourceSearchParamToDatasetSource(
+      searchParams?.get("source") ?? null
+    ),
   };
   const [state, dispatch] = useReducer(reducer, initialState);
 

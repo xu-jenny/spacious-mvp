@@ -48,8 +48,8 @@ export default function Home() {
   useEffect(() => {
     async function performSearch() {
       const loc = {
-        display_name: searchParams.get("loc")!,
-        name: searchParams.get("loc")!,
+        display_name: searchParams?.get("loc")!,
+        name: searchParams?.get("loc")!,
         lat: 0.0,
         lon: 0.0,
         addresstype: "city",
@@ -63,7 +63,7 @@ export default function Home() {
       );
     }
     async function fetchData() {
-      if (state.searchValue != null && searchParams.get("loc") != null) {
+      if (state.searchValue != null && searchParams?.get("loc") != null) {
         let result = await performSearch();
         setPrimary(result);
         if (searchParams.get("id") != null) {

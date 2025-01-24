@@ -5,7 +5,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useAuthStateContext } from "@/components/AuthStateContext";
 import ResetPasswordModal from "./ResetPasswordModal"; // Import ResetPasswordModal
 import CircularProgress from "@mui/material/CircularProgress";
-
+import Image from "next/image";
 interface LoginModalProps {
   onClose: () => void;
   onLogin: () => void; // Callback function to close the modal after login
@@ -73,7 +73,13 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose, onLogin }) => {
         </button>
 
         <div className="flex justify-center mb-4">
-          <img src="/logo.jpeg" alt="Logo" className="h-12" />
+          <Image
+            src="/logo.jpeg"
+            alt="Logo"
+            width={300}
+            height={150}
+            className="h-12"
+          />
         </div>
         <h2 className="text-center text-xl font-semibold mb-2">
           Log in to Spacious AI
