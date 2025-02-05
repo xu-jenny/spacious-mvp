@@ -6,11 +6,8 @@ import LaserficheSearchResultCard from "./SearchResult/LaserficheSearchResultCar
 import NCDEQWSResultCard from "./SearchResult/NCDEQWSResultCard";
 import { NCDEQWSSearchResult } from "@/app/search/NCDEQWSSearch";
 import { SearchResults } from "@/app/app/page";
-import {
-  LaserficheSearchResult,
-  GenericSearchResult,
-  USGSWaterSearchResult,
-} from "@/app/search/search";
+import { LaserficheSearchResult } from "@/app/search/search";
+import { USGSWaterSearchResult } from "@/app/search/usgsSearch";
 
 interface Props {
   primaryData: SearchResults[];

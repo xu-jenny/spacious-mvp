@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Map, Marker, Overlay } from "pigeon-maps";
 import { Button } from "flowbite-react";
 import { MdOutlineFileDownload } from "react-icons/md";
-import { USGSWaterSearchResult } from "@/app/search/search";
+import { USGSWaterSearchResult } from "@/app/search/usgsSearch";
 
 interface Props {
   data: USGSWaterSearchResult[];
@@ -53,7 +53,7 @@ const PigeonMapViewer = ({ data, location, startTime, endTime }: Props) => {
 
   const handleDownload = async () => {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/usgs_water_csv/?siteId=${overlayItem?.siteId}&paramCode=${overlayItem?.matchingParamCode[1]}&startTime=${startTime}&endTime=${endTime}`,
+      `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/usgs_water_csv/?siteId=${overlayItem?.siteId}&paramCode=${overlayItem?.matchingParamCode}&startTime=${startTime}&endTime=${endTime}`,
       {
         headers: { "x-api-key": process.env.NEXT_PUBLIC_BACKEND_API_KEY ?? "" },
       }

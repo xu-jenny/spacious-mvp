@@ -81,11 +81,12 @@ const StateContext = createContext<
 
 type StateProviderProps = { children: ReactNode };
 
+const DEFAULT_DATA_SOURCE = "USGS_WATER";
 function sourceSearchParamToDatasetSource(
   source: string | null
 ): USDatasetSource {
   if (source == null) {
-    return "PFAS";
+    return DEFAULT_DATA_SOURCE;
   }
   switch (source.toLowerCase()) {
     case "usgs_water":
@@ -95,7 +96,7 @@ function sourceSearchParamToDatasetSource(
     case "nc_deq_watersupply":
       return "NC_DEQ_WATERSUPPLY";
     default:
-      return "USGS_WATER";
+      return DEFAULT_DATA_SOURCE;
   }
 }
 

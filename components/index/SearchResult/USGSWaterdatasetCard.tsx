@@ -1,6 +1,5 @@
 "use client";
 
-import { USGSWaterSearchResult } from "@/app/search/search";
 import { Badge, Card } from "flowbite-react";
 import { get } from "@/utils/http";
 import moment from "moment";
@@ -20,6 +19,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { USGSWaterSearchResult } from "@/app/search/usgsSearch";
 
 const DataChart = ({
   data,
@@ -50,7 +50,7 @@ const DataChart = ({
         <YAxis dataKey={"value"}></YAxis>
         <Tooltip />
         <Legend payload={[{ value: unit, type: "line", color: "#8884d8" }]} />
-        <Line type="monotone" dataKey="value" stroke="#8884d8" />
+        <Line type="monotone" dataKey="value" stroke="#8884d8" dot={false} />
       </LineChart>
     </ResponsiveContainer>
   );
@@ -64,13 +64,7 @@ type Props = {
   endTime: string;
 };
 
-function USGSWaterDatasetCard({
-  dataset,
-  index,
-  setDatasetSelected,
-  startTime,
-  endTime,
-}: Props) {
+function USGSWaterDatasetCard({ dataset, index, startTime, endTime }: Props) {
   const [chart, setChart] = useState(dataset.sample_df ?? []);
   const [expanded, setExpanded] = useState(chart?.length > 0);
 
@@ -80,7 +74,7 @@ function USGSWaterDatasetCard({
   const handleDownload = async (isDailySum = false) => {
     const endpoint = isDailySum ? "usgs_water_dailysum_csv" : "usgs_water_csv";
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/${endpoint}/?siteId=${dataset.siteId}&paramCode=${dataset.matchingParamCode[1]}&startTime=${startTime}&endTime=${endTime}`,
+      `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/${endpoint}/?siteId=${dataset.siteId}&paramCode=${dataset.matchingParamCode}&startTime=${startTime}&endTime=${endTime}`,
       {
         headers: { "x-api-key": process.env.NEXT_PUBLIC_BACKEND_API_KEY ?? "" },
       }
@@ -99,7 +93,7 @@ function USGSWaterDatasetCard({
   const toggleSample = async () => {
     if (expanded === false && chart.length === 0) {
       const response = await get<any>(
-        `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/usgs_water_detail/?siteId=${dataset.siteId}&paramCode=${dataset.matchingParamCode[1]}&startTime=${startTime}&endTime=${endTime}`
+        `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/usgs_water_detail/?siteId=${dataset.siteId}&paramCode=${dataset.matchingParamCode}&startTime=${startTime}&endTime=${endTime}`
       );
       setChart(response.data);
     }

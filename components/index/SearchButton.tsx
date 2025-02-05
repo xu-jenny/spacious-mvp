@@ -4,12 +4,14 @@ import Input from "../common/Input";
 import { LocationType, useStateContext } from "@/app/StateContext";
 import { useAuthStateContext } from "@/components/AuthStateContext";
 import ToastNotification from "@/components/common/ToastNotification";
-import {
-  laserficheSearch,
-  searchbarSearch,
-  usgsWaterSearch,
-} from "@/app/search/search";
+import { laserficheSearch } from "@/app/search/search";
 import { useLogger } from "@/utils/supabaseLogger";
+import Autocomplete from "@mui/material/Autocomplete";
+import TextField from "@mui/material/TextField";
+import {
+  USGS_DROPDOWN_SELECTION,
+  usgsWaterSearch,
+} from "@/app/search/usgsSearch";
 
 export type USDatasetSource =
   | "PFAS"
@@ -73,8 +75,6 @@ export async function search(
     case "PFAS":
       const loc = location?.name ?? "ncs000050";
       return laserficheSearch(value, loc);
-    default:
-      return await searchbarSearch(value, location?.name ?? "", dsSource);
   }
 }
 
@@ -92,9 +92,11 @@ const SearchButton = ({ setPrimaryData, setLoading, loading }: Props) => {
     type: "success" | "error" | "info" | "warning";
   } | null>(null);
 
+  const searchButtonText =
+    state.dataSource == "USGS_WATER" ? "Enter a data type" : "Ask a question";
   const placeholderText = isDisabled
     ? "This data source requires a subscription. Please contact Spacious to get started."
-    : "Enter a search term";
+    : searchButtonText;
 
   useEffect(() => {
     setSearchValue("");
@@ -104,7 +106,12 @@ const SearchButton = ({ setPrimaryData, setLoading, loading }: Props) => {
     if (isDisabled) {
       return;
     }
-    if (!state.location || !state.location.name) {
+    console.log(state.location, state.location?.name);
+    if (
+      !state.location ||
+      (state.location.lat == 0 && state.location.lon == 0)
+    ) {
+      // || !state.location.name) {
       setToastConfig({
         message: "Please enter a location before searching.",
         type: "warning",
@@ -126,11 +133,7 @@ const SearchButton = ({ setPrimaryData, setLoading, loading }: Props) => {
       setLoading(false);
       inputRef.current?.blur();
       try {
-        logger.log(
-          "Search",
-          value,
-          `${state.location.name},${state.dataSource}`
-        );
+        logger.log("Search", value, `${state.location},${state.dataSource}`);
       } catch (e) {
         console.log(e);
       }
@@ -164,16 +167,37 @@ const SearchButton = ({ setPrimaryData, setLoading, loading }: Props) => {
             </svg>
           )}
         </div>
-        <Input
-          ref={inputRef}
-          type="search"
-          className="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          placeholder={placeholderText}
-          value={searchValue ?? ""}
-          onkeydown={handleKeyDown}
-          onChange={(v: string) => setSearchValue(v)}
-          disabled={isDisabled}
-        />
+        {state.dataSource == "USGS_WATER" ? (
+          <Autocomplete
+            disablePortal
+            options={USGS_DROPDOWN_SELECTION}
+            sx={{ width: "100%" }}
+            onInputChange={(event, newInputValue) => {
+              setSearchValue(newInputValue);
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                sx={{
+                  "& .MuiInputBase-input": {
+                    backgroundColor: "aliceblue",
+                  },
+                }}
+              />
+            )}
+          />
+        ) : (
+          <Input
+            ref={inputRef}
+            type="search"
+            className="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            placeholder={placeholderText}
+            value={searchValue ?? ""}
+            onkeydown={handleKeyDown}
+            onChange={(v: string) => setSearchValue(v)}
+            disabled={isDisabled}
+          />
+        )}
         <button
           type="submit"
           className={`text-white absolute end-2.5 bottom-2.5 ${

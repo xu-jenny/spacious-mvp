@@ -7,8 +7,8 @@ import { FaList } from "react-icons/fa";
 import ListSearchResultViewer from "@/components/index/ListSearchResultViewer";
 import PigeonMapViewer from "../PigeonMapViewer";
 import { useStateContext } from "@/app/StateContext";
-import { USGSWaterSearchResult } from "@/app/search/search";
 import { SearchResults } from "@/app/app/page";
+import { USGSWaterSearchResult } from "@/app/search/usgsSearch";
 
 interface Props {
   primaryData: SearchResults[];

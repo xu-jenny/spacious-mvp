@@ -46,7 +46,7 @@ const ToastNotification: React.FC<ToastProps> = ({
   };
 
   return (
-    <div className="fixed bottom-5 right-5">
+    <div className="fixed bottom-5 right-5 z-100">
       <Toast>
         <div
           className={`inline-flex h-8 w-8 items-center justify-center rounded-lg ${bgMap[type]}`}

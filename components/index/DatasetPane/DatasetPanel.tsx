@@ -8,11 +8,11 @@ import dynamic from "next/dynamic";
 import USGSWaterDatasetPane from "./USGSWaterDatasetPane";
 import {
   LaserficheSearchResult,
-  USGSWaterSearchResult,
   GenericSearchResult,
 } from "@/app/search/search";
 import { SearchResults } from "@/app/app/page";
 import { useStateContext } from "@/app/StateContext";
+import { USGSWaterSearchResult } from "@/app/search/usgsSearch";
 
 const PFASDatasetPanel = dynamic(() => import("./PFASDatasetPanel"), {
   ssr: false,
