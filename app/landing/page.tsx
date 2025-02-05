@@ -1,10 +1,13 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Header from "@/components/layout/Header";
-import { EB_Garamond } from "@next/font/google";
-import { Duru_Sans } from "@next/font/google";
+import { EB_Garamond } from "next/font/google";
+import { Duru_Sans } from "next/font/google";
 import { FiSearch, FiArrowRight } from "react-icons/fi";
 import Image from "next/image";
+import ToastNotification from "@/components/common/ToastNotification";
+import { supabaseClient } from "@/clients/supabase";
+
 const ebGaramond = EB_Garamond({ subsets: ["latin"], weight: ["400", "700"] });
 const duruSans = Duru_Sans({ subsets: ["latin"], weight: ["400"] });
 
@@ -182,6 +185,104 @@ const DataPipelineAnimation: React.FC = () => {
   );
 };
 
+const WaitlistForm = () => {
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error" | "info" | "warning";
+  } | null>(null);
+
+  const isValidEmail = (email: string) => {
+    return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
+  };
+
+  const handleJoinWaitlist = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (loading) return;
+    setLoading(true);
+    setToast(null);
+
+    const trimmedEmail = email.trim().toLowerCase();
+
+    if (!trimmedEmail) {
+      setToast({ message: "Please enter an email.", type: "warning" });
+      setTimeout(() => setToast(null), 3000);
+      setLoading(false);
+      return;
+    }
+
+    if (!isValidEmail(trimmedEmail)) {
+      setToast({ message: "Invalid email format.", type: "error" });
+      setTimeout(() => setToast(null), 3000);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const { error } = await supabaseClient
+        .from("waitlist")
+        .insert([{ email: trimmedEmail }]);
+
+      if (error) {
+        if (error.code === "23505") {
+          setToast({
+            message: "This email is already on the waitlist.",
+            type: "info",
+          });
+        } else {
+          setToast({
+            message: "An error occurred. Please try again.",
+            type: "error",
+          });
+        }
+      } else {
+        setToast({
+          message: "Successfully joined the waitlist!",
+          type: "success",
+        });
+        setEmail("");
+      }
+    } catch {
+      setToast({ message: "An unexpected error occurred.", type: "error" });
+    }
+
+    // Delay before allowing another submission
+    setTimeout(() => {
+      setToast(null);
+      setLoading(false);
+    }, 1000);
+  };
+
+  return (
+    <div className="flex flex-col items-center">
+      <form
+        onSubmit={handleJoinWaitlist}
+        noValidate
+        className="relative mt-6 w-auto max-w-xl bg-white rounded-lg shadow-md flex items-center overflow-hidden"
+      >
+        <input
+          type="email"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="flex-grow text-gray-700 px-6 h-12 focus:outline-none border-none"
+        />
+        <button
+          type="submit"
+          disabled={loading}
+          className="bg-blue-600 text-white px-6 h-12 text-sm font-medium hover:bg-blue-700 transition"
+        >
+          {loading ? "Joining..." : "Join Waitlist"}
+        </button>
+      </form>
+
+      {toast && <ToastNotification message={toast.message} type={toast.type} />}
+    </div>
+  );
+};
+
 export default function Landing() {
   return (
     <div className="bg-[#FFFCF0] min-h-screen">
@@ -205,17 +306,8 @@ export default function Landing() {
           <DataPipelineAnimation />
         </div>
 
-        {/* Buttons */}
-        <div className="relative mt-6 w-auto max-w-xl h-12 bg-white rounded-lg shadow-md flex items-center overflow-hidden">
-          <input
-            type="email"
-            placeholder="Enter your email"
-            className="flex-grow text-gray-700 px-6 h-full focus:outline-none border-none"
-          />
-          <button className="bg-blue-600 text-white px-6 h-full text-sm font-medium hover:bg-blue-700 transition">
-            Join Waitlist
-          </button>
-        </div>
+        {/* Waitlist Form */}
+        <WaitlistForm />
       </main>
     </div>
   );

@@ -46,15 +46,22 @@ const ToastNotification: React.FC<ToastProps> = ({
   };
 
   return (
-    <div className="fixed bottom-5 right-5 z-100">
-      <Toast>
-        <div
-          className={`inline-flex h-8 w-8 items-center justify-center rounded-lg ${bgMap[type]}`}
-        >
-          {iconMap[type]}
+    <div className="fixed bottom-5 right-5 z-50 flex items-center space-x-4">
+      <Toast className="flex items-center justify-between p-3 w-auto max-w-sm bg-white rounded-lg shadow-md border border-gray-200">
+        <div className="flex items-center space-x-3">
+          <div
+            className={`inline-flex h-8 w-8 items-center justify-center rounded-lg ${bgMap[type]}`}
+          >
+            {iconMap[type]}
+          </div>
+          <div className="text-sm font-normal">{message}</div>
         </div>
-        <div className="ml-3 text-sm font-normal">{message}</div>
-        <Toast.Toggle onClick={() => setShow(false)} />
+        <button
+          onClick={() => setShow(false)}
+          className="ml-4 flex items-center justify-center h-8 w-8 rounded-lg hover:bg-gray-200 transition"
+        >
+          <HiX className="h-5 w-5 text-gray-500" />
+        </button>
       </Toast>
     </div>
   );
