@@ -6,15 +6,8 @@ import DateRangeSelector from "./DateRangeSelector";
 import { UserStatus } from "../Auth/UserStatus";
 import LocationSearchBar from "./LocationSearchBar";
 import { useStateContext } from "@/app/StateContext";
-import { SearchResults } from "@/app/app/page";
 
-interface Props {
-  setPrimary: React.Dispatch<
-    React.SetStateAction<SearchResults[] | null | undefined>
-  >;
-}
-
-const Sidebar = ({ setPrimary }: Props) => {
+const Sidebar = () => {
   const { state, dispatch } = useStateContext();
 
   return (
@@ -37,7 +30,7 @@ const Sidebar = ({ setPrimary }: Props) => {
         <h4 className="mt-1">Set Location</h4>
 
         {state.dataSource == "PFAS" ? (
-          <LaserficheLocationBar setData={setPrimary} />
+          <LaserficheLocationBar />
         ) : (
           <LocationSearchBar />
         )}

@@ -1,19 +1,22 @@
+import { SearchResults } from "@/app/app/page";
 import {
   LaserfichePageResult,
   LaserficheSearchResult,
 } from "@/app/search/search";
-import { Card, Textarea } from "flowbite-react";
+import { useStateContext } from "@/app/StateContext";
+import { Card, Spinner, Textarea } from "flowbite-react";
 import React from "react";
 import { useState, forwardRef, useImperativeHandle } from "react";
 
-interface ChildProps {}
-
 export interface StreamingResponseRef {
-  startStream: {
-    url: string;
-    body: { query: string; location: string };
-    setData: (data: any[]) => void;
-  };
+  startStream: (
+    url: string,
+    body: { query: string; location: string }
+  ) => Promise<void>;
+}
+
+interface StreamingResponseProps {
+  setDatasetSelected: (ds: SearchResults) => void;
 }
 
 const SimpleFormatter = ({ text }: { text: string }) => {
@@ -31,111 +34,130 @@ const SimpleFormatter = ({ text }: { text: string }) => {
   );
 };
 
-const StreamingResponse = forwardRef<StreamingResponseRef, ChildProps>(
-  (props, ref) => {
-    const [response, setResponse] = useState("");
-    const [source, setSource] = useState<string[] | null>(null);
-    const [searchData, setSearchData] = useState<
-      LaserficheSearchResult[] | null
-    >(null);
+const StreamingResponse = forwardRef<
+  StreamingResponseRef,
+  StreamingResponseProps
+>((props, ref) => {
+  const [loading, setLoading] = useState(false);
+  const [response, setResponse] = useState("");
+  const [source, setSource] = useState<any[] | null>(null);
+  const { state, dispatch } = useStateContext();
 
-    useImperativeHandle(ref, () => ({
-      startStream: async (
-        url: string,
-        body: { query: string; location: string },
-        setData: (data: any[]) => void
-      ) => {
-        try {
-          console.log("start streaming", url, body);
-          const res = await fetch(url, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*",
-              "x-api-key": process.env.NEXT_PUBLIC_BACKEND_API_KEY ?? "",
-            },
-            body: JSON.stringify(body),
-          });
-          setResponse("");
+  useImperativeHandle(ref, () => ({
+    startStream: async (
+      url: string,
+      body: { query: string; location: string }
+    ) => {
+      try {
+        console.log("start streaming", url, body);
+        setLoading(true);
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "x-api-key": process.env.NEXT_PUBLIC_BACKEND_API_KEY ?? "",
+          },
+          body: JSON.stringify(body),
+        });
+        setResponse("");
 
-          const reader = res.body.getReader();
-          const decoder = new TextDecoder();
+        const reader = res.body?.getReader();
+        const decoder = new TextDecoder();
 
-          let results: LaserficheSearchResult[] = [];
-          let buffer = "";
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
+        let results: LaserficheSearchResult[] = [];
+        let buffer = "";
+        while (true && reader != null) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-            // Append new chunk to buffer
-            buffer += decoder.decode(value, { stream: true });
+          // Append new chunk to buffer
+          buffer += decoder.decode(value, { stream: true });
 
-            // Split buffer into complete messages
-            const messages = buffer.split("\n\n");
-            // Keep the last potentially incomplete message in buffer
-            buffer = messages.pop() || "";
+          // Split buffer into complete messages
+          const messages = buffer.split("\n\n");
+          // Keep the last potentially incomplete message in buffer
+          buffer = messages.pop() || "";
 
-            for (const message of messages) {
-              if (!message.trim()) continue;
+          for (const message of messages) {
+            if (!message.trim()) continue;
 
-              try {
-                const eventData = JSON.parse(message);
+            try {
+              const eventData = JSON.parse(message);
+              console.log(
+                "Received message type:",
+                eventData.type,
+                eventData.type === "stream_source"
+              );
+              if (eventData.type === "data_chunk") {
+                results.push(...eventData.data);
                 console.log(
-                  "Received message type:",
-                  eventData.type,
-                  eventData.type === "stream_source"
+                  `\tProcessed chunk. Total results: ${results.length}`
                 );
-                if (eventData.type === "data_chunk") {
-                  results.push(...eventData.data);
-                  console.log(
-                    `\tProcessed chunk. Total results: ${results.length}`
-                  );
-                } else if (eventData.type === "data_complete") {
-                  console.log("Completed all data chunks stream", results);
-                  setData(results);
-                } else if (eventData.type === "stream") {
-                  setResponse((prev) => prev + eventData.data);
-                } else if (eventData.type === "stream_complete") {
-                  console.log(eventData.data);
-                  setSource(eventData.data);
-                } else if (eventData.type === "error") {
-                  console.error("Stream error:", eventData.data);
-                }
-              } catch (e) {
-                console.error("Parse error:", e);
-                console.log("Message length:", message.length);
-                console.log("Raw message:", message);
+              } else if (eventData.type === "data_complete") {
+                console.log("Completed all data chunks stream", results);
+                dispatch({
+                  type: "updateSearchResults",
+                  payload: results,
+                });
+              } else if (eventData.type === "stream") {
+                setLoading(false);
+                setResponse((prev) => prev + eventData.data);
+              } else if (eventData.type === "stream_complete") {
+                let sourceDocs: any[] = [];
+                eventData.data.forEach((d: string[]) => {
+                  const correspondingDs = state.searchResult?.filter(
+                    (r) => r.id == d[0]
+                  )[0];
+                  sourceDocs.push([...d, correspondingDs]);
+                });
+                console.log(sourceDocs);
+                setSource(sourceDocs);
+              } else if (eventData.type === "error") {
+                console.error("Stream error:", eventData.data);
               }
+            } catch (e) {
+              console.error("Parse error:", e);
+              console.log("Message length:", message.length);
+              console.log("Raw message:", message);
             }
           }
-        } catch (error) {
-          console.error("Streaming error:", error);
         }
-      },
-    }));
+      } catch (error) {
+        console.error("Streaming error:", error);
+      }
+    },
+  }));
 
-    return (
-      <>
-        {response && (
-          <Card className="w-full mx-auto">
-            <SimpleFormatter text={response} />
-            {source && (
-              <div>
-                <hr />
-                <h3 className="my-2">Sources:</h3>
-                {source.map((s, i) => (
-                  <p key={s[0]} className="p-2">
-                    {i + 1}. <a>{s[0]}</a>: {s[1]}
-                  </p>
-                ))}
-              </div>
-            )}
-          </Card>
-        )}
-      </>
-    );
-  }
-);
+  return (
+    <>
+      {loading && <Spinner className="p-3 mx-auto" />}
+      {response && (
+        <Card className="w-full mx-auto">
+          <SimpleFormatter text={response} />
+          {source != null && (
+            <div>
+              <hr />
+              <h3 className="my-2">Sources:</h3>
+              {source.map((s, i) => (
+                <p key={`${s[0]}-${s[1]}`} className="p-2">
+                  {i + 1}.{" "}
+                  <a
+                    className="underline cursor-pointer sky-500"
+                    onClick={() => props.setDatasetSelected(s[s.length - 1])}
+                  >
+                    {s[0]}, Page {s[1]}
+                  </a>
+                  : {s[2]}
+                </p>
+              ))}
+            </div>
+          )}
+        </Card>
+      )}
+    </>
+  );
+});
 
 StreamingResponse.displayName = "StreamingResponse";
 export default StreamingResponse;

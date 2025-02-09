@@ -4,7 +4,6 @@ import Input from "../common/Input";
 import { LocationType, useStateContext } from "@/app/StateContext";
 import { useAuthStateContext } from "@/components/AuthStateContext";
 import ToastNotification from "@/components/common/ToastNotification";
-import { laserficheSearch } from "@/app/search/search";
 import { useLogger } from "@/utils/supabaseLogger";
 import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
@@ -12,8 +11,8 @@ import {
   USGS_DROPDOWN_SELECTION,
   usgsWaterSearch,
 } from "@/app/search/usgsSearch";
-import { useChat } from "ai/react";
-import StreamingResponse, { StreamingResponseRef } from "./StreamingResponse";
+import { StreamingResponseRef } from "./StreamingResponse";
+
 export type USDatasetSource =
   | "PFAS"
   | "LASERFICHE"
@@ -45,7 +44,6 @@ const hasAccess = (
 };
 
 type Props = {
-  setPrimaryData: (data: any[]) => void;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   loading: boolean;
   streamingResponseRef: React.RefObject<StreamingResponseRef>;
@@ -74,18 +72,10 @@ export async function search(
         return await NCDEQWSSearch(value, location.name);
       }
       break;
-    case "PFAS":
-      const loc = location?.name ?? "ncs000050";
-      return laserficheSearch(value, loc);
   }
 }
 
-const SearchButton = ({
-  setPrimaryData,
-  setLoading,
-  loading,
-  streamingResponseRef,
-}: Props) => {
+const SearchButton = ({ setLoading, loading, streamingResponseRef }: Props) => {
   const { state, dispatch } = useStateContext();
   const { role } = useAuthStateContext();
   const [searchValue, setSearchValue] = useState<string>(state.searchValue);
@@ -132,8 +122,7 @@ const SearchButton = ({
         };
         streamingResponseRef.current?.startStream(
           `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/laserfiche`,
-          body,
-          setPrimaryData
+          body
         );
       } else {
         setLoading(true);
@@ -144,7 +133,12 @@ const SearchButton = ({
           state.startDate,
           state.endDate
         );
-        setPrimaryData(primaryData ?? []);
+        if (primaryData != undefined) {
+          dispatch({
+            type: "updateSearchResults",
+            payload: primaryData,
+          });
+        }
         dispatch({ type: "updateSearchValue", payload: value });
         setLoading(false);
         inputRef.current?.blur();

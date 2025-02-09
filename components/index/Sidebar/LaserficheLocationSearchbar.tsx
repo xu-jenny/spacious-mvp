@@ -16,13 +16,7 @@ import { useAuthStateContext } from "@/components/AuthStateContext";
 
 export type LaserficheSearchType = "all" | "filter-image";
 
-const LaserficheLocationBar = ({
-  setData,
-}: {
-  setData: React.Dispatch<
-    React.SetStateAction<SearchResults[] | null | undefined>
-  >;
-}) => {
+const LaserficheLocationBar = () => {
   const [searchType, setSearchType] = useState<LaserficheSearchType>("all");
   const { role } = useAuthStateContext();
   const { dispatch } = useStateContext();
@@ -42,7 +36,10 @@ const LaserficheLocationBar = ({
   const handleLocationInputChange = async (newLoc: string) => {
     setInputValue(newLoc);
     let results = await laserficheFilter(newLoc, role, false);
-    setData(results);
+    dispatch({
+      type: "updateSearchResults",
+      payload: results,
+    });
     setShowFilters(true);
   };
 
@@ -52,11 +49,19 @@ const LaserficheLocationBar = ({
     if (event.target.name === "filter-image" && event.target.checked) {
       setSearchType("filter-image");
       let results = await laserficheFilter(inputValue, role, true);
-      setData(results);
+      if (results != undefined) {
+        dispatch({
+          type: "updateSearchResults",
+          payload: results,
+        });
+      }
     } else if (searchType != "all") {
       setSearchType("all");
       let results = await laserficheFilter(inputValue, role, false);
-      setData(results);
+      dispatch({
+        type: "updateSearchResults",
+        payload: results,
+      });
     }
   };
 

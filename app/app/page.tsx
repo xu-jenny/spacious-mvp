@@ -31,10 +31,7 @@ export type SearchResults =
 
 export default function Home() {
   const searchParams = useSearchParams();
-  const { state } = useStateContext();
-  const [primaryData, setPrimary] = useState<
-    SearchResults[] | null | undefined
-  >(null);
+  const { state, dispatch } = useStateContext();
   const [loading, setLoading] = useState<boolean>(false);
   const [openPanel, setOpenPanel] = useState(false);
   const [currentds, setCurrentds] = useState<SearchResults | null>();
@@ -66,7 +63,12 @@ export default function Home() {
     async function fetchData() {
       if (state.searchValue != null && searchParams?.get("loc") != null) {
         let result = await performSearch();
-        setPrimary(result);
+        if (result != undefined) {
+          dispatch({
+            type: "updateSearchResults",
+            payload: result,
+          });
+        }
         if (searchParams.get("id") != null) {
           let ds = result?.filter(
             (r: { id: string | null }) => r.id == searchParams.get("id")
@@ -84,26 +86,28 @@ export default function Home() {
 
   return (
     <div className="grid grid-cols-6 h-[100vh]">
-      <Sidebar setPrimary={setPrimary} />
+      <Sidebar />
       <div className="col-span-5 flex h-[100vh] relative">
         <div className="w-full bg-sky-50 overflow-auto p-2">
           <SearchButton
-            setPrimaryData={setPrimary}
             setLoading={setLoading}
             loading={loading}
             streamingResponseRef={streamingResponseRef}
           />
-          <StreamingResponse ref={streamingResponseRef} />
+          <StreamingResponse
+            ref={streamingResponseRef}
+            setDatasetSelected={setDatasetSelected}
+          />
           {loading ? (
             <div className="ml-20 mt-20"> </div>
-          ) : primaryData != null && primaryData.length > 0 ? (
+          ) : state.searchResult != null && state.searchResult.length > 0 ? (
             <SearchResultViewer
-              primaryData={primaryData}
+              primaryData={state.searchResult}
               setDatasetSelected={setDatasetSelected}
               panelIsOpen={openPanel}
             />
           ) : (
-            primaryData != null && (
+            state.searchResult != null && (
               <>
                 <div className="absolute right-0 left-0 bottom-0 w-full bg-white py-4 flex justify-center items-center gap-4 border">
                   <span>Not seeing the data you&apos;re looking for?</span>
