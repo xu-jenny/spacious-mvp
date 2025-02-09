@@ -8,8 +8,9 @@ import {
 import { USDatasetSource } from "@/components/index/SearchButton";
 import { post } from "@/utils/http";
 import { cap } from "@/utils/util";
-import { createGTEEmbedding } from "./indexUtils";
-import { SearchResults } from "../app/page";
+// import { createGTEEmbedding } from "./indexUtils";
+// import { EventSourcePolyfill } from "event-source-polyfill";
+import { useChat } from "ai/react";
 
 export type GenericSearchResult = {
   id: string;
@@ -325,106 +326,202 @@ export async function laserficheSearch(
   location: string
 ): Promise<LaserficheSearchResult[]> {
   console.log("laserficheSearch", query, location);
-  let embedding = await createGTEEmbedding(query);
-  let hardcodeResults: LaserficheHardcodeResult[] = [];
-  if (embedding != null) {
-    hardcodeResults = await laserficheHardcode(query, embedding, location);
-    console.log("output of match_laserfiche_hardcode", hardcodeResults);
-  }
-  let response = await post(
-    `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/laserfiche`,
-    {
-      query: query,
-      location: location,
-    }
-  );
+  // let embedding = await createGTEEmbedding(query);
+  // let hardcodeResults: LaserficheHardcodeResult[] = [];
+  // if (embedding != null) {
+  //   hardcodeResults = await laserficheHardcode(query, embedding, location);
+  //   console.log("output of match_laserfiche_hardcode", hardcodeResults);
+  // }
+  // let response = await post(
+  //   `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/laserfiche`,
+  //   {
+  //     query: query,
+  //     location: location,
+  //   }
+  // );
+
+  const params = new URLSearchParams({
+    query: query,
+    location: location,
+  });
+
+  const url = `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/laserfiche?${params.toString()}`;
+  console.log("EventSource URL:", url);
+  // const eventSource = new EventSourcePolyfill(url, {
+  //   headers: {
+  //     "x-api-key": process.env.NEXT_PUBLIC_BACKEND_API_KEY ?? "",
+  //   },
+  // });
+
+  // eventSource.onmessage = (event: any) => {
+  //   console.log("eventSource message");
+  //   const data = JSON.parse(event.data);
+
+  //   if (data.type === "docs") {
+  //     console.log("Got documents:", data.content);
+  //     // Handle documents
+  //   } else if (data.type === "token") {
+  //     console.log("Got token:", data.content);
+  //     // Append token to your UI
+  //   }
+  // };
+
+  // eventSource.onerror = (error: any) => {
+  //   console.error("EventSource failed:", error);
+  //   eventSource.close();
+  // };
+
+  return [];
+
+  // const reader = response.body.getReader();
+  // const decoder = new TextDecoder();
+
+  // while (true) {
+  //   const { value, done } = await reader.read();
+  //   if (done) break;
+
+  //   const chunk = decoder.decode(value);
+  //   const messages = chunk.split("\\n\\n");
+
+  //   for (const message of messages) {
+  //     if (message.startsWith("data: ")) {
+  //       const data = JSON.parse(message.slice(6));
+
+  //       if (data.type === "documents") {
+  //         console.log("Received documents:", data.docs);
+  //         console.log("Received nodes:", data.nodes);
+  //         let results: LaserficheSearchResult[] = [];
+  //         if (
+  //           data != null &&
+  //           data != undefined &&
+  //           "documents" in data &&
+  //           "pages" in data
+  //         ) {
+  //           data["documents"].forEach((d: { [x: string]: any }) => {
+  //             let pageMatch = data["pages"].filter(
+  //               (page_doc: { [x: string]: any }) => page_doc["docid"] == d["id"]
+  //             )[0];
+  //             if (pageMatch != null) {
+  //               let nodes = transformLaserfichePageResults(
+  //                 pageMatch["pages"],
+  //                 location
+  //               );
+  //               let item = transformLaserficheSearchResult(d, nodes);
+  //               if (item["nodes"] != null && item["nodes"].length > 1) {
+  //                 const seen = new Set<number>();
+  //                 item["nodes"] = item["nodes"].filter(
+  //                   (node: LaserfichePageResult) => {
+  //                     if (node == null || !("page" in node)) {
+  //                       return false;
+  //                     }
+  //                     if (!seen.has(node.page)) {
+  //                       seen.add(node.page);
+  //                       return true;
+  //                     }
+  //                     return false;
+  //                   }
+  //                 );
+  //               }
+  //               results.push(item);
+  //             }
+  //           });
+  //           return results.sort((a, b) => b.score - a.score);
+  //         }
+  //       } else if (data.type === "token") {
+  //         console.log("Received token:", data.content);
+  //         // Append to your UI here
+  //       }
+  //     }
+  //   }
+  // }
+
   if (response == null) {
     return [];
   }
-  const data = JSON.parse(response);
-  let results: LaserficheSearchResult[] = [];
-  if (
-    data != null &&
-    data != undefined &&
-    "documents" in data &&
-    "pages" in data
-  ) {
-    data["documents"].forEach((d: { [x: string]: any }) => {
-      let pageMatch = data["pages"].filter(
-        (page_doc: { [x: string]: any }) => page_doc["docid"] == d["id"]
-      )[0];
-      if (pageMatch != null) {
-        let nodes = transformLaserfichePageResults(
-          pageMatch["pages"],
-          location
-        );
-        let item = transformLaserficheSearchResult(d, nodes);
-        if (
-          hardcodeResults.length >= 1 &&
-          hardcodeResults[0].bestDocMatch == d["id"]
-        ) {
-          // find the corresponding node
-          const correspondingNode = nodes.filter(
-            (node: LaserfichePageResult) =>
-              node.page == hardcodeResults[0].bestPageMatch
-          )[0];
-          item["nodes"].unshift(correspondingNode);
-          item["score"] = 10;
-          hardcodeResults = [];
-        }
-        // remove duplicate pages
-        if (item["nodes"] != null && item["nodes"].length > 1) {
-          const seen = new Set<number>();
-          item["nodes"] = item["nodes"].filter((node: LaserfichePageResult) => {
-            if (node == null || !("page" in node)) {
-              return false;
-            }
-            if (!seen.has(node.page)) {
-              seen.add(node.page);
-              return true;
-            }
-            return false;
-          });
-        }
-        results.push(item);
-      }
-    });
-    if (hardcodeResults.length > 0) {
-      console.log(
-        "Did not find hardcode doc from backend result, this should not Show up"
-      );
-      // if hardcodeResults is already added, it will be []. otherwise it was not incldued in the retunred result so adding now
-      const foundDoc = data["documents"].find(
-        (d: { [x: string]: any }) => d["id"] === hardcodeResults[0].bestDocMatch
-      );
-      let nodes = [
-        {
-          page: hardcodeResults[0].bestPageMatch,
-          score: 10,
-          bbox: null,
-          text: "",
-        },
-      ];
+  // const data = JSON.parse(response);
+  // let results: LaserficheSearchResult[] = [];
+  // if (
+  //   data != null &&
+  //   data != undefined &&
+  //   "documents" in data &&
+  //   "pages" in data
+  // ) {
+  //   data["documents"].forEach((d: { [x: string]: any }) => {
+  //     let pageMatch = data["pages"].filter(
+  //       (page_doc: { [x: string]: any }) => page_doc["docid"] == d["id"]
+  //     )[0];
+  //     if (pageMatch != null) {
+  //       let nodes = transformLaserfichePageResults(
+  //         pageMatch["pages"],
+  //         location
+  //       );
+  //       let item = transformLaserficheSearchResult(d, nodes);
+  //       // if (
+  //       //   hardcodeResults.length >= 1 &&
+  //       //   hardcodeResults[0].bestDocMatch == d["id"]
+  //       // ) {
+  //       //   // find the corresponding node
+  //       //   const correspondingNode = nodes.filter(
+  //       //     (node: LaserfichePageResult) =>
+  //       //       node.page == hardcodeResults[0].bestPageMatch
+  //       //   )[0];
+  //       //   item["nodes"].unshift(correspondingNode);
+  //       //   item["score"] = 10;
+  //       //   hardcodeResults = [];
+  //       // }
+  //       // remove duplicate pages
+  //       if (item["nodes"] != null && item["nodes"].length > 1) {
+  //         const seen = new Set<number>();
+  //         item["nodes"] = item["nodes"].filter((node: LaserfichePageResult) => {
+  //           if (node == null || !("page" in node)) {
+  //             return false;
+  //           }
+  //           if (!seen.has(node.page)) {
+  //             seen.add(node.page);
+  //             return true;
+  //           }
+  //           return false;
+  //         });
+  //       }
+  //       results.push(item);
+  //     }
+  //   });
+  //   // if (hardcodeResults.length > 0) {
+  //   //   console.log(
+  //   //     "Did not find hardcode doc from backend result, this should not Show up"
+  //   //   );
+  //   //   // if hardcodeResults is already added, it will be []. otherwise it was not incldued in the retunred result so adding now
+  //   //   const foundDoc = data["documents"].find(
+  //   //     (d: { [x: string]: any }) => d["id"] === hardcodeResults[0].bestDocMatch
+  //   //   );
+  //   //   let nodes = [
+  //   //     {
+  //   //       page: hardcodeResults[0].bestPageMatch,
+  //   //       score: 10,
+  //   //       bbox: null,
+  //   //       text: "",
+  //   //     },
+  //   //   ];
 
-      results.push({
-        title: foundDoc["title"],
-        id: foundDoc["id"],
-        score: 10,
-        text: foundDoc["text"] ?? "",
-        page_bbox: null,
-        containsTable: foundDoc["containsTable"],
-        originalUrl: foundDoc["originalUrl"],
-        firstPublished: foundDoc["firstPublished"],
-        lastUpdated: foundDoc["lastUpdated"],
-        docDate: foundDoc["docDate"],
-        facilityName: foundDoc["facilityName"],
-        owner: foundDoc["owner"],
-        metadata: foundDoc["metadata"],
-        nodes: nodes,
-      });
-    }
-    console.log(results);
-    return results.sort((a, b) => b.score - a.score);
-  }
+  //   //   results.push({
+  //   //     title: foundDoc["title"],
+  //   //     id: foundDoc["id"],
+  //   //     score: 10,
+  //   //     text: foundDoc["text"] ?? "",
+  //   //     page_bbox: null,
+  //   //     containsTable: foundDoc["containsTable"],
+  //   //     originalUrl: foundDoc["originalUrl"],
+  //   //     firstPublished: foundDoc["firstPublished"],
+  //   //     lastUpdated: foundDoc["lastUpdated"],
+  //   //     docDate: foundDoc["docDate"],
+  //   //     facilityName: foundDoc["facilityName"],
+  //   //     owner: foundDoc["owner"],
+  //   //     metadata: foundDoc["metadata"],
+  //   //     nodes: nodes,
+  //   //   });
+  //   // }
+  //   console.log(results);
+  //   return results.sort((a, b) => b.score - a.score);
+  // }
   return [];
 }

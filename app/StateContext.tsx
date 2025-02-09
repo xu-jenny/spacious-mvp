@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import { useAddressToCoordinates } from "./hooks/useAddressToCoordinates";
 import { USDatasetSource } from "@/components/index/SearchButton";
+import { SearchResults } from "./app/page";
 
 export type LocationType = {
   lat: number;
@@ -35,6 +36,7 @@ type State = {
   startDate: string;
   endDate: string;
   dataSource: USDatasetSource;
+  searchResult: SearchResults[] | null;
 };
 
 type Action =
@@ -43,6 +45,7 @@ type Action =
   | { type: "updateDatasource"; payload: USDatasetSource }
   | { type: "updateStartDate"; payload: string }
   | { type: "updateEndDate"; payload: string }
+  | { type: "updateSearchResults"; payload: SearchResults[] }
   | { type: "resetState"; datasource: USDatasetSource };
 
 function reducer(state: State, action: Action): State {
@@ -58,6 +61,8 @@ function reducer(state: State, action: Action): State {
       return { ...state, startDate: action.payload };
     case "updateEndDate":
       return { ...state, endDate: action.payload };
+    case "updateSearchResults":
+      return { ...state, searchResult: action.payload };
     case "resetState":
       const sevenDaysAgo = new Date(
         Date.now() - 7 * 24 * 60 * 60 * 1000
@@ -69,6 +74,7 @@ function reducer(state: State, action: Action): State {
         startDate: sevenDaysAgo,
         endDate: now,
         dataSource: action.datasource,
+        searchResult: null,
       };
     default:
       throw new Error(`Unhandled action type: ${action}`);
@@ -116,6 +122,7 @@ export const StateProvider: React.FC<StateProviderProps> = ({ children }) => {
     dataSource: sourceSearchParamToDatasetSource(
       searchParams?.get("source") ?? null
     ),
+    searchResult: null,
   };
   const [state, dispatch] = useReducer(reducer, initialState);
 

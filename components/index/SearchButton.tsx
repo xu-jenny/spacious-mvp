@@ -12,7 +12,8 @@ import {
   USGS_DROPDOWN_SELECTION,
   usgsWaterSearch,
 } from "@/app/search/usgsSearch";
-
+import { useChat } from "ai/react";
+import StreamingResponse, { StreamingResponseRef } from "./StreamingResponse";
 export type USDatasetSource =
   | "PFAS"
   | "LASERFICHE"
@@ -47,6 +48,7 @@ type Props = {
   setPrimaryData: (data: any[]) => void;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   loading: boolean;
+  streamingResponseRef: React.RefObject<StreamingResponseRef>;
 };
 
 export async function search(
@@ -78,7 +80,12 @@ export async function search(
   }
 }
 
-const SearchButton = ({ setPrimaryData, setLoading, loading }: Props) => {
+const SearchButton = ({
+  setPrimaryData,
+  setLoading,
+  loading,
+  streamingResponseRef,
+}: Props) => {
   const { state, dispatch } = useStateContext();
   const { role } = useAuthStateContext();
   const [searchValue, setSearchValue] = useState<string>(state.searchValue);
@@ -106,11 +113,8 @@ const SearchButton = ({ setPrimaryData, setLoading, loading }: Props) => {
     if (isDisabled) {
       return;
     }
-    console.log(state.location, state.location?.name);
-    if (
-      !state.location ||
-      (state.location.lat == 0 && state.location.lon == 0)
-    ) {
+    // console.log(state.location, state.location?.name);
+    if (state.location == null) {
       // || !state.location.name) {
       setToastConfig({
         message: "Please enter a location before searching.",
@@ -120,22 +124,35 @@ const SearchButton = ({ setPrimaryData, setLoading, loading }: Props) => {
       return;
     }
     if (value && value.length > 2) {
-      setLoading(true);
-      let primaryData = await search(
-        value,
-        state.location,
-        state.dataSource,
-        state.startDate,
-        state.endDate
-      );
-      setPrimaryData(primaryData ?? []);
-      dispatch({ type: "updateSearchValue", payload: value });
-      setLoading(false);
-      inputRef.current?.blur();
-      try {
-        logger.log("Search", value, `${state.location},${state.dataSource}`);
-      } catch (e) {
-        console.log(e);
+      console.log(state.dataSource, value, state.location?.name);
+      if (state.dataSource == "PFAS") {
+        const body = {
+          query: value,
+          location: state.location?.name ?? "",
+        };
+        streamingResponseRef.current?.startStream(
+          `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/laserfiche`,
+          body,
+          setPrimaryData
+        );
+      } else {
+        setLoading(true);
+        let primaryData = await search(
+          value,
+          state.location,
+          state.dataSource,
+          state.startDate,
+          state.endDate
+        );
+        setPrimaryData(primaryData ?? []);
+        dispatch({ type: "updateSearchValue", payload: value });
+        setLoading(false);
+        inputRef.current?.blur();
+        try {
+          logger.log("Search", value, `${state.location},${state.dataSource}`);
+        } catch (e) {
+          console.log(e);
+        }
       }
     }
   };
@@ -214,7 +231,6 @@ const SearchButton = ({ setPrimaryData, setLoading, loading }: Props) => {
           Search
         </button>
       </div>
-
       {toastConfig && (
         <ToastNotification
           message={toastConfig.message}

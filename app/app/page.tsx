@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "react-sliding-pane/dist/react-sliding-pane.css";
 
 import DatasetPanel from "@/components/index/DatasetPane/DatasetPanel";
@@ -17,6 +17,9 @@ import Sidebar from "@/components/index/Sidebar/Sidebar";
 import Spinner from "@/components/common/Spinner";
 import { useLogger } from "@/utils/supabaseLogger";
 import { USGSWaterSearchResult } from "../search/usgsSearch";
+import StreamingResponse, {
+  StreamingResponseRef,
+} from "@/components/index/StreamingResponse";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
@@ -36,6 +39,7 @@ export default function Home() {
   const [openPanel, setOpenPanel] = useState(false);
   const [currentds, setCurrentds] = useState<SearchResults | null>();
   const logger = useLogger();
+  const streamingResponseRef = useRef<StreamingResponseRef>(null);
 
   function setDatasetSelected(ds: SearchResults) {
     setCurrentds(ds);
@@ -87,7 +91,9 @@ export default function Home() {
             setPrimaryData={setPrimary}
             setLoading={setLoading}
             loading={loading}
+            streamingResponseRef={streamingResponseRef}
           />
+          <StreamingResponse ref={streamingResponseRef} />
           {loading ? (
             <div className="ml-20 mt-20"> </div>
           ) : primaryData != null && primaryData.length > 0 ? (
