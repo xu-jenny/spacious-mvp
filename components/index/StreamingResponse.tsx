@@ -61,6 +61,7 @@ const StreamingResponse = forwardRef<
           body: JSON.stringify(body),
         });
         setResponse("");
+        setSource(null);
 
         const reader = res.body?.getReader();
         const decoder = new TextDecoder();
@@ -131,7 +132,9 @@ const StreamingResponse = forwardRef<
 
   return (
     <>
-      {loading && <Spinner className="p-3 mx-auto" />}
+      {loading && (
+        <Spinner className="h-12 w-12 ml-auto mr-auto my-2 text-gray-500" />
+      )}
       {response && (
         <Card className="w-full mx-auto">
           <SimpleFormatter text={response} />
