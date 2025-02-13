@@ -20,6 +20,7 @@ import {
   YAxis,
 } from "recharts";
 import { USGSWaterSearchResult } from "@/app/search/usgsSearch";
+import { useStateContext } from "@/app/StateContext";
 
 const DataChart = ({
   data,
@@ -67,6 +68,7 @@ type Props = {
 function USGSWaterDatasetCard({ dataset, index, startTime, endTime }: Props) {
   const [chart, setChart] = useState(dataset.sample_df ?? []);
   const [expanded, setExpanded] = useState(chart?.length > 0);
+  const { state } = useStateContext();
 
   const longStringShortener = (str: string) =>
     str != null && str.length > 300 ? `${str.substring(0, 300)}...` : str;
@@ -83,7 +85,11 @@ function USGSWaterDatasetCard({ dataset, index, startTime, endTime }: Props) {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "data.csv";
+    if (isDailySum) {
+      a.download = `${state.searchValue ?? "data"}_${dataset.title}_DailySum.csv`;
+    } else {
+      a.download = `${state.searchValue ?? "data"}_${dataset.title}.csv`;
+    }
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -121,27 +127,27 @@ function USGSWaterDatasetCard({ dataset, index, startTime, endTime }: Props) {
               className="flex items-center text-blue-600 hover:text-blue-700"
             >
               <CiShare1 size={24} className="mr-1" />
-              Original Link
+              Source
             </Link>
             <button
               onClick={() => handleDownload(false)}
               className="flex items-center text-green-500 hover:text-green-600"
             >
               <MdOutlineFileDownload size={24} className="mr-1" />
-              Download CSV
+              All Data
             </button>
             <button
               onClick={() => handleDownload(true)}
               className="flex items-center text-blue-600 hover:text-blue-700"
             >
               <MdOutlineFileDownload size={24} className="mr-1" />
-              Download Daily Sums CSV
+              Daily Sums
             </button>
           </div>
         </div>
         <div className="flex items-center space-x-2">
           {index === 0 && (
-            <Badge color="info" className="py-1 px-2 text-sm">
+            <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
               Closest Station
             </Badge>
           )}

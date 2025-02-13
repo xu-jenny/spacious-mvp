@@ -182,7 +182,7 @@ const SearchButton = ({ setLoading, loading, streamingResponseRef }: Props) => {
           <Autocomplete
             disablePortal
             options={USGS_DROPDOWN_SELECTION}
-            sx={{ width: "100%" }}
+            sx={{ width: "92%" }}
             onInputChange={(event, newInputValue) => {
               setSearchValue(newInputValue);
             }}

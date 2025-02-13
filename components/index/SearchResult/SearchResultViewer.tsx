@@ -28,7 +28,11 @@ const SearchResultViewer = ({
     <>
       {state.dataSource == "USGS_WATER" ? (
         <Tabs aria-label="Default tabs" ref={tabsRef}>
-          <Tabs.Item active title="List" icon={FaList}>
+          <Tabs.Item
+            active
+            title="List"
+            icon={(props) => <FaList {...props} className="mr-2" />}
+          >
             <ListSearchResultViewer
               primaryData={primaryData}
               setDatasetSelected={setDatasetSelected}
@@ -38,7 +42,10 @@ const SearchResultViewer = ({
               panelIsOpen={panelIsOpen}
             />
           </Tabs.Item>
-          <Tabs.Item title="Map" icon={FaMapMarkedAlt}>
+          <Tabs.Item
+            title="Map"
+            icon={(props) => <FaMapMarkedAlt {...props} className="mr-2" />}
+          >
             {state.dataSource == "USGS_WATER" && state.location ? (
               <PigeonMapViewer
                 data={primaryData as USGSWaterSearchResult[]}
