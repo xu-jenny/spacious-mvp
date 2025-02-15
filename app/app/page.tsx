@@ -110,7 +110,7 @@ export default function Home() {
             state.searchResult != null && (
               <>
                 <div className="absolute right-0 left-0 bottom-0 w-full bg-white py-4 flex justify-center items-center gap-4 border">
-                  {state.dataSource == "USGS" ? (
+                  {state.dataSource == "USGS_WATER" ? (
                     <span>
                       No stations found for{" "}
                       {state.searchValue ?? "your datatype"} within 50 miles

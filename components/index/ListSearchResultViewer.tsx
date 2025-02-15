@@ -8,6 +8,7 @@ import { NCDEQWSSearchResult } from "@/app/search/NCDEQWSSearch";
 import { SearchResults } from "@/app/app/page";
 import { LaserficheSearchResult } from "@/app/search/search";
 import { USGSWaterSearchResult } from "@/app/search/usgsSearch";
+import { useStateContext } from "@/app/StateContext";
 
 interface Props {
   primaryData: SearchResults[];
@@ -26,6 +27,7 @@ const ListSearchResultViewer = ({
   panelIsOpen,
 }: Props) => {
   const logger = useLogger();
+  const { state } = useStateContext();
 
   const searchResultCard = function (dataset: SearchResults, index: number) {
     switch (dsSource) {
@@ -65,7 +67,7 @@ const ListSearchResultViewer = ({
     <>
       <PaginatedList
         list={primaryData || []}
-        itemsPerPage={20}
+        itemsPerPage={state.dataSource == "USGS_WATER" ? 50 : 20}
         renderList={(list: Array<any>) => (
           <>{list.map((data, i) => searchResultCard(data, i))}</>
         )}

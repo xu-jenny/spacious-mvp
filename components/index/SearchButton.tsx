@@ -16,9 +16,6 @@ import { StreamingResponseRef } from "./StreamingResponse";
 export type USDatasetSource =
   | "PFAS"
   | "LASERFICHE"
-  | "USGS"
-  | "USGOV"
-  | "NYOPEN"
   | "USGS_WATER"
   | "NC_DEQ_WATERSUPPLY"
   | "ANY";
@@ -27,9 +24,6 @@ export type USDatasetSource =
 export const DATA_SOURCE_ACCESS_LEVELS: Record<USDatasetSource, number> = {
   PFAS: 1,
   LASERFICHE: 0,
-  USGS: 0,
-  USGOV: 0,
-  NYOPEN: 0,
   USGS_WATER: 0,
   NC_DEQ_WATERSUPPLY: 0,
   ANY: 0,
@@ -185,6 +179,7 @@ const SearchButton = ({ setLoading, loading, streamingResponseRef }: Props) => {
             sx={{ width: "92%" }}
             onInputChange={(event, newInputValue) => {
               setSearchValue(newInputValue);
+              onSubmit(searchValue);
             }}
             renderInput={(params) => (
               <TextField
@@ -198,32 +193,34 @@ const SearchButton = ({ setLoading, loading, streamingResponseRef }: Props) => {
             )}
           />
         ) : (
-          <Input
-            ref={inputRef}
-            type="search"
-            className="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-            placeholder={placeholderText}
-            value={searchValue ?? ""}
-            onkeydown={handleKeyDown}
-            onChange={(v: string) => setSearchValue(v)}
-            disabled={isDisabled}
-          />
+          <>
+            <Input
+              ref={inputRef}
+              type="search"
+              className="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              placeholder={placeholderText}
+              value={searchValue ?? ""}
+              onkeydown={handleKeyDown}
+              onChange={(v: string) => setSearchValue(v)}
+              disabled={isDisabled}
+            />
+            <button
+              type="submit"
+              className={`text-white absolute end-2.5 bottom-2.5 ${
+                isDisabled
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-blue-700 hover:bg-blue-800"
+              } focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800`}
+              onClick={(e) => {
+                e.preventDefault();
+                onSubmit(searchValue);
+              }}
+              disabled={isDisabled}
+            >
+              Search
+            </button>
+          </>
         )}
-        <button
-          type="submit"
-          className={`text-white absolute end-2.5 bottom-2.5 ${
-            isDisabled
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-blue-700 hover:bg-blue-800"
-          } focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800`}
-          onClick={(e) => {
-            e.preventDefault();
-            onSubmit(searchValue);
-          }}
-          disabled={isDisabled}
-        >
-          Search
-        </button>
       </div>
       {toastConfig && (
         <ToastNotification

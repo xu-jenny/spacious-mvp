@@ -207,8 +207,6 @@ export type USGSWaterSearchResult = {
   long: number;
   distanceFromInput: number;
   dataTypes: string;
-  county: string | null;
-  stateCode: string | null;
   matchingParamCode: string;
   csv_dl_link?: string;
   unit?: string | null;
@@ -217,6 +215,16 @@ export type USGSWaterSearchResult = {
     value: number;
   }[];
 };
+
+interface USGSResponseData {
+  iotid: string;
+  latitude: number;
+  longitude: number;
+  datatype: string;
+  locationname: string;
+  distance: number;
+  paramCodes: string;
+}
 
 function round(num: number, fractionDigits: number): number {
   if (num == null) {
@@ -236,8 +244,23 @@ export function getUnitsByParamCode(paramCode: string): string | null {
   return null;
 }
 
+function getParameterNames(row: USGSResponseData): string {
+  const paramCodes = JSON.parse(row.paramCodes.replace(/'/g, '"'));
+  const codeToParam = new Map<string, string>();
+  Object.entries(USGS_PARAM_CODES).forEach(([paramName, codesList]) => {
+    codesList.forEach(([code]) => {
+      codeToParam.set(code, paramName);
+    });
+  });
+  // Map each parameter code to its name and filter out any undefined values
+  const paramNames = paramCodes
+    .map((code: string) => codeToParam.get(code))
+    .filter((name: any): name is string => name !== undefined);
+  return paramNames.join(", ");
+}
+
 function postprocessSupabaseResponse(response: any, inputParamCodes: string[]) {
-  let rows = response.rows;
+  let rows: USGSResponseData[] = response.rows;
   if (rows == null || rows.length == 0) {
     return [];
   }
@@ -245,7 +268,7 @@ function postprocessSupabaseResponse(response: any, inputParamCodes: string[]) {
   let dl_link = `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/download-csv/${response.csv_id}`;
 
   let data: USGSWaterSearchResult[] = [];
-  rows.forEach((row: { [x: string]: any }, i: number) => {
+  rows.forEach((row: USGSResponseData, i: number) => {
     let result: USGSWaterSearchResult = {
       id: row["iotid"],
       title: row["locationname"],
@@ -253,9 +276,7 @@ function postprocessSupabaseResponse(response: any, inputParamCodes: string[]) {
       summary: "",
       lat: row["latitude"],
       long: row["longitude"],
-      dataTypes: "",
-      county: row["county"],
-      stateCode: row["statecode"],
+      dataTypes: row["datatype"],
       siteId: "",
       matchingParamCode: inputParamCodes[0][0],
     };
@@ -266,6 +287,7 @@ function postprocessSupabaseResponse(response: any, inputParamCodes: string[]) {
       row["latitude"],
       4
     )}, ${round(row["longitude"], 4)}).`;
+    result["summary"] += `Available Data at station: ${getParameterNames(row)}`;
 
     result["siteId"] = result["id"].slice(5);
     // find unit
